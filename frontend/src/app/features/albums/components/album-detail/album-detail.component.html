@@ -1,0 +1,74 @@
+<div class="container">
+  <button mat-button (click)="goBack()" class="back-button">
+    <mat-icon>arrow_back</mat-icon>
+    Voltar
+  </button>
+
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+  </div>
+
+  <div class="error-state" *ngIf="error && !loading">
+    <mat-icon>error</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-raised-button (click)="goBack()">Voltar para lista</button>
+  </div>
+
+  <div class="album-detail" *ngIf="album && !loading">
+    <div class="album-cover-section">
+      <img *ngIf="album.coverUrl"
+           [src]="album.coverUrl"
+           [alt]="album.title"
+           class="album-cover">
+      <div *ngIf="!album.coverUrl" class="album-cover-placeholder">
+        <mat-icon>album</mat-icon>
+      </div>
+    </div>
+
+    <mat-card class="album-info-card">
+      <mat-card-header>
+        <mat-card-title>{{ album.title }}</mat-card-title>
+        <mat-card-subtitle>{{ album.releaseYear }}</mat-card-subtitle>
+      </mat-card-header>
+
+      <mat-card-content>
+        <div class="info-row">
+          <span class="label">Status:</span>
+          <mat-chip [color]="album.active ? 'primary' : 'warn'" selected>
+            {{ album.active ? 'Ativo' : 'Inativo' }}
+          </mat-chip>
+        </div>
+
+        <div class="info-row" *ngIf="album.genre">
+          <span class="label">Genero:</span>
+          <span>{{ album.genre }}</span>
+        </div>
+
+        <mat-divider></mat-divider>
+
+        <section class="artists-section">
+          <h3>Artistas</h3>
+          <mat-list *ngIf="album.artists?.length; else noArtists">
+            <mat-list-item *ngFor="let artist of album.artists" (click)="viewArtist(artist.id)">
+              <mat-icon matListItemIcon>
+                {{ artist.type === 'BAND' ? 'groups' : 'person' }}
+              </mat-icon>
+              <span matListItemTitle>{{ artist.name }}</span>
+              <span matListItemLine>{{ artist.type === 'BAND' ? 'Banda' : 'Cantor Solo' }}</span>
+            </mat-list-item>
+          </mat-list>
+          <ng-template #noArtists>
+            <p class="no-artists">Nenhum artista vinculado</p>
+          </ng-template>
+        </section>
+      </mat-card-content>
+
+      <mat-card-actions align="end">
+        <button mat-raised-button color="primary" (click)="editAlbum()">
+          <mat-icon>edit</mat-icon>
+          Editar
+        </button>
+      </mat-card-actions>
+    </mat-card>
+  </div>
+</div>

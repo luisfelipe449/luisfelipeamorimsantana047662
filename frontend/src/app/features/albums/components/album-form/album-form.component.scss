@@ -1,0 +1,85 @@
+.form-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+mat-card {
+  padding: 20px;
+}
+
+mat-card-header {
+  margin-bottom: 24px;
+}
+
+.cover-upload-section {
+  margin: 16px 0 24px;
+
+  label {
+    display: block;
+    font-size: 14px;
+    color: rgba(0, 0, 0, 0.6);
+    margin-bottom: 8px;
+  }
+}
+
+.cover-preview {
+  position: relative;
+  display: inline-block;
+  max-width: 200px;
+
+  img {
+    width: 100%;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  }
+
+  .remove-cover {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background-color: white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  }
+}
+
+.upload-area {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 8px;
+
+  .upload-hint {
+    font-size: 12px;
+    color: rgba(0, 0, 0, 0.54);
+    margin: 0;
+  }
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+
+  button {
+    min-width: 100px;
+  }
+
+  mat-spinner {
+    display: inline-block;
+  }
+}
+
+@media (max-width: 600px) {
+  .form-container {
+    padding: 0 10px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
+  }
+}

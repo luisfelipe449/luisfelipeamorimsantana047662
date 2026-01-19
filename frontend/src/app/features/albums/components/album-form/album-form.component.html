@@ -1,0 +1,96 @@
+<div class="form-container">
+  <mat-card>
+    <mat-card-header>
+      <mat-card-title>{{ isEditMode ? 'Editar Album' : 'Novo Album' }}</mat-card-title>
+    </mat-card-header>
+
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Titulo</mat-label>
+          <input matInput formControlName="title" placeholder="Titulo do album">
+          <mat-error *ngIf="form.get('title')?.hasError('required')">
+            Titulo e obrigatorio
+          </mat-error>
+          <mat-error *ngIf="form.get('title')?.hasError('maxlength')">
+            Titulo deve ter no maximo 200 caracteres
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Ano de Lancamento</mat-label>
+          <input matInput type="number" formControlName="releaseYear" placeholder="Ano">
+          <mat-error *ngIf="form.get('releaseYear')?.hasError('required')">
+            Ano e obrigatorio
+          </mat-error>
+          <mat-error *ngIf="form.get('releaseYear')?.hasError('min')">
+            Ano deve ser maior que 1900
+          </mat-error>
+          <mat-error *ngIf="form.get('releaseYear')?.hasError('max')">
+            Ano deve ser menor que 2100
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Genero</mat-label>
+          <input matInput formControlName="genre" placeholder="Genero musical">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="form-field">
+          <mat-label>Artistas</mat-label>
+          <mat-select formControlName="artistIds" multiple>
+            <mat-option *ngFor="let artist of artists" [value]="artist.id">
+              {{ artist.name }}
+            </mat-option>
+          </mat-select>
+          <mat-error *ngIf="form.get('artistIds')?.hasError('required')">
+            Selecione pelo menos um artista
+          </mat-error>
+        </mat-form-field>
+
+        <div class="cover-upload-section">
+          <label>Capa do Album</label>
+
+          <div class="cover-preview" *ngIf="coverPreview">
+            <img [src]="coverPreview" alt="Preview da capa">
+            <button mat-icon-button
+                    color="warn"
+                    type="button"
+                    (click)="removeFile()"
+                    class="remove-cover">
+              <mat-icon>close</mat-icon>
+            </button>
+          </div>
+
+          <div class="upload-area" *ngIf="!coverPreview">
+            <input type="file"
+                   #fileInput
+                   accept="image/*"
+                   (change)="onFileSelected($event)"
+                   hidden>
+            <button mat-stroked-button
+                    type="button"
+                    (click)="fileInput.click()">
+              <mat-icon>cloud_upload</mat-icon>
+              Selecionar imagem
+            </button>
+            <p class="upload-hint">Formatos aceitos: JPG, PNG, GIF</p>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <button mat-button type="button" (click)="cancel()">
+            Cancelar
+          </button>
+          <button mat-raised-button
+                  color="primary"
+                  type="submit"
+                  [disabled]="form.invalid || loading || uploading">
+            <mat-spinner *ngIf="loading || uploading" diameter="20"></mat-spinner>
+            <span *ngIf="!loading && !uploading">{{ isEditMode ? 'Salvar' : 'Criar' }}</span>
+          </button>
+        </div>
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>
