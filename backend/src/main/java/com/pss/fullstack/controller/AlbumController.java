@@ -2,14 +2,20 @@ package com.pss.fullstack.controller;
 
 import com.pss.fullstack.dto.*;
 import com.pss.fullstack.service.AlbumService;
+import com.pss.fullstack.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/v1/albums")
@@ -18,6 +24,7 @@ import org.springframework.web.bind.annotation.*;
 public class AlbumController {
 
     private final AlbumService albumService;
+    private final StorageService storageService;
 
     @GetMapping
     @Operation(summary = "List all albums with pagination and filtering")
@@ -93,6 +100,59 @@ public class AlbumController {
             @Valid @RequestBody AlbumUpdateDTO dto
     ) {
         return ResponseEntity.ok(albumService.update(id, dto));
+    }
+
+    @PostMapping(value = "/{id}/covers", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload album cover image")
+    public ResponseEntity<Map<String, String>> uploadCover(
+            @Parameter(description = "Album ID")
+            @PathVariable Long id,
+
+            @Parameter(description = "Cover image file")
+            @RequestParam("file") MultipartFile file
+    ) {
+        String objectKey = storageService.uploadFile(file);
+        albumService.addCoverKey(id, objectKey);
+
+        String presignedUrl = storageService.getPresignedUrl(objectKey);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of(
+                        "key", objectKey,
+                        "url", presignedUrl
+                ));
+    }
+
+    @PostMapping(value = "/{id}/covers/batch", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload multiple album cover images")
+    public ResponseEntity<List<Map<String, String>>> uploadCovers(
+            @Parameter(description = "Album ID")
+            @PathVariable Long id,
+
+            @Parameter(description = "Cover image files")
+            @RequestParam("files") List<MultipartFile> files
+    ) {
+        List<Map<String, String>> results = files.stream()
+                .map(file -> {
+                    String objectKey = storageService.uploadFile(file);
+                    albumService.addCoverKey(id, objectKey);
+                    String presignedUrl = storageService.getPresignedUrl(objectKey);
+                    return Map.of("key", objectKey, "url", presignedUrl);
+                })
+                .toList();
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(results);
+    }
+
+    @GetMapping("/{id}/covers")
+    @Operation(summary = "Get album cover URLs with presigned URLs (30 min expiration)")
+    public ResponseEntity<List<String>> getCoverUrls(
+            @Parameter(description = "Album ID")
+            @PathVariable Long id
+    ) {
+        List<String> coverKeys = albumService.getCoverKeys(id);
+        List<String> presignedUrls = storageService.getPresignedUrls(coverKeys);
+        return ResponseEntity.ok(presignedUrls);
     }
 
 }
