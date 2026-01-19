@@ -1,0 +1,41 @@
+.form-container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+mat-card {
+  padding: 20px;
+}
+
+mat-card-header {
+  margin-bottom: 24px;
+}
+
+.form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+
+  button {
+    min-width: 100px;
+  }
+
+  mat-spinner {
+    display: inline-block;
+  }
+}
+
+@media (max-width: 600px) {
+  .form-container {
+    padding: 0 10px;
+  }
+
+  .form-actions {
+    flex-direction: column-reverse;
+
+    button {
+      width: 100%;
+    }
+  }
+}

@@ -1,0 +1,77 @@
+<div class="container">
+  <button mat-button (click)="goBack()" class="back-button">
+    <mat-icon>arrow_back</mat-icon>
+    Voltar
+  </button>
+
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner></mat-spinner>
+  </div>
+
+  <div class="error-state" *ngIf="error && !loading">
+    <mat-icon>error</mat-icon>
+    <p>{{ error }}</p>
+    <button mat-raised-button (click)="goBack()">Voltar para lista</button>
+  </div>
+
+  <mat-card *ngIf="artist && !loading" class="artist-card">
+    <mat-card-header>
+      <mat-icon mat-card-avatar class="avatar-icon">
+        {{ artist.type === 'BAND' ? 'groups' : 'person' }}
+      </mat-icon>
+      <mat-card-title>{{ artist.name }}</mat-card-title>
+      <mat-card-subtitle>
+        <mat-chip-set>
+          <mat-chip>{{ getTypeLabel(artist.type) }}</mat-chip>
+          <mat-chip *ngIf="artist.country">{{ artist.country }}</mat-chip>
+          <mat-chip [color]="artist.active ? 'primary' : 'warn'" selected>
+            {{ artist.active ? 'Ativo' : 'Inativo' }}
+          </mat-chip>
+        </mat-chip-set>
+      </mat-card-subtitle>
+    </mat-card-header>
+
+    <mat-card-content>
+      <section *ngIf="artist.biography" class="biography-section">
+        <h3>Biografia</h3>
+        <p>{{ artist.biography }}</p>
+      </section>
+
+      <mat-divider *ngIf="artist.albums?.length"></mat-divider>
+
+      <section *ngIf="artist.albums?.length" class="albums-section">
+        <h3>Albums ({{ artist.albums.length }})</h3>
+        <div class="albums-grid">
+          <mat-card *ngFor="let album of artist.albums"
+                    class="album-card"
+                    (click)="viewAlbum(album.id)">
+            <img *ngIf="album.coverUrl"
+                 mat-card-image
+                 [src]="album.coverUrl"
+                 [alt]="album.title"
+                 class="album-cover">
+            <div *ngIf="!album.coverUrl" class="album-cover-placeholder">
+              <mat-icon>album</mat-icon>
+            </div>
+            <mat-card-content>
+              <p class="album-title">{{ album.title }}</p>
+              <p class="album-year">{{ album.releaseYear }}</p>
+            </mat-card-content>
+          </mat-card>
+        </div>
+      </section>
+
+      <div *ngIf="!artist.albums?.length" class="no-albums">
+        <mat-icon>album</mat-icon>
+        <p>Nenhum album cadastrado</p>
+      </div>
+    </mat-card-content>
+
+    <mat-card-actions align="end">
+      <button mat-raised-button color="primary" (click)="editArtist()">
+        <mat-icon>edit</mat-icon>
+        Editar
+      </button>
+    </mat-card-actions>
+  </mat-card>
+</div>
