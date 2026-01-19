@@ -1,0 +1,39 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: calc(100vh - 120px);
+  padding: 20px;
+}
+
+.login-card {
+  width: 100%;
+  max-width: 400px;
+  padding: 20px;
+}
+
+.full-width {
+  width: 100%;
+}
+
+.login-button {
+  margin-top: 16px;
+  height: 48px;
+
+  mat-spinner {
+    display: inline-block;
+  }
+}
+
+mat-card-header {
+  margin-bottom: 24px;
+
+  mat-card-title {
+    font-size: 24px;
+    font-weight: 500;
+  }
+}
+
+mat-form-field {
+  margin-bottom: 8px;
+}
