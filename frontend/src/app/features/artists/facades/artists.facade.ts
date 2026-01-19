@@ -64,8 +64,11 @@ export class ArtistsFacade {
     this.loading$.next(true);
     this.error$.next(null);
 
+    const filters = this.filters$.value;
     const searchParams: ArtistSearchParams = {
-      ...this.filters$.value,
+      name: filters.name || undefined,
+      type: filters.type || undefined,
+      sortDirection: filters.sortDirection,
       page: params?.page ?? this.pagination$.value.page,
       size: params?.size ?? this.pagination$.value.size,
       sortBy: 'name',

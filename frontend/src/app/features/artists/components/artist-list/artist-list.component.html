@@ -59,7 +59,7 @@
       <mat-card-content>
         <p *ngIf="artist.biography" class="biography">{{ artist.biography }}</p>
         <p *ngIf="artist.albums?.length" class="albums-count">
-          {{ artist.albums.length }} album(ns)
+          {{ artist.albums?.length }} album(ns)
         </p>
       </mat-card-content>
 

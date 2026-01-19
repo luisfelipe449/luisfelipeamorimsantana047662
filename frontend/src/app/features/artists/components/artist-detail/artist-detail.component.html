@@ -40,7 +40,7 @@
       <mat-divider *ngIf="artist.albums?.length"></mat-divider>
 
       <section *ngIf="artist.albums?.length" class="albums-section">
-        <h3>Albums ({{ artist.albums.length }})</h3>
+        <h3>Albums ({{ artist.albums?.length }})</h3>
         <div class="albums-grid">
           <mat-card *ngFor="let album of artist.albums"
                     class="album-card"
