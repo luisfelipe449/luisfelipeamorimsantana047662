@@ -107,6 +107,11 @@ export class AlbumListComponent implements OnInit, OnDestroy {
     this.facade.clearFilters();
   }
 
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.searchSubject.next('');
+  }
+
   getArtistNames(album: Album): string {
     return album.artists?.map(a => a.name).join(', ') || 'Sem artista';
   }

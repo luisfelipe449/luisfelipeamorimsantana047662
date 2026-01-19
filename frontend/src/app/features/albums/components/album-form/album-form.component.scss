@@ -1,85 +1,223 @@
-.form-container {
-  max-width: 600px;
+// Album Form Component Styles
+
+.form-card {
+  max-width: 800px;
   margin: 0 auto;
+  padding: var(--spacing-lg);
 }
 
-mat-card {
-  padding: 20px;
+.form-layout {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: var(--spacing-xl);
 }
 
-mat-card-header {
-  margin-bottom: 24px;
-}
-
-.cover-upload-section {
-  margin: 16px 0 24px;
-
-  label {
-    display: block;
-    font-size: 14px;
-    color: rgba(0, 0, 0, 0.6);
-    margin-bottom: 8px;
-  }
+// Cover Section
+.cover-section {
+  display: flex;
+  flex-direction: column;
 }
 
 .cover-preview {
   position: relative;
-  display: inline-block;
-  max-width: 200px;
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
 
-  img {
+  .cover-img {
     width: 100%;
-    border-radius: 8px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    aspect-ratio: 1;
+    object-fit: cover;
+    display: block;
   }
 
-  .remove-cover {
+  .remove-btn {
     position: absolute;
-    top: -8px;
-    right: -8px;
-    background-color: white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    top: var(--spacing-sm);
+    right: var(--spacing-sm);
+    transform: scale(0.85);
   }
 }
 
 .upload-area {
+  aspect-ratio: 1;
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-lg);
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
-  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all var(--transition-normal);
+  background: var(--color-bg-secondary);
+  text-align: center;
+  padding: var(--spacing-md);
 
-  .upload-hint {
-    font-size: 12px;
-    color: rgba(0, 0, 0, 0.54);
-    margin: 0;
+  &:hover {
+    border-color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.05);
+
+    .upload-icon {
+      color: var(--color-primary);
+    }
+  }
+
+  &.drag-over {
+    border-color: var(--color-primary);
+    background: rgba(var(--color-primary-rgb), 0.1);
+    transform: scale(1.02);
   }
 }
 
+.upload-icon {
+  font-size: 40px;
+  width: 40px;
+  height: 40px;
+  color: var(--color-text-muted);
+  margin-bottom: var(--spacing-sm);
+  transition: color var(--transition-fast);
+}
+
+.upload-text {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-text-primary);
+  margin: 0;
+}
+
+.upload-hint {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+  margin: var(--spacing-xs) 0 0;
+}
+
+.upload-progress {
+  margin-top: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+}
+
+// Info Section
+.info-section {
+  min-width: 0;
+}
+
+.form-section {
+  padding: var(--spacing-sm) 0;
+
+  &:first-of-type {
+    padding-top: 0;
+  }
+}
+
+.section-title {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--color-text-primary);
+  margin: 0 0 var(--spacing-md) 0;
+
+  mat-icon {
+    color: var(--color-primary);
+    font-size: 20px;
+    width: 20px;
+    height: 20px;
+  }
+}
+
+.form-row {
+  display: flex;
+  gap: var(--spacing-md);
+
+  .form-field {
+    flex: 1;
+  }
+}
+
+.form-field {
+  width: 100%;
+}
+
+// Selected Artists Chips
+.selected-chips {
+  margin-top: var(--spacing-sm);
+
+  mat-chip-set {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--spacing-xs);
+  }
+
+  mat-chip {
+    background-color: rgba(var(--color-primary-rgb), 0.1) !important;
+    color: var(--color-primary) !important;
+  }
+}
+
+// Divider
+mat-divider {
+  margin: var(--spacing-lg) 0;
+}
+
+// Form Actions
 .form-actions {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  margin-top: 24px;
+  gap: var(--spacing-md);
+  padding-top: var(--spacing-lg);
 
   button {
-    min-width: 100px;
+    min-width: 120px;
   }
 
-  mat-spinner {
-    display: inline-block;
+  .submit-btn {
+    mat-spinner {
+      display: inline-block;
+
+      ::ng-deep circle {
+        stroke: white;
+      }
+    }
   }
 }
 
-@media (max-width: 600px) {
-  .form-container {
-    padding: 0 10px;
+// Responsive
+.hide-mobile {
+  @media (max-width: 768px) {
+    display: none !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .form-card {
+    padding: var(--spacing-md);
   }
 
+  .form-layout {
+    grid-template-columns: 1fr;
+    gap: var(--spacing-lg);
+  }
+
+  .cover-section {
+    max-width: 200px;
+    margin: 0 auto;
+  }
+
+  .form-row {
+    flex-direction: column;
+    gap: 0;
+  }
+}
+
+@media (max-width: 480px) {
   .form-actions {
     flex-direction: column-reverse;
+    gap: var(--spacing-sm);
 
     button {
       width: 100%;
+      min-width: unset;
     }
   }
 }

@@ -23,6 +23,7 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
   albumId: number | null = null;
   loading = false;
   uploading = false;
+  isDragOver = false;
 
   artists: ArtistOption[] = [];
   selectedFile: File | null = null;
@@ -111,20 +112,72 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.selectedFile = input.files[0];
-
-      // Create preview
-      const reader = new FileReader();
-      reader.onload = () => {
-        this.coverPreview = reader.result as string;
-      };
-      reader.readAsDataURL(this.selectedFile);
+      this.handleFile(input.files[0]);
     }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+
+    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+      this.handleFile(event.dataTransfer.files[0]);
+    }
+  }
+
+  private handleFile(file: File): void {
+    if (!file.type.startsWith('image/')) {
+      this.snackBar.open('Por favor, selecione uma imagem válida', 'Fechar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.snackBar.open('A imagem deve ter no máximo 5MB', 'Fechar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    this.selectedFile = file;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.coverPreview = reader.result as string;
+    };
+    reader.readAsDataURL(file);
   }
 
   removeFile(): void {
     this.selectedFile = null;
     this.coverPreview = null;
+  }
+
+  getArtistName(artistId: number): string {
+    const artist = this.artists.find(a => a.id === artistId);
+    return artist?.name || '';
+  }
+
+  removeArtist(artistId: number): void {
+    const currentIds = this.form.get('artistIds')?.value || [];
+    const newIds = currentIds.filter((id: number) => id !== artistId);
+    this.form.get('artistIds')?.setValue(newIds);
   }
 
   onSubmit(): void {

@@ -1,81 +1,134 @@
 <div class="container">
-  <div class="header">
-    <h1>Albums</h1>
-    <button mat-raised-button color="primary" (click)="createAlbum()">
+  <!-- Page Header -->
+  <app-page-header
+    title="Álbuns"
+    subtitle="Gerencie o catálogo de álbuns musicais"
+    icon="album">
+    <button mat-flat-button color="primary" (click)="createAlbum()">
       <mat-icon>add</mat-icon>
-      Novo Album
+      <span class="hide-mobile">Novo Álbum</span>
     </button>
-  </div>
+  </app-page-header>
 
-  <mat-card class="filters-card">
-    <div class="filters">
-      <mat-form-field appearance="outline" class="search-field">
-        <mat-label>Buscar por titulo</mat-label>
-        <input matInput
-               [value]="searchTerm"
-               (input)="onSearch($event)"
-               placeholder="Digite o titulo do album">
-        <mat-icon matPrefix>search</mat-icon>
-      </mat-form-field>
-
+  <!-- Filters Toolbar -->
+  <div class="filters-toolbar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Buscar álbum</mat-label>
+      <input matInput
+             [value]="searchTerm"
+             (input)="onSearch($event)"
+             placeholder="Digite o título do álbum">
+      <mat-icon matPrefix>search</mat-icon>
       <button mat-icon-button
+              matSuffix
+              *ngIf="searchTerm"
+              (click)="clearSearch()"
+              matTooltip="Limpar busca">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <div class="filter-actions">
+      <button mat-stroked-button
+              class="sort-btn"
               (click)="onSortChange()"
               matTooltip="Ordenar {{ sortDirection === 'asc' ? 'Z-A' : 'A-Z' }}">
-        <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+        <mat-icon>sort_by_alpha</mat-icon>
+        <mat-icon class="sort-arrow">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
       </button>
 
-      <button mat-button (click)="clearFilters()" *ngIf="searchTerm">
-        Limpar filtros
+      <button mat-stroked-button
+              color="primary"
+              class="clear-btn"
+              (click)="clearFilters()"
+              *ngIf="searchTerm">
+        <mat-icon>filter_alt_off</mat-icon>
+        <span class="hide-mobile">Limpar</span>
       </button>
     </div>
-  </mat-card>
-
-  <div class="loading-container" *ngIf="loading">
-    <mat-spinner></mat-spinner>
   </div>
 
-  <div class="card-grid" *ngIf="!loading">
-    <mat-card *ngFor="let album of albums" class="album-card" (click)="viewAlbum(album)">
-      <img *ngIf="album.coverUrl"
-           mat-card-image
-           [src]="album.coverUrl"
-           [alt]="album.title"
-           class="album-cover">
-      <div *ngIf="!album.coverUrl" class="album-cover-placeholder">
-        <mat-icon>album</mat-icon>
+  <!-- Results Info -->
+  <div class="results-info" *ngIf="!loading && totalElements > 0">
+    <span class="results-count">
+      <strong>{{ totalElements }}</strong> álbum(ns) encontrado(s)
+    </span>
+  </div>
+
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Carregando álbuns...</p>
+  </div>
+
+  <!-- Albums Grid -->
+  <div class="albums-grid" *ngIf="!loading && albums.length > 0">
+    <div *ngFor="let album of albums; let i = index"
+         class="album-card"
+         [style.animation-delay]="i * 30 + 'ms'"
+         (click)="viewAlbum(album)">
+      <!-- Cover -->
+      <div class="card-cover">
+        <img *ngIf="album.coverUrl"
+             [src]="album.coverUrl"
+             [alt]="album.title"
+             class="cover-img"
+             loading="lazy">
+        <div *ngIf="!album.coverUrl" class="cover-placeholder">
+          <mat-icon>album</mat-icon>
+        </div>
+        <div class="cover-actions">
+          <button mat-mini-fab
+                  color="primary"
+                  (click)="viewAlbum(album); $event.stopPropagation()"
+                  matTooltip="Ver detalhes">
+            <mat-icon>visibility</mat-icon>
+          </button>
+        </div>
       </div>
 
-      <mat-card-content>
-        <h3 class="album-title">{{ album.title }}</h3>
-        <p class="album-artists">{{ getArtistNames(album) }}</p>
-        <div class="album-info">
-          <span class="album-year">{{ album.releaseYear }}</span>
-          <mat-chip *ngIf="album.genre">{{ album.genre }}</mat-chip>
+      <!-- Info -->
+      <div class="card-info">
+        <h3 class="card-title" [matTooltip]="album.title">{{ album.title }}</h3>
+        <p class="card-artist">{{ getArtistNames(album) }}</p>
+        <div class="card-meta">
+          <span class="meta-item" *ngIf="album.releaseYear">
+            <mat-icon>event</mat-icon>
+            {{ album.releaseYear }}
+          </span>
+          <span class="meta-item" *ngIf="album.genre">
+            <mat-icon>music_note</mat-icon>
+            {{ album.genre }}
+          </span>
         </div>
-      </mat-card-content>
+      </div>
 
-      <mat-card-actions align="end">
-        <button mat-button color="primary" (click)="viewAlbum(album); $event.stopPropagation()">
-          <mat-icon>visibility</mat-icon>
-          Ver
-        </button>
-        <button mat-button (click)="editAlbum(album); $event.stopPropagation()">
+      <!-- Quick Actions -->
+      <div class="card-actions">
+        <button mat-icon-button
+                (click)="editAlbum(album); $event.stopPropagation()"
+                matTooltip="Editar álbum">
           <mat-icon>edit</mat-icon>
-          Editar
         </button>
-      </mat-card-actions>
-    </mat-card>
+      </div>
+    </div>
   </div>
 
-  <div class="empty-state" *ngIf="!loading && albums.length === 0">
-    <mat-icon>album</mat-icon>
-    <p>Nenhum album encontrado</p>
-    <button mat-raised-button color="primary" (click)="createAlbum()">
-      Adicionar primeiro album
-    </button>
-  </div>
+  <!-- Empty State -->
+  <app-empty-state
+    *ngIf="!loading && albums.length === 0"
+    icon="album"
+    title="Nenhum álbum encontrado"
+    [description]="searchTerm
+      ? 'Nenhum álbum corresponde à busca. Tente ajustar os termos.'
+      : 'Comece adicionando o primeiro álbum ao catálogo.'"
+    [actionText]="searchTerm ? 'Limpar busca' : 'Adicionar álbum'"
+    [actionIcon]="searchTerm ? 'filter_alt_off' : 'add'"
+    (actionClick)="searchTerm ? clearFilters() : createAlbum()">
+  </app-empty-state>
 
-  <div class="paginator-container" *ngIf="totalElements > 0">
+  <!-- Pagination -->
+  <div class="pagination-container" *ngIf="totalElements > pageSize">
     <mat-paginator
       [length]="totalElements"
       [pageSize]="pageSize"
