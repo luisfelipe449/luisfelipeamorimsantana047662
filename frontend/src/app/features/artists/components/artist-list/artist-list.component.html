@@ -1,90 +1,146 @@
 <div class="container">
-  <div class="header">
-    <h1>Artistas</h1>
+  <!-- Page Header -->
+  <app-page-header
+    title="Artistas"
+    subtitle="Gerencie os artistas e bandas do catálogo"
+    icon="people">
     <button mat-raised-button color="primary" (click)="createArtist()">
       <mat-icon>add</mat-icon>
-      Novo Artista
+      <span class="hide-mobile">Novo Artista</span>
+    </button>
+  </app-page-header>
+
+  <!-- Filters Bar -->
+  <div class="filters-bar">
+    <mat-form-field appearance="outline" class="search-field">
+      <mat-label>Buscar artista</mat-label>
+      <input matInput
+             [value]="searchTerm"
+             (input)="onSearch($event)"
+             placeholder="Digite o nome do artista">
+      <mat-icon matPrefix>search</mat-icon>
+      <button mat-icon-button
+              matSuffix
+              *ngIf="searchTerm"
+              (click)="clearSearch()"
+              matTooltip="Limpar busca">
+        <mat-icon>close</mat-icon>
+      </button>
+    </mat-form-field>
+
+    <mat-form-field appearance="outline" class="filter-field">
+      <mat-label>Tipo</mat-label>
+      <mat-select [value]="typeFilter" (selectionChange)="onTypeFilterChange($event.value)">
+        <mat-option [value]="null">Todos os tipos</mat-option>
+        <mat-option value="SOLO">
+          <mat-icon class="option-icon">person</mat-icon>
+          Cantor Solo
+        </mat-option>
+        <mat-option value="BAND">
+          <mat-icon class="option-icon">groups</mat-icon>
+          Banda
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+
+    <button mat-stroked-button
+            class="sort-button"
+            (click)="onSortChange()"
+            matTooltip="Ordenar {{ sortDirection === 'asc' ? 'Z-A' : 'A-Z' }}">
+      <mat-icon>sort_by_alpha</mat-icon>
+      <mat-icon class="sort-direction">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+    </button>
+
+    <button mat-button
+            color="primary"
+            class="clear-filters"
+            (click)="clearFilters()"
+            *ngIf="searchTerm || typeFilter">
+      <mat-icon>filter_alt_off</mat-icon>
+      <span class="hide-mobile">Limpar</span>
     </button>
   </div>
 
-  <mat-card class="filters-card">
-    <div class="filters">
-      <mat-form-field appearance="outline" class="search-field">
-        <mat-label>Buscar por nome</mat-label>
-        <input matInput
-               [value]="searchTerm"
-               (input)="onSearch($event)"
-               placeholder="Digite o nome do artista">
-        <mat-icon matPrefix>search</mat-icon>
-      </mat-form-field>
-
-      <mat-form-field appearance="outline" class="type-filter">
-        <mat-label>Tipo</mat-label>
-        <mat-select [value]="typeFilter" (selectionChange)="onTypeFilterChange($event.value)">
-          <mat-option [value]="null">Todos</mat-option>
-          <mat-option value="SOLO">Cantor Solo</mat-option>
-          <mat-option value="BAND">Banda</mat-option>
-        </mat-select>
-      </mat-form-field>
-
-      <button mat-icon-button
-              (click)="onSortChange()"
-              matTooltip="Ordenar {{ sortDirection === 'asc' ? 'Z-A' : 'A-Z' }}">
-        <mat-icon>{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
-      </button>
-
-      <button mat-button (click)="clearFilters()" *ngIf="searchTerm || typeFilter">
-        Limpar filtros
-      </button>
-    </div>
-  </mat-card>
-
-  <div class="loading-container" *ngIf="loading">
-    <mat-spinner></mat-spinner>
+  <!-- Stats Bar -->
+  <div class="stats-bar" *ngIf="!loading && totalElements > 0">
+    <span class="stats-text">
+      <strong>{{ totalElements }}</strong> artista(s) encontrado(s)
+    </span>
   </div>
 
-  <div class="card-grid" *ngIf="!loading">
-    <mat-card *ngFor="let artist of artists" class="artist-card" (click)="viewArtist(artist)">
+  <!-- Loading State -->
+  <div class="loading-container" *ngIf="loading">
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Carregando artistas...</p>
+  </div>
+
+  <!-- Artists Grid -->
+  <div class="card-grid animate-fade-in" *ngIf="!loading && artists.length > 0">
+    <mat-card *ngFor="let artist of artists; let i = index"
+              class="artist-card"
+              [style.animation-delay]="i * 50 + 'ms'"
+              (click)="viewArtist(artist)">
+      <div class="card-accent" [class.band]="artist.type === 'BAND'"></div>
+
       <mat-card-header>
-        <mat-icon mat-card-avatar>{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+        <div mat-card-avatar class="artist-avatar" [class.band]="artist.type === 'BAND'">
+          <mat-icon>{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+        </div>
         <mat-card-title>{{ artist.name }}</mat-card-title>
         <mat-card-subtitle>
-          <mat-chip-set>
-            <mat-chip>{{ getTypeLabel(artist.type) }}</mat-chip>
-            <mat-chip *ngIf="artist.country">{{ artist.country }}</mat-chip>
-          </mat-chip-set>
+          <div class="subtitle-content">
+            <span class="artist-type">{{ getTypeLabel(artist.type) }}</span>
+            <span *ngIf="artist.country" class="artist-country">
+              <mat-icon>place</mat-icon>
+              {{ artist.country }}
+            </span>
+          </div>
         </mat-card-subtitle>
       </mat-card-header>
 
       <mat-card-content>
         <p *ngIf="artist.biography" class="biography">{{ artist.biography }}</p>
-        <p *ngIf="artist.albums?.length" class="albums-count">
-          {{ artist.albums?.length }} album(ns)
-        </p>
+        <p *ngIf="!artist.biography" class="no-biography">Sem biografia cadastrada</p>
       </mat-card-content>
 
-      <mat-card-actions align="end">
-        <button mat-button color="primary" (click)="viewArtist(artist); $event.stopPropagation()">
+      <mat-divider></mat-divider>
+
+      <mat-card-actions>
+        <div class="albums-info" *ngIf="artist.albums?.length">
+          <mat-icon>album</mat-icon>
+          <span>{{ artist.albums?.length }} álbum(ns)</span>
+        </div>
+        <span class="spacer"></span>
+        <button mat-icon-button
+                color="primary"
+                (click)="viewArtist(artist); $event.stopPropagation()"
+                matTooltip="Ver detalhes">
           <mat-icon>visibility</mat-icon>
-          Ver
         </button>
-        <button mat-button (click)="editArtist(artist); $event.stopPropagation()">
+        <button mat-icon-button
+                (click)="editArtist(artist); $event.stopPropagation()"
+                matTooltip="Editar">
           <mat-icon>edit</mat-icon>
-          Editar
         </button>
       </mat-card-actions>
     </mat-card>
   </div>
 
-  <div class="empty-state" *ngIf="!loading && artists.length === 0">
-    <mat-icon>music_off</mat-icon>
-    <p>Nenhum artista encontrado</p>
-    <button mat-raised-button color="primary" (click)="createArtist()">
-      Adicionar primeiro artista
-    </button>
-  </div>
+  <!-- Empty State -->
+  <app-empty-state
+    *ngIf="!loading && artists.length === 0"
+    icon="music_off"
+    title="Nenhum artista encontrado"
+    [description]="searchTerm || typeFilter
+      ? 'Nenhum artista corresponde aos filtros aplicados. Tente ajustar sua busca.'
+      : 'Comece adicionando o primeiro artista ao catálogo.'"
+    [actionText]="searchTerm || typeFilter ? 'Limpar filtros' : 'Adicionar artista'"
+    [actionIcon]="searchTerm || typeFilter ? 'filter_alt_off' : 'add'"
+    (actionClick)="searchTerm || typeFilter ? clearFilters() : createArtist()">
+  </app-empty-state>
 
-  <div class="paginator-container" *ngIf="totalElements > 0">
+  <!-- Pagination -->
+  <div class="paginator-container" *ngIf="totalElements > pageSize">
     <mat-paginator
       [length]="totalElements"
       [pageSize]="pageSize"

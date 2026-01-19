@@ -114,6 +114,11 @@ export class ArtistListComponent implements OnInit, OnDestroy {
     this.facade.clearFilters();
   }
 
+  clearSearch(): void {
+    this.searchTerm = '';
+    this.searchSubject.next('');
+  }
+
   getTypeLabel(type: ArtistType): string {
     return type === 'SOLO' ? 'Cantor Solo' : 'Banda';
   }

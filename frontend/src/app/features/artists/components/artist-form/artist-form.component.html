@@ -1,68 +1,117 @@
-<div class="form-container">
-  <mat-card>
-    <mat-card-header>
-      <mat-card-title>{{ isEditMode ? 'Editar Artista' : 'Novo Artista' }}</mat-card-title>
-    </mat-card-header>
+<div class="container">
+  <!-- Page Header -->
+  <app-page-header
+    [title]="isEditMode ? 'Editar Artista' : 'Novo Artista'"
+    [subtitle]="isEditMode ? 'Atualize as informações do artista' : 'Preencha os dados para cadastrar'"
+    icon="person">
+    <button mat-stroked-button (click)="cancel()">
+      <mat-icon>arrow_back</mat-icon>
+      <span class="hide-mobile">Voltar</span>
+    </button>
+  </app-page-header>
 
-    <mat-card-content>
-      <form [formGroup]="form" (ngSubmit)="onSubmit()">
+  <!-- Form Card -->
+  <mat-card class="form-card no-hover animate-fade-in">
+    <form [formGroup]="form" (ngSubmit)="onSubmit()">
+      <!-- Basic Info Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>info</mat-icon>
+          Informações Básicas
+        </h3>
+
         <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Nome</mat-label>
-          <input matInput formControlName="name" placeholder="Nome do artista">
+          <mat-label>Nome do artista</mat-label>
+          <input matInput
+                 formControlName="name"
+                 placeholder="Ex: Serj Tankian">
           <mat-error *ngIf="form.get('name')?.hasError('required')">
-            Nome e obrigatorio
+            Nome é obrigatório
           </mat-error>
           <mat-error *ngIf="form.get('name')?.hasError('minlength')">
-            Nome deve ter no minimo 2 caracteres
+            Nome deve ter no mínimo 2 caracteres
           </mat-error>
           <mat-error *ngIf="form.get('name')?.hasError('maxlength')">
-            Nome deve ter no maximo 100 caracteres
+            Nome deve ter no máximo 100 caracteres
           </mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Tipo</mat-label>
-          <mat-select formControlName="type">
-            <mat-option *ngFor="let type of artistTypes" [value]="type.value">
-              {{ type.label }}
-            </mat-option>
-          </mat-select>
-          <mat-error *ngIf="form.get('type')?.hasError('required')">
-            Tipo e obrigatorio
-          </mat-error>
-        </mat-form-field>
+        <div class="form-row">
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>Tipo</mat-label>
+            <mat-select formControlName="type">
+              <mat-option value="SOLO">
+                <mat-icon class="option-icon">person</mat-icon>
+                Cantor Solo
+              </mat-option>
+              <mat-option value="BAND">
+                <mat-icon class="option-icon">groups</mat-icon>
+                Banda
+              </mat-option>
+            </mat-select>
+            <mat-error *ngIf="form.get('type')?.hasError('required')">
+              Tipo é obrigatório
+            </mat-error>
+          </mat-form-field>
 
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Pais</mat-label>
-          <input matInput formControlName="country" placeholder="Pais de origem">
-        </mat-form-field>
+          <mat-form-field appearance="outline" class="form-field">
+            <mat-label>País de origem</mat-label>
+            <input matInput
+                   formControlName="country"
+                   placeholder="Ex: Brasil">
+            <mat-hint>Opcional</mat-hint>
+          </mat-form-field>
+        </div>
+      </div>
 
-        <mat-form-field appearance="outline" class="form-field">
-          <mat-label>Biografia</mat-label>
+      <mat-divider></mat-divider>
+
+      <!-- Biography Section -->
+      <div class="form-section">
+        <h3 class="section-title">
+          <mat-icon>description</mat-icon>
+          Biografia
+        </h3>
+
+        <mat-form-field appearance="outline" class="form-field textarea-field">
+          <mat-label>Biografia do artista</mat-label>
           <textarea matInput
                     formControlName="biography"
-                    placeholder="Biografia do artista"
-                    rows="4">
+                    placeholder="Escreva uma breve biografia sobre o artista ou banda..."
+                    rows="5">
           </textarea>
-          <mat-hint align="end">{{ form.get('biography')?.value?.length || 0 }}/1000</mat-hint>
+          <mat-hint align="start">Opcional</mat-hint>
+          <mat-hint align="end">
+            <span [class.char-warning]="(form.get('biography')?.value?.length || 0) > 900"
+                  [class.char-error]="(form.get('biography')?.value?.length || 0) > 1000">
+              {{ form.get('biography')?.value?.length || 0 }}/1000
+            </span>
+          </mat-hint>
           <mat-error *ngIf="form.get('biography')?.hasError('maxlength')">
-            Biografia deve ter no maximo 1000 caracteres
+            Biografia deve ter no máximo 1000 caracteres
           </mat-error>
         </mat-form-field>
+      </div>
 
-        <div class="form-actions">
-          <button mat-button type="button" (click)="cancel()">
-            Cancelar
-          </button>
-          <button mat-raised-button
-                  color="primary"
-                  type="submit"
-                  [disabled]="form.invalid || loading">
-            <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
-            <span *ngIf="!loading">{{ isEditMode ? 'Salvar' : 'Criar' }}</span>
-          </button>
-        </div>
-      </form>
-    </mat-card-content>
+      <mat-divider></mat-divider>
+
+      <!-- Form Actions -->
+      <div class="form-actions">
+        <button mat-stroked-button
+                type="button"
+                (click)="cancel()"
+                [disabled]="loading">
+          Cancelar
+        </button>
+        <button mat-flat-button
+                color="primary"
+                type="submit"
+                [disabled]="form.invalid || loading"
+                class="submit-btn">
+          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+          <span *ngIf="!loading">{{ isEditMode ? 'Salvar' : 'Criar' }}</span>
+        </button>
+      </div>
+    </form>
   </mat-card>
 </div>

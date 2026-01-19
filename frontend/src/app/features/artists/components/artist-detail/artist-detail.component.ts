@@ -68,6 +68,10 @@ export class ArtistDetailComponent implements OnInit, OnDestroy {
     this.router.navigate(['/artists']);
   }
 
+  createAlbum(): void {
+    this.router.navigate(['/albums', 'new']);
+  }
+
   getTypeLabel(type: string): string {
     return type === 'SOLO' ? 'Cantor Solo' : 'Banda';
   }

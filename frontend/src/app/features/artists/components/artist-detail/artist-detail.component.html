@@ -1,77 +1,133 @@
 <div class="container">
-  <button mat-button (click)="goBack()" class="back-button">
-    <mat-icon>arrow_back</mat-icon>
-    Voltar
-  </button>
+  <!-- Page Header -->
+  <app-page-header
+    [title]="artist?.name || 'Carregando...'"
+    subtitle="Detalhes do artista"
+    [icon]="artist?.type === 'BAND' ? 'groups' : 'person'">
+    <button mat-stroked-button (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      <span class="hide-mobile">Voltar</span>
+    </button>
+    <button mat-raised-button color="primary" (click)="editArtist()" *ngIf="artist">
+      <mat-icon>edit</mat-icon>
+      <span class="hide-mobile">Editar</span>
+    </button>
+  </app-page-header>
 
+  <!-- Loading State -->
   <div class="loading-container" *ngIf="loading">
-    <mat-spinner></mat-spinner>
+    <mat-spinner diameter="48"></mat-spinner>
+    <p>Carregando informações do artista...</p>
   </div>
 
+  <!-- Error State -->
   <div class="error-state" *ngIf="error && !loading">
-    <mat-icon>error</mat-icon>
+    <div class="error-icon">
+      <mat-icon>error_outline</mat-icon>
+    </div>
+    <h2>Erro ao carregar artista</h2>
     <p>{{ error }}</p>
-    <button mat-raised-button (click)="goBack()">Voltar para lista</button>
+    <button mat-raised-button color="primary" (click)="goBack()">
+      <mat-icon>arrow_back</mat-icon>
+      Voltar para lista
+    </button>
   </div>
 
-  <mat-card *ngIf="artist && !loading" class="artist-card">
-    <mat-card-header>
-      <mat-icon mat-card-avatar class="avatar-icon">
-        {{ artist.type === 'BAND' ? 'groups' : 'person' }}
-      </mat-icon>
-      <mat-card-title>{{ artist.name }}</mat-card-title>
-      <mat-card-subtitle>
-        <mat-chip-set>
-          <mat-chip>{{ getTypeLabel(artist.type) }}</mat-chip>
-          <mat-chip *ngIf="artist.country">{{ artist.country }}</mat-chip>
-          <mat-chip [color]="artist.active ? 'primary' : 'warn'" selected>
-            {{ artist.active ? 'Ativo' : 'Inativo' }}
-          </mat-chip>
-        </mat-chip-set>
-      </mat-card-subtitle>
-    </mat-card-header>
+  <!-- Artist Content -->
+  <div class="artist-content animate-fade-in" *ngIf="artist && !loading && !error">
+    <!-- Artist Info Card -->
+    <mat-card class="info-card no-hover">
+      <div class="artist-header">
+        <div class="avatar-container" [class.band]="artist.type === 'BAND'">
+          <mat-icon>{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+        </div>
+        <div class="artist-info">
+          <h1 class="artist-name">{{ artist.name }}</h1>
+          <div class="artist-meta">
+            <mat-chip-set>
+              <mat-chip class="type-chip" [class.band]="artist.type === 'BAND'">
+                <mat-icon>{{ artist.type === 'BAND' ? 'groups' : 'mic' }}</mat-icon>
+                {{ getTypeLabel(artist.type) }}
+              </mat-chip>
+              <mat-chip *ngIf="artist.country" class="country-chip">
+                <mat-icon>place</mat-icon>
+                {{ artist.country }}
+              </mat-chip>
+              <mat-chip [class.active-chip]="artist.active" [class.inactive-chip]="!artist.active">
+                <mat-icon>{{ artist.active ? 'check_circle' : 'cancel' }}</mat-icon>
+                {{ artist.active ? 'Ativo' : 'Inativo' }}
+              </mat-chip>
+            </mat-chip-set>
+          </div>
+        </div>
+      </div>
 
-    <mat-card-content>
-      <section *ngIf="artist.biography" class="biography-section">
-        <h3>Biografia</h3>
-        <p>{{ artist.biography }}</p>
-      </section>
+      <!-- Biography Section -->
+      <div class="biography-section" *ngIf="artist.biography">
+        <h3 class="section-title">
+          <mat-icon>description</mat-icon>
+          Biografia
+        </h3>
+        <p class="biography-text">{{ artist.biography }}</p>
+      </div>
 
-      <mat-divider *ngIf="artist.albums?.length"></mat-divider>
+      <div class="no-biography" *ngIf="!artist.biography">
+        <mat-icon>description</mat-icon>
+        <p>Nenhuma biografia cadastrada</p>
+      </div>
+    </mat-card>
 
-      <section *ngIf="artist.albums?.length" class="albums-section">
-        <h3>Albums ({{ artist.albums?.length }})</h3>
-        <div class="albums-grid">
-          <mat-card *ngFor="let album of artist.albums"
-                    class="album-card"
-                    (click)="viewAlbum(album.id)">
+    <!-- Albums Section -->
+    <div class="albums-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <mat-icon>album</mat-icon>
+          Álbuns
+          <span class="albums-count" *ngIf="artist.albums?.length">({{ artist.albums?.length }})</span>
+        </h2>
+      </div>
+
+      <!-- Albums Grid -->
+      <div class="albums-grid" *ngIf="artist.albums?.length">
+        <mat-card *ngFor="let album of artist.albums; let i = index"
+                  class="album-card"
+                  [style.animation-delay]="i * 50 + 'ms'"
+                  (click)="viewAlbum(album.id)">
+          <div class="cover-container">
             <img *ngIf="album.coverUrl"
-                 mat-card-image
                  [src]="album.coverUrl"
                  [alt]="album.title"
-                 class="album-cover">
+                 class="album-cover"
+                 loading="lazy">
             <div *ngIf="!album.coverUrl" class="album-cover-placeholder">
               <mat-icon>album</mat-icon>
             </div>
-            <mat-card-content>
-              <p class="album-title">{{ album.title }}</p>
-              <p class="album-year">{{ album.releaseYear }}</p>
-            </mat-card-content>
-          </mat-card>
-        </div>
-      </section>
-
-      <div *ngIf="!artist.albums?.length" class="no-albums">
-        <mat-icon>album</mat-icon>
-        <p>Nenhum album cadastrado</p>
+            <div class="cover-overlay">
+              <button mat-mini-fab color="primary">
+                <mat-icon>visibility</mat-icon>
+              </button>
+            </div>
+          </div>
+          <mat-card-content>
+            <h4 class="album-title">{{ album.title }}</h4>
+            <p class="album-year" *ngIf="album.releaseYear">
+              <mat-icon>calendar_today</mat-icon>
+              {{ album.releaseYear }}
+            </p>
+          </mat-card-content>
+        </mat-card>
       </div>
-    </mat-card-content>
 
-    <mat-card-actions align="end">
-      <button mat-raised-button color="primary" (click)="editArtist()">
-        <mat-icon>edit</mat-icon>
-        Editar
-      </button>
-    </mat-card-actions>
-  </mat-card>
+      <!-- Empty Albums State -->
+      <app-empty-state
+        *ngIf="!artist.albums?.length"
+        icon="album"
+        title="Nenhum álbum cadastrado"
+        description="Este artista ainda não possui álbuns vinculados."
+        actionText="Adicionar álbum"
+        actionIcon="add"
+        (actionClick)="createAlbum()">
+      </app-empty-state>
+    </div>
+  </div>
 </div>
