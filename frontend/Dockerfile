@@ -18,6 +18,9 @@ RUN npm run build -- --configuration=production
 # Stage 2: Serve with nginx
 FROM nginx:stable
 
+# Install curl for health check
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
+
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 
