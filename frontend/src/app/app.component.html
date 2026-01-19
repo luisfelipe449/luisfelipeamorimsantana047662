@@ -1,29 +1,95 @@
-<mat-toolbar color="primary">
-  <span>{{ title }}</span>
-  <span class="spacer"></span>
+<header class="app-header">
+  <div class="header-content">
+    <!-- Logo/Brand -->
+    <a routerLink="/" class="brand">
+      <div class="brand-logo">
+        <mat-icon>library_music</mat-icon>
+      </div>
+      <span class="brand-text hide-mobile">{{ title }}</span>
+    </a>
 
-  <ng-container *ngIf="isLoggedIn; else loginButton">
-    <button mat-button routerLink="/artists">
-      <mat-icon>people</mat-icon>
-      Artistas
-    </button>
-    <button mat-button routerLink="/albums">
-      <mat-icon>album</mat-icon>
-      Albums
-    </button>
-    <span class="username">{{ username }}</span>
-    <button mat-icon-button (click)="logout()" matTooltip="Sair">
-      <mat-icon>logout</mat-icon>
-    </button>
-  </ng-container>
+    <!-- Navigation -->
+    <ng-container *ngIf="isLoggedIn">
+      <nav class="nav-links hide-mobile">
+        <a routerLink="/artists"
+           routerLinkActive="active"
+           class="nav-link">
+          <mat-icon>people</mat-icon>
+          <span>Artistas</span>
+        </a>
+        <a routerLink="/albums"
+           routerLinkActive="active"
+           class="nav-link">
+          <mat-icon>album</mat-icon>
+          <span>Álbuns</span>
+        </a>
+      </nav>
+    </ng-container>
 
-  <ng-template #loginButton>
-    <button mat-button routerLink="/auth/login">
-      <mat-icon>login</mat-icon>
-      Entrar
-    </button>
-  </ng-template>
-</mat-toolbar>
+    <span class="spacer"></span>
+
+    <ng-container *ngIf="isLoggedIn; else loginButton">
+      <!-- Mobile Menu Button -->
+      <button mat-icon-button
+              class="mobile-menu-btn hide-desktop"
+              [matMenuTriggerFor]="mobileMenu">
+        <mat-icon>menu</mat-icon>
+      </button>
+
+      <!-- Mobile Menu -->
+      <mat-menu #mobileMenu="matMenu" class="mobile-menu">
+        <a mat-menu-item routerLink="/artists" routerLinkActive="active-menu-item">
+          <mat-icon>people</mat-icon>
+          <span>Artistas</span>
+        </a>
+        <a mat-menu-item routerLink="/albums" routerLinkActive="active-menu-item">
+          <mat-icon>album</mat-icon>
+          <span>Álbuns</span>
+        </a>
+        <mat-divider></mat-divider>
+        <button mat-menu-item (click)="logout()" class="logout-item">
+          <mat-icon>logout</mat-icon>
+          <span>Sair</span>
+        </button>
+      </mat-menu>
+
+      <!-- User Menu -->
+      <div class="user-section hide-mobile">
+        <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-trigger">
+          <div class="user-avatar">
+            <span>{{ username?.charAt(0)?.toUpperCase() }}</span>
+          </div>
+          <span class="username">{{ username }}</span>
+          <mat-icon class="dropdown-icon">expand_more</mat-icon>
+        </button>
+
+        <mat-menu #userMenu="matMenu" xPosition="before" class="user-dropdown">
+          <div class="user-menu-header">
+            <div class="user-avatar-large">
+              <span>{{ username?.charAt(0)?.toUpperCase() }}</span>
+            </div>
+            <div class="user-info">
+              <span class="user-name">{{ username }}</span>
+              <span class="user-role">Administrador</span>
+            </div>
+          </div>
+          <mat-divider></mat-divider>
+          <button mat-menu-item (click)="logout()" class="logout-item">
+            <mat-icon>logout</mat-icon>
+            <span>Sair do sistema</span>
+          </button>
+        </mat-menu>
+      </div>
+    </ng-container>
+
+    <ng-template #loginButton>
+      <a mat-flat-button color="primary" routerLink="/auth/login" class="login-btn">
+        <mat-icon>login</mat-icon>
+        <span>Entrar</span>
+      </a>
+    </ng-template>
+  </div>
+</header>
 
 <main class="main-content">
   <router-outlet></router-outlet>
