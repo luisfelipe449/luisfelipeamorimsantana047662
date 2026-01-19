@@ -15,6 +15,7 @@ import { MatPaginatorModule } from '@angular/material/paginator';
 import { MatTableModule } from '@angular/material/table';
 import { MatSortModule } from '@angular/material/sort';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
+import { MatProgressBarModule } from '@angular/material/progress-bar';
 import { MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -22,6 +23,13 @@ import { MatChipsModule } from '@angular/material/chips';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
+import { MatBadgeModule } from '@angular/material/badge';
+import { MatRippleModule } from '@angular/material/core';
+
+// Shared Components
+import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
+import { EmptyStateComponent } from './components/empty-state/empty-state.component';
+import { PageHeaderComponent } from './components/page-header/page-header.component';
 
 const MATERIAL_MODULES = [
   MatToolbarModule,
@@ -35,17 +43,28 @@ const MATERIAL_MODULES = [
   MatTableModule,
   MatSortModule,
   MatProgressSpinnerModule,
+  MatProgressBarModule,
   MatSnackBarModule,
   MatDialogModule,
   MatTooltipModule,
   MatChipsModule,
   MatMenuModule,
   MatDividerModule,
-  MatListModule
+  MatListModule,
+  MatBadgeModule,
+  MatRippleModule
+];
+
+const SHARED_COMPONENTS = [
+  ConfirmDialogComponent,
+  EmptyStateComponent,
+  PageHeaderComponent
 ];
 
 @NgModule({
-  declarations: [],
+  declarations: [
+    ...SHARED_COMPONENTS
+  ],
   imports: [
     CommonModule,
     FormsModule,
@@ -58,7 +77,8 @@ const MATERIAL_MODULES = [
     FormsModule,
     ReactiveFormsModule,
     RouterModule,
-    ...MATERIAL_MODULES
+    ...MATERIAL_MODULES,
+    ...SHARED_COMPONENTS
   ]
 })
 export class SharedModule { }
