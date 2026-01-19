@@ -1,5 +1,5 @@
 # Stage 1: Build
-FROM node:20-alpine AS build
+FROM node:20 AS build
 
 WORKDIR /app
 
@@ -16,7 +16,7 @@ COPY . .
 RUN npm run build -- --configuration=production
 
 # Stage 2: Serve with nginx
-FROM nginx:alpine
+FROM nginx:stable
 
 # Copy nginx configuration
 COPY nginx.conf /etc/nginx/conf.d/default.conf
