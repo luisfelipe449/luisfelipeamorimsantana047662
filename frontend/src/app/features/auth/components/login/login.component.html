@@ -1,48 +1,101 @@
-<div class="login-container">
-  <mat-card class="login-card">
-    <mat-card-header>
-      <mat-card-title>Entrar</mat-card-title>
-      <mat-card-subtitle>Artistas e Albums</mat-card-subtitle>
-    </mat-card-header>
+<div class="login-page">
+  <!-- Hero Section -->
+  <div class="login-hero">
+    <div class="hero-content">
+      <div class="hero-logo">
+        <mat-icon>library_music</mat-icon>
+      </div>
+      <h1 class="hero-title">Artistas & Álbuns</h1>
+      <p class="hero-subtitle">
+        Sistema de gerenciamento de artistas e álbuns musicais.
+        Uma plataforma moderna para organizar sua coleção.
+      </p>
+      <div class="hero-features">
+        <div class="feature-item">
+          <mat-icon>people</mat-icon>
+          <span>Gestão de Artistas</span>
+        </div>
+        <div class="feature-item">
+          <mat-icon>album</mat-icon>
+          <span>Catálogo de Álbuns</span>
+        </div>
+        <div class="feature-item">
+          <mat-icon>image</mat-icon>
+          <span>Upload de Capas</span>
+        </div>
+      </div>
+    </div>
+    <div class="hero-footer">
+      <span>PSS MT 2026 - SEPLAG</span>
+    </div>
+  </div>
 
-    <mat-card-content>
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
-        <mat-form-field appearance="outline" class="full-width">
-          <mat-label>Usuario</mat-label>
-          <input matInput formControlName="username" placeholder="Digite seu usuario">
-          <mat-icon matPrefix>person</mat-icon>
+  <!-- Login Form Section -->
+  <div class="login-form-section">
+    <div class="login-form-container animate-fade-in">
+      <div class="login-header">
+        <h2>Bem-vindo de volta</h2>
+        <p>Entre com suas credenciais para acessar o sistema</p>
+      </div>
+
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+        <mat-form-field appearance="outline">
+          <mat-label>Usuário</mat-label>
+          <input matInput
+                 formControlName="username"
+                 placeholder="Digite seu usuário"
+                 autocomplete="username">
+          <mat-icon matPrefix>person_outline</mat-icon>
           <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
-            Usuario e obrigatorio
+            Usuário é obrigatório
           </mat-error>
         </mat-form-field>
 
-        <mat-form-field appearance="outline" class="full-width">
+        <mat-form-field appearance="outline">
           <mat-label>Senha</mat-label>
           <input matInput
                  [type]="hidePassword ? 'password' : 'text'"
                  formControlName="password"
-                 placeholder="Digite sua senha">
-          <mat-icon matPrefix>lock</mat-icon>
-          <button mat-icon-button matSuffix type="button"
-                  (click)="hidePassword = !hidePassword">
+                 placeholder="Digite sua senha"
+                 autocomplete="current-password">
+          <mat-icon matPrefix>lock_outline</mat-icon>
+          <button mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="hidePassword = !hidePassword"
+                  [matTooltip]="hidePassword ? 'Mostrar senha' : 'Ocultar senha'">
             <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
           </button>
           <mat-error *ngIf="loginForm.get('password')?.hasError('required')">
-            Senha e obrigatoria
+            Senha é obrigatória
           </mat-error>
           <mat-error *ngIf="loginForm.get('password')?.hasError('minlength')">
-            Senha deve ter no minimo 3 caracteres
+            Senha deve ter no mínimo 3 caracteres
           </mat-error>
         </mat-form-field>
 
-        <button mat-raised-button color="primary"
+        <button mat-raised-button
+                color="primary"
                 type="submit"
-                class="full-width login-button"
+                class="login-button"
                 [disabled]="loginForm.invalid || isLoading">
-          <mat-spinner *ngIf="isLoading" diameter="20"></mat-spinner>
-          <span *ngIf="!isLoading">Entrar</span>
+          <ng-container *ngIf="!isLoading; else loadingTemplate">
+            <mat-icon>login</mat-icon>
+            <span>Entrar</span>
+          </ng-container>
+          <ng-template #loadingTemplate>
+            <mat-spinner diameter="20"></mat-spinner>
+            <span>Autenticando...</span>
+          </ng-template>
         </button>
       </form>
-    </mat-card-content>
-  </mat-card>
+
+      <div class="login-footer">
+        <p class="credentials-hint">
+          <mat-icon>info_outline</mat-icon>
+          <span>Use as credenciais fornecidas pelo administrador</span>
+        </p>
+      </div>
+    </div>
+  </div>
 </div>
