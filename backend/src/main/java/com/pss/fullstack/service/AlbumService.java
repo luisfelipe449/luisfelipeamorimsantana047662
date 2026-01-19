@@ -28,6 +28,7 @@ public class AlbumService {
 
     private final AlbumRepository albumRepository;
     private final ArtistRepository artistRepository;
+    private final NotificationService notificationService;
 
     @Transactional(readOnly = true)
     public PageResponse<AlbumDTO> findAll(int page, int size, String sortBy, String sortDir) {
@@ -101,6 +102,13 @@ public class AlbumService {
         album = albumRepository.save(album);
 
         log.info("Album created with id: {}", album.getId());
+
+        // Notify connected clients about the new album via WebSocket
+        String artistNames = artists.stream()
+                .map(Artist::getName)
+                .collect(Collectors.joining(", "));
+        notificationService.notifyNewAlbum(album.getId(), album.getTitle(), artistNames);
+
         return AlbumDTO.fromEntity(album);
     }
 
