@@ -1,0 +1,20 @@
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://postgres:5432/pss_fullstack}
+    username: ${SPRING_DATASOURCE_USERNAME:pss_user}
+    password: ${SPRING_DATASOURCE_PASSWORD:pss_password}
+
+minio:
+  endpoint: ${MINIO_ENDPOINT:http://minio:9000}
+  access-key: ${MINIO_ACCESS_KEY:minioadmin}
+  secret-key: ${MINIO_SECRET_KEY:minioadmin}
+
+jwt:
+  secret: ${JWT_SECRET:pss-fullstack-mt-2026-super-secret-key-for-jwt-authentication}
+
+cors:
+  allowed-origins: http://localhost,http://frontend,http://pss-frontend
+
+logging:
+  level:
+    com.pss.fullstack: INFO
