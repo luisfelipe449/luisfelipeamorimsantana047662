@@ -1,0 +1,43 @@
+# Claude Code context file (local only)
+CLAUDE.md
+
+# IDE
+.idea/
+*.iml
+.vscode/
+*.swp
+*.swo
+.project
+.classpath
+.settings/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Backend - Java/Spring Boot
+backend/target/
+backend/*.jar
+backend/*.war
+backend/*.class
+backend/.mvn/wrapper/maven-wrapper.jar
+
+# Backend - Logs
+backend/logs/
+backend/*.log
+
+# Frontend - Node/Angular
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/.npm/
+frontend/coverage/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+*.env
+
+# Docker
+docker-compose.override.yml
