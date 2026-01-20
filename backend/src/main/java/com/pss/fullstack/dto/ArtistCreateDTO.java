@@ -23,6 +23,9 @@ public class ArtistCreateDTO {
     @NotNull(message = "Type is required")
     private ArtistType type;
 
+    @Size(max = 100, message = "Country must be at most 100 characters")
+    private String country;
+
     @Size(max = 1000, message = "Biography must be at most 1000 characters")
     private String biography;
 
@@ -30,7 +33,9 @@ public class ArtistCreateDTO {
         return Artist.builder()
                 .name(this.name)
                 .type(this.type)
+                .country(this.country)
                 .biography(this.biography)
+                .active(true)
                 .build();
     }
 

@@ -22,12 +22,15 @@ public interface ArtistRepository extends JpaRepository<Artist, Long> {
 
     @Query("SELECT a FROM Artist a WHERE " +
             "(:name IS NULL OR LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-            "(:type IS NULL OR a.type = :type)")
+            "(:type IS NULL OR a.type = :type) AND " +
+            "a.active = true")
     Page<Artist> findByFilters(
             @Param("name") String name,
             @Param("type") ArtistType type,
             Pageable pageable
     );
+
+    Page<Artist> findByActiveTrue(Pageable pageable);
 
     List<Artist> findByNameContainingIgnoreCaseOrderByNameAsc(String name);
 

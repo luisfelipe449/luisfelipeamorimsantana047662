@@ -13,6 +13,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,6 +24,7 @@ import java.util.stream.Collectors;
 public class ArtistService {
 
     private final ArtistRepository artistRepository;
+    private final StorageService storageService;
 
     @Transactional(readOnly = true)
     public PageResponse<ArtistDTO> findAll(int page, int size, String sortBy, String sortDir) {
@@ -31,10 +33,10 @@ public class ArtistService {
                 : Sort.by(sortBy).ascending();
 
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Artist> artistPage = artistRepository.findAll(pageable);
+        Page<Artist> artistPage = artistRepository.findByActiveTrue(pageable);
 
         List<ArtistDTO> artists = artistPage.getContent().stream()
-                .map(ArtistDTO::fromEntity)
+                .map(this::toDTO)
                 .collect(Collectors.toList());
 
         return PageResponse.from(artistPage, artists);
@@ -50,7 +52,7 @@ public class ArtistService {
         Page<Artist> artistPage = artistRepository.findByFilters(name, type, pageable);
 
         List<ArtistDTO> artists = artistPage.getContent().stream()
-                .map(ArtistDTO::fromEntity)
+                .map(this::toDTO)
                 .collect(Collectors.toList());
 
         return PageResponse.from(artistPage, artists);
@@ -60,7 +62,7 @@ public class ArtistService {
     public ArtistDTO findById(Long id) {
         Artist artist = artistRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Artist", id));
-        return ArtistDTO.fromEntity(artist);
+        return toDTO(artist);
     }
 
     @Transactional
@@ -71,7 +73,7 @@ public class ArtistService {
         artist = artistRepository.save(artist);
 
         log.info("Artist created with id: {}", artist.getId());
-        return ArtistDTO.fromEntity(artist);
+        return toDTO(artist);
     }
 
     @Transactional
@@ -87,14 +89,20 @@ public class ArtistService {
         if (dto.getType() != null) {
             artist.setType(dto.getType());
         }
+        if (dto.getCountry() != null) {
+            artist.setCountry(dto.getCountry());
+        }
         if (dto.getBiography() != null) {
             artist.setBiography(dto.getBiography());
+        }
+        if (dto.getActive() != null) {
+            artist.setActive(dto.getActive());
         }
 
         artist = artistRepository.save(artist);
         log.info("Artist updated: {}", artist.getId());
 
-        return ArtistDTO.fromEntity(artist);
+        return toDTO(artist);
     }
 
     @Transactional(readOnly = true)
@@ -108,13 +116,98 @@ public class ArtistService {
         }
 
         return artists.stream()
-                .map(ArtistDTO::fromEntity)
+                .filter(Artist::getActive)
+                .map(this::toDTO)
                 .collect(Collectors.toList());
     }
 
     @Transactional(readOnly = true)
     public boolean existsById(Long id) {
         return artistRepository.existsById(id);
+    }
+
+    // ==================== Photo Methods ====================
+
+    @Transactional
+    public String uploadPhoto(Long id, MultipartFile file) {
+        log.info("Uploading photo for artist: {}", id);
+
+        Artist artist = artistRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Artist", id));
+
+        // Delete old photo if exists
+        if (artist.getPhotoKey() != null) {
+            try {
+                storageService.deleteFile(artist.getPhotoKey());
+            } catch (Exception e) {
+                log.warn("Could not delete old photo: {}", e.getMessage());
+            }
+        }
+
+        String photoKey = storageService.uploadFile(file);
+        artist.setPhotoKey(photoKey);
+        artistRepository.save(artist);
+
+        log.info("Photo uploaded for artist {}: {}", id, photoKey);
+        return photoKey;
+    }
+
+    @Transactional
+    public void deletePhoto(Long id) {
+        log.info("Deleting photo for artist: {}", id);
+
+        Artist artist = artistRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Artist", id));
+
+        if (artist.getPhotoKey() != null) {
+            storageService.deleteFile(artist.getPhotoKey());
+            artist.setPhotoKey(null);
+            artistRepository.save(artist);
+            log.info("Photo deleted for artist: {}", id);
+        }
+    }
+
+    public String getPhotoUrl(Long id) {
+        Artist artist = artistRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Artist", id));
+
+        if (artist.getPhotoKey() == null) {
+            return null;
+        }
+
+        return storageService.getPresignedUrl(artist.getPhotoKey());
+    }
+
+    // ==================== Soft Delete ====================
+
+    @Transactional
+    public void deactivate(Long id) {
+        log.info("Deactivating artist: {}", id);
+
+        Artist artist = artistRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Artist", id));
+
+        artist.setActive(false);
+        artistRepository.save(artist);
+
+        log.info("Artist deactivated: {}", id);
+    }
+
+    // ==================== Helper Methods ====================
+
+    private ArtistDTO toDTO(Artist artist) {
+        ArtistDTO dto = ArtistDTO.fromEntity(artist);
+
+        // Add presigned URL for photo
+        if (artist.getPhotoKey() != null) {
+            try {
+                dto.setPhotoUrl(storageService.getPresignedUrl(artist.getPhotoKey()));
+            } catch (Exception e) {
+                log.warn("Could not generate presigned URL for artist {}: {}", artist.getId(), e.getMessage());
+            }
+        }
+
+        return dto;
     }
 
 }

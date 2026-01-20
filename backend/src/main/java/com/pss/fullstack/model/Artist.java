@@ -22,8 +22,18 @@ public class Artist extends BaseEntity {
     @Column(nullable = false)
     private ArtistType type;
 
+    @Column(length = 100)
+    private String country;
+
     @Column(length = 1000)
     private String biography;
+
+    @Column(name = "photo_key")
+    private String photoKey;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean active = true;
 
     @ManyToMany(mappedBy = "artists", fetch = FetchType.LAZY)
     @Builder.Default

@@ -18,7 +18,11 @@ public class ArtistDTO {
     private Long id;
     private String name;
     private ArtistType type;
+    private String country;
     private String biography;
+    private String photoKey;
+    private String photoUrl;
+    private Boolean active;
     private int albumCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -28,7 +32,10 @@ public class ArtistDTO {
                 .id(artist.getId())
                 .name(artist.getName())
                 .type(artist.getType())
+                .country(artist.getCountry())
                 .biography(artist.getBiography())
+                .photoKey(artist.getPhotoKey())
+                .active(artist.getActive())
                 .albumCount(artist.getAlbums() != null ? artist.getAlbums().size() : 0)
                 .createdAt(artist.getCreatedAt())
                 .updatedAt(artist.getUpdatedAt())

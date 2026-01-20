@@ -3,16 +3,20 @@ package com.pss.fullstack.controller;
 import com.pss.fullstack.dto.*;
 import com.pss.fullstack.model.ArtistType;
 import com.pss.fullstack.service.ArtistService;
+import com.pss.fullstack.service.StorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/v1/artists")
@@ -93,6 +97,59 @@ public class ArtistController {
             @Valid @RequestBody ArtistUpdateDTO dto
     ) {
         return ResponseEntity.ok(artistService.update(id, dto));
+    }
+
+    // ==================== Photo Endpoints ====================
+
+    @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @Operation(summary = "Upload artist photo")
+    public ResponseEntity<Map<String, String>> uploadPhoto(
+            @Parameter(description = "Artist ID")
+            @PathVariable Long id,
+
+            @Parameter(description = "Photo file")
+            @RequestParam("file") MultipartFile file
+    ) {
+        String photoKey = artistService.uploadPhoto(id, file);
+        String photoUrl = artistService.getPhotoUrl(id);
+
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(Map.of("key", photoKey, "url", photoUrl));
+    }
+
+    @DeleteMapping("/{id}/photo")
+    @Operation(summary = "Delete artist photo")
+    public ResponseEntity<Void> deletePhoto(
+            @Parameter(description = "Artist ID")
+            @PathVariable Long id
+    ) {
+        artistService.deletePhoto(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/photo/url")
+    @Operation(summary = "Get artist photo URL")
+    public ResponseEntity<Map<String, String>> getPhotoUrl(
+            @Parameter(description = "Artist ID")
+            @PathVariable Long id
+    ) {
+        String url = artistService.getPhotoUrl(id);
+        if (url == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(Map.of("url", url));
+    }
+
+    // ==================== Soft Delete ====================
+
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Deactivate an artist (soft delete)")
+    public ResponseEntity<Void> deactivate(
+            @Parameter(description = "Artist ID")
+            @PathVariable Long id
+    ) {
+        artistService.deactivate(id);
+        return ResponseEntity.noContent().build();
     }
 
 }

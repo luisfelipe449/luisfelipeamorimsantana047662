@@ -18,7 +18,12 @@ public class ArtistUpdateDTO {
 
     private ArtistType type;
 
+    @Size(max = 100, message = "Country must be at most 100 characters")
+    private String country;
+
     @Size(max = 1000, message = "Biography must be at most 1000 characters")
     private String biography;
+
+    private Boolean active;
 
 }
