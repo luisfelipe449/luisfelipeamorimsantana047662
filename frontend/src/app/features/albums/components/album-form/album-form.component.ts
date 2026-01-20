@@ -12,6 +12,12 @@ interface ArtistOption {
   name: string;
 }
 
+interface TrackFormItem {
+  title: string;
+  durationFormatted: string;
+  duration: number;
+}
+
 @Component({
   selector: 'app-album-form',
   templateUrl: './album-form.component.html',
@@ -26,6 +32,7 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
   isDragOver = false;
 
   artists: ArtistOption[] = [];
+  tracks: TrackFormItem[] = [];
   selectedFile: File | null = null;
   coverPreview: string | null = null;
 
@@ -107,6 +114,15 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
       artistIds: album.artists?.map(a => a.id) || []
     });
     this.coverPreview = album.coverUrl || null;
+
+    // Populate tracks
+    if (album.tracks?.length) {
+      this.tracks = album.tracks.map(track => ({
+        title: track.title,
+        duration: track.duration,
+        durationFormatted: this.formatDuration(track.duration)
+      }));
+    }
   }
 
   onFileSelected(event: Event): void {
@@ -180,13 +196,63 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
     this.form.get('artistIds')?.setValue(newIds);
   }
 
+  // Track management methods
+  addTrack(): void {
+    this.tracks.push({
+      title: '',
+      duration: 0,
+      durationFormatted: ''
+    });
+  }
+
+  removeTrack(index: number): void {
+    this.tracks.splice(index, 1);
+  }
+
+  onDurationBlur(index: number): void {
+    const track = this.tracks[index];
+    track.duration = this.parseDuration(track.durationFormatted);
+    track.durationFormatted = this.formatDuration(track.duration);
+  }
+
+  private formatDuration(seconds: number): string {
+    if (!seconds) return '';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  private parseDuration(formatted: string): number {
+    if (!formatted) return 0;
+    const parts = formatted.split(':');
+    if (parts.length === 2) {
+      const mins = parseInt(parts[0], 10) || 0;
+      const secs = parseInt(parts[1], 10) || 0;
+      return mins * 60 + secs;
+    }
+    return parseInt(formatted, 10) || 0;
+  }
+
+  private getTracksForSubmit(): any[] {
+    return this.tracks
+      .filter(t => t.title.trim())
+      .map((t, index) => ({
+        title: t.title.trim(),
+        trackNumber: index + 1,
+        duration: t.duration
+      }));
+  }
+
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
       return;
     }
 
-    const formValue = this.form.value;
+    const formValue = {
+      ...this.form.value,
+      tracks: this.getTracksForSubmit()
+    };
 
     if (this.isEditMode && this.albumId) {
       this.updateAlbum(formValue);

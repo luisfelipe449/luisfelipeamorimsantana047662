@@ -80,7 +80,7 @@ export class AlbumsFacade {
       }),
       finalize(() => this.loading$.next(false))
     ).subscribe({
-      error: (err) => this.error$.next(err.message || 'Erro ao carregar albums')
+      error: (err) => this.error$.next(err.error?.message || 'Erro ao carregar álbuns')
     });
   }
 
@@ -92,7 +92,7 @@ export class AlbumsFacade {
       tap((album: Album) => this.selectedAlbum$.next(album)),
       finalize(() => this.loading$.next(false))
     ).subscribe({
-      error: (err) => this.error$.next(err.message || 'Erro ao carregar album')
+      error: (err) => this.error$.next(err.error?.message || 'Erro ao carregar álbum')
     });
   }
 

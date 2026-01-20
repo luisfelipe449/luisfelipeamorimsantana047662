@@ -146,6 +146,67 @@
               </mat-chip-set>
             </div>
           </div>
+
+          <mat-divider class="my-6"></mat-divider>
+
+          <!-- Tracks Section -->
+          <div class="py-2">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="flex items-center gap-2 text-sm font-semibold text-gray-900 m-0">
+                <mat-icon class="text-xl text-primary">playlist_play</mat-icon>
+                Faixas
+              </h3>
+              <button mat-stroked-button
+                      type="button"
+                      color="primary"
+                      (click)="addTrack()">
+                <mat-icon>add</mat-icon>
+                Adicionar
+              </button>
+            </div>
+
+            <!-- Track List -->
+            <div class="space-y-3" *ngIf="tracks.length > 0">
+              <div *ngFor="let track of tracks; let i = index"
+                   class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <!-- Track Number Badge -->
+                <span class="w-8 h-8 rounded-full bg-gray-800 text-white flex items-center justify-center text-sm font-medium shrink-0">
+                  {{ i + 1 }}
+                </span>
+
+                <!-- Track Title -->
+                <mat-form-field appearance="outline" class="flex-1 hide-subscript">
+                  <input matInput
+                         [(ngModel)]="track.title"
+                         [ngModelOptions]="{standalone: true}"
+                         placeholder="Nome da faixa">
+                </mat-form-field>
+
+                <!-- Duration Input -->
+                <mat-form-field appearance="outline" class="w-24 hide-subscript">
+                  <input matInput
+                         [(ngModel)]="track.durationFormatted"
+                         [ngModelOptions]="{standalone: true}"
+                         placeholder="0:00"
+                         (blur)="onDurationBlur(i)">
+                </mat-form-field>
+
+                <!-- Remove Button -->
+                <button mat-icon-button
+                        type="button"
+                        color="warn"
+                        (click)="removeTrack(i)"
+                        matTooltip="Remover faixa">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
+            </div>
+
+            <!-- Empty State -->
+            <p class="text-sm text-gray-500 mt-2" *ngIf="tracks.length === 0">
+              Opcional - Adicione as faixas do álbum
+            </p>
+          </div>
         </div>
       </div>
 
