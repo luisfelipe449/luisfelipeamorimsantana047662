@@ -1,5 +1,27 @@
-// Album List - hover effects and line clamp
+// Album List - Styles for album cards
 // Layout handled by Tailwind CSS
+
+// Toolbar input styles (clean/minimal)
+.toolbar-input {
+  ::ng-deep {
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: #e5e7eb !important;
+    }
+    .mat-mdc-form-field-infix {
+      padding-top: 8px !important;
+      padding-bottom: 8px !important;
+      min-height: 40px !important;
+    }
+    .mat-mdc-text-field-wrapper {
+      padding: 0 12px !important;
+    }
+  }
+}
 
 // Hide mat-form-field subscript
 .hide-subscript {
@@ -23,23 +45,23 @@
   overflow: hidden;
 }
 
-// Album card hover effects
+// Album card hover effect
 .album-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+}
+
+// Album row hover effect (list view)
+.album-row {
   @apply transition-all duration-200;
 
   &:hover {
-    @apply -translate-y-1 shadow-lg;
-
-    img {
-      @apply scale-105;
-    }
-
-    .cover-overlay {
-      @apply opacity-100;
-    }
-
-    .card-actions {
-      @apply opacity-100;
+    mat-icon.text-gray-400 {
+      @apply text-primary;
     }
   }
 }
