@@ -1,51 +1,55 @@
-<div class="login-page">
+<div class="flex min-h-screen bg-gray-50">
   <!-- Hero Section -->
-  <div class="login-hero">
-    <div class="hero-content">
-      <div class="hero-logo">
-        <mat-icon>library_music</mat-icon>
+  <div class="flex-1 flex flex-col justify-center p-12 bg-gradient-to-br from-primary-900 via-primary to-primary-400 text-white relative overflow-hidden max-lg:p-8 max-lg:min-h-0 max-lg:text-center">
+    <!-- Decorative circles -->
+    <div class="absolute w-96 h-96 -top-24 -left-24 rounded-full bg-white/5 max-lg:hidden"></div>
+    <div class="absolute w-72 h-72 -bottom-12 -right-12 rounded-full bg-white/5 max-lg:hidden"></div>
+
+    <div class="relative z-10 max-w-lg max-lg:max-w-full">
+      <div class="flex items-center justify-center w-20 h-20 bg-white/15 rounded-2xl mb-6 backdrop-blur-sm max-lg:mx-auto max-lg:w-16 max-lg:h-16 max-lg:mb-4">
+        <mat-icon class="text-4xl max-lg:text-3xl">library_music</mat-icon>
       </div>
-      <h1 class="hero-title">Artistas & Álbuns</h1>
-      <p class="hero-subtitle">
+      <h1 class="text-4xl font-bold mb-4 leading-tight max-lg:text-3xl max-sm:text-2xl">Artistas & Álbuns</h1>
+      <p class="text-base leading-relaxed opacity-90 mb-8 max-lg:text-sm max-lg:mb-6">
         Sistema de gerenciamento de artistas e álbuns musicais.
         Uma plataforma moderna para organizar sua coleção.
       </p>
-      <div class="hero-features">
-        <div class="feature-item">
-          <mat-icon>people</mat-icon>
+      <div class="flex flex-col gap-4 max-lg:flex-row max-lg:flex-wrap max-lg:justify-center max-lg:gap-x-6 max-lg:gap-y-4 max-sm:hidden">
+        <div class="flex items-center gap-2 text-sm opacity-90">
+          <mat-icon class="text-xl opacity-80">people</mat-icon>
           <span>Gestão de Artistas</span>
         </div>
-        <div class="feature-item">
-          <mat-icon>album</mat-icon>
+        <div class="flex items-center gap-2 text-sm opacity-90">
+          <mat-icon class="text-xl opacity-80">album</mat-icon>
           <span>Catálogo de Álbuns</span>
         </div>
-        <div class="feature-item">
-          <mat-icon>image</mat-icon>
+        <div class="flex items-center gap-2 text-sm opacity-90">
+          <mat-icon class="text-xl opacity-80">image</mat-icon>
           <span>Upload de Capas</span>
         </div>
       </div>
     </div>
-    <div class="hero-footer">
+    <div class="absolute bottom-6 left-12 text-xs opacity-60 max-lg:hidden">
       <span>PSS MT 2026 - SEPLAG</span>
     </div>
   </div>
 
   <!-- Login Form Section -->
-  <div class="login-form-section">
-    <div class="login-form-container animate-fade-in">
-      <div class="login-header">
-        <h2>Bem-vindo de volta</h2>
-        <p>Entre com suas credenciais para acessar o sistema</p>
+  <div class="flex-1 flex items-center justify-center p-8 bg-white max-lg:flex-none max-lg:p-6">
+    <div class="w-full max-w-md animate-fade-in max-sm:max-w-full">
+      <div class="mb-8 text-center">
+        <h2 class="text-3xl font-semibold text-gray-900 mb-2 max-sm:text-2xl">Bem-vindo de volta</h2>
+        <p class="text-sm text-gray-500">Entre com suas credenciais para acessar o sistema</p>
       </div>
 
-      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="login-form">
+      <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-2">
         <mat-form-field appearance="outline">
           <mat-label>Usuário</mat-label>
           <input matInput
                  formControlName="username"
                  placeholder="Digite seu usuário"
                  autocomplete="username">
-          <mat-icon matPrefix>person_outline</mat-icon>
+          <mat-icon matPrefix class="text-gray-400">person_outline</mat-icon>
           <mat-error *ngIf="loginForm.get('username')?.hasError('required')">
             Usuário é obrigatório
           </mat-error>
@@ -58,7 +62,7 @@
                  formControlName="password"
                  placeholder="Digite sua senha"
                  autocomplete="current-password">
-          <mat-icon matPrefix>lock_outline</mat-icon>
+          <mat-icon matPrefix class="text-gray-400">lock_outline</mat-icon>
           <button mat-icon-button
                   matSuffix
                   type="button"
@@ -77,10 +81,10 @@
         <button mat-raised-button
                 color="primary"
                 type="submit"
-                class="login-button"
+                class="mt-4 h-13 text-base font-medium rounded-lg flex items-center justify-center gap-2"
                 [disabled]="loginForm.invalid || isLoading">
           <ng-container *ngIf="!isLoading; else loadingTemplate">
-            <mat-icon>login</mat-icon>
+            <mat-icon class="text-xl">login</mat-icon>
             <span>Entrar</span>
           </ng-container>
           <ng-template #loadingTemplate>
@@ -90,9 +94,9 @@
         </button>
       </form>
 
-      <div class="login-footer">
-        <p class="credentials-hint">
-          <mat-icon>info_outline</mat-icon>
+      <div class="mt-8">
+        <p class="flex items-center justify-center gap-1 text-xs text-gray-400 m-0 p-4 bg-gray-50 rounded-lg">
+          <mat-icon class="text-base">info_outline</mat-icon>
           <span>Use as credenciais fornecidas pelo administrador</span>
         </p>
       </div>
