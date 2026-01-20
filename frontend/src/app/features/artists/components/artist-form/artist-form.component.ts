@@ -16,6 +16,11 @@ export class ArtistFormComponent implements OnInit, OnDestroy {
   isEditMode = false;
   artistId: number | null = null;
   loading = false;
+  uploading = false;
+  isDragOver = false;
+
+  selectedFile: File | null = null;
+  photoPreview: string | null = null;
 
   artistTypes: { value: ArtistType; label: string }[] = [
     { value: 'SOLO', label: 'Cantor Solo' },
@@ -83,6 +88,67 @@ export class ArtistFormComponent implements OnInit, OnDestroy {
       country: artist.country || '',
       biography: artist.biography || ''
     });
+    this.photoPreview = artist.photoUrl || null;
+  }
+
+  onFileSelected(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.handleFile(input.files[0]);
+    }
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragOver = false;
+
+    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+      this.handleFile(event.dataTransfer.files[0]);
+    }
+  }
+
+  private handleFile(file: File): void {
+    if (!file.type.startsWith('image/')) {
+      this.snackBar.open('Por favor, selecione uma imagem válida', 'Fechar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      this.snackBar.open('A imagem deve ter no máximo 5MB', 'Fechar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    this.selectedFile = file;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      this.photoPreview = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  removeFile(): void {
+    this.selectedFile = null;
+    this.photoPreview = null;
   }
 
   onSubmit(): void {
@@ -94,38 +160,74 @@ export class ArtistFormComponent implements OnInit, OnDestroy {
     const formValue = this.form.value;
 
     if (this.isEditMode && this.artistId) {
-      this.facade.updateArtist(this.artistId, formValue).subscribe({
-        next: () => {
-          this.snackBar.open('Artista atualizado com sucesso!', 'Fechar', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
-          this.router.navigate(['/artists', this.artistId]);
-        },
-        error: () => {
-          this.snackBar.open('Erro ao atualizar artista', 'Fechar', {
-            duration: 5000,
-            panelClass: ['error-snackbar']
-          });
-        }
-      });
+      this.updateArtist(formValue);
     } else {
-      this.facade.createArtist(formValue).subscribe({
-        next: (artist) => {
-          this.snackBar.open('Artista criado com sucesso!', 'Fechar', {
-            duration: 3000,
-            panelClass: ['success-snackbar']
-          });
-          this.router.navigate(['/artists', artist.id]);
-        },
-        error: () => {
-          this.snackBar.open('Erro ao criar artista', 'Fechar', {
-            duration: 5000,
-            panelClass: ['error-snackbar']
-          });
-        }
-      });
+      this.createArtist(formValue);
     }
+  }
+
+  private createArtist(formValue: any): void {
+    this.facade.createArtist(formValue).subscribe({
+      next: (artist) => {
+        if (this.selectedFile) {
+          this.uploadPhoto(artist.id);
+        } else {
+          this.onSuccess('Artista criado com sucesso!', artist.id);
+        }
+      },
+      error: () => this.onError('Erro ao criar artista')
+    });
+  }
+
+  private updateArtist(formValue: any): void {
+    this.facade.updateArtist(this.artistId!, formValue).subscribe({
+      next: () => {
+        if (this.selectedFile) {
+          this.uploadPhoto(this.artistId!);
+        } else {
+          this.onSuccess('Artista atualizado com sucesso!', this.artistId!);
+        }
+      },
+      error: () => this.onError('Erro ao atualizar artista')
+    });
+  }
+
+  private uploadPhoto(artistId: number): void {
+    if (!this.selectedFile) return;
+
+    this.uploading = true;
+    this.facade.uploadPhoto(artistId, this.selectedFile).subscribe({
+      next: () => {
+        this.uploading = false;
+        this.onSuccess(
+          this.isEditMode ? 'Artista atualizado com sucesso!' : 'Artista criado com sucesso!',
+          artistId
+        );
+      },
+      error: () => {
+        this.uploading = false;
+        this.snackBar.open('Artista salvo, mas erro ao enviar foto', 'Fechar', {
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
+        this.router.navigate(['/artists', artistId]);
+      }
+    });
+  }
+
+  private onSuccess(message: string, artistId: number): void {
+    this.snackBar.open(message, 'Fechar', {
+      duration: 3000,
+      panelClass: ['success-snackbar']
+    });
+    this.router.navigate(['/artists', artistId]);
+  }
+
+  private onError(message: string): void {
+    this.snackBar.open(message, 'Fechar', {
+      duration: 5000,
+      panelClass: ['error-snackbar']
+    });
   }
 
   cancel(): void {
