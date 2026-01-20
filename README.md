@@ -315,6 +315,14 @@ Para respeitar o rate limit de 10 requisicoes por minuto definido no edital, a b
 
 Esta estrategia garante que mesmo digitando rapidamente (ex: "Serj Tankian" com 12 caracteres), apenas 1-2 requisicoes sejam feitas ao servidor, evitando o estouro do rate limit e melhorando a experiencia do usuario.
 
+### 10. Tratamento de Token Expirado (HTTP 401)
+O filtro JWT foi configurado para retornar HTTP 401 (Unauthorized) explicitamente quando o token esta expirado ou invalido. Isso permite que o frontend:
+1. Identifique corretamente que precisa renovar o token
+2. Chame o endpoint /auth/refresh automaticamente
+3. Retente a requisicao original com o novo token
+
+Sem essa configuracao, o Spring Security retornaria 403 (Forbidden), que semanticamente significa "autenticado mas sem permissao", impedindo o fluxo correto de refresh token.
+
 ## Trade-offs e Priorizacoes
 
 1. **Simplicidade vs Features**: Priorizei uma implementacao limpa e funcional das features obrigatorias sobre adicionar funcionalidades extras.
