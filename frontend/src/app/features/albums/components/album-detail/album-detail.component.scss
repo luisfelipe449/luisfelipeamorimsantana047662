@@ -1,24 +1,9 @@
-// Album Detail - hover effects and chip variants
-// Layout handled by Tailwind CSS
+// Album Detail - Spotify-inspired layout
+// Most styles handled by Tailwind CSS
 
-// Artist item hover effect for arrow
-.artist-item:hover .arrow-icon {
-  @apply text-primary translate-x-1;
-}
-
-// Chip variants
-.chip-primary {
-  @apply bg-primary-50 text-primary;
-}
-
-.chip-neutral {
-  @apply bg-gray-100 text-gray-600;
-}
-
-.chip-success {
-  @apply bg-success-50 text-green-700;
-}
-
-.chip-error {
-  @apply bg-error-50 text-red-700;
+// Track row hover effect
+.group:hover {
+  .text-gray-400 {
+    @apply text-gray-600;
+  }
 }
