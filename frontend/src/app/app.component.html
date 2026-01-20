@@ -1,37 +1,37 @@
-<header class="app-header" *ngIf="showNavbar">
-  <div class="header-content">
+<header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm" *ngIf="showNavbar">
+  <div class="flex items-center w-full max-w-7xl mx-auto px-6 h-16 md:h-16 max-md:px-4 max-md:h-14">
     <!-- Logo/Brand -->
-    <a routerLink="/" class="brand">
-      <div class="brand-logo">
-        <mat-icon>library_music</mat-icon>
+    <a routerLink="/" class="flex items-center gap-2 no-underline hover:opacity-80 transition-opacity duration-150">
+      <div class="flex items-center justify-center w-10 h-10 bg-gradient-to-br from-primary to-primary-800 rounded-lg text-white">
+        <mat-icon class="text-2xl">library_music</mat-icon>
       </div>
-      <span class="brand-text hide-mobile">{{ title }}</span>
+      <span class="text-lg font-bold text-gray-900 tracking-tight hidden md:block">{{ title }}</span>
     </a>
 
     <!-- Navigation -->
     <ng-container *ngIf="isLoggedIn">
-      <nav class="nav-links hide-mobile">
+      <nav class="hidden md:flex items-center gap-1 ml-8">
         <a routerLink="/artists"
-           routerLinkActive="active"
-           class="nav-link">
-          <mat-icon>people</mat-icon>
+           routerLinkActive="bg-primary-50 text-primary"
+           class="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 no-underline hover:bg-gray-50 hover:text-gray-900 transition-all duration-150">
+          <mat-icon class="text-xl">people</mat-icon>
           <span>Artistas</span>
         </a>
         <a routerLink="/albums"
-           routerLinkActive="active"
-           class="nav-link">
-          <mat-icon>album</mat-icon>
+           routerLinkActive="bg-primary-50 text-primary"
+           class="flex items-center gap-1 px-4 py-2 rounded-lg text-sm font-medium text-gray-600 no-underline hover:bg-gray-50 hover:text-gray-900 transition-all duration-150">
+          <mat-icon class="text-xl">album</mat-icon>
           <span>Álbuns</span>
         </a>
       </nav>
     </ng-container>
 
-    <span class="spacer"></span>
+    <span class="flex-1"></span>
 
     <ng-container *ngIf="isLoggedIn; else loginButton">
       <!-- Mobile Menu Button -->
       <button mat-icon-button
-              class="mobile-menu-btn hide-desktop"
+              class="md:hidden text-gray-900"
               [matMenuTriggerFor]="mobileMenu">
         <mat-icon>menu</mat-icon>
       </button>
@@ -54,21 +54,21 @@
       </mat-menu>
 
       <!-- User Menu -->
-      <div class="user-section hide-mobile">
-        <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-menu-trigger" matTooltip="Menu do usuário">
-          <div class="user-avatar">
+      <div class="hidden md:block ml-4">
+        <button mat-icon-button [matMenuTriggerFor]="userMenu" class="hover:bg-gray-50 rounded-lg" matTooltip="Menu do usuário">
+          <div class="flex items-center justify-center w-8 h-8 bg-gradient-to-br from-primary to-primary-800 rounded-full text-white text-sm font-semibold">
             <span>{{ username?.charAt(0)?.toUpperCase() }}</span>
           </div>
         </button>
 
         <mat-menu #userMenu="matMenu" xPosition="before" class="user-dropdown">
-          <div class="user-menu-header">
-            <div class="user-avatar-large">
+          <div class="flex items-center gap-4 p-4 bg-gray-50">
+            <div class="flex items-center justify-center w-12 h-12 bg-gradient-to-br from-primary to-primary-800 text-white rounded-full text-xl font-semibold">
               <span>{{ username?.charAt(0)?.toUpperCase() }}</span>
             </div>
-            <div class="user-info">
-              <span class="user-name">{{ username }}</span>
-              <span class="user-role">Administrador</span>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-sm font-semibold text-gray-900">{{ username }}</span>
+              <span class="text-xs text-gray-500">Administrador</span>
             </div>
           </div>
           <mat-divider></mat-divider>
@@ -81,14 +81,14 @@
     </ng-container>
 
     <ng-template #loginButton>
-      <a mat-flat-button color="primary" routerLink="/auth/login" class="login-btn">
-        <mat-icon>login</mat-icon>
+      <a mat-flat-button color="primary" routerLink="/auth/login" class="flex items-center gap-1">
+        <mat-icon class="text-lg">login</mat-icon>
         <span>Entrar</span>
       </a>
     </ng-template>
   </div>
 </header>
 
-<main class="main-content">
+<main class="min-h-[calc(100vh-64px)] bg-gray-50 max-md:min-h-[calc(100vh-56px)]">
   <router-outlet></router-outlet>
 </main>
