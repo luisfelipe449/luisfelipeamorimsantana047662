@@ -145,6 +145,12 @@ body {
 .mat-mdc-flat-button,
 .mat-mdc-stroked-button {
   @apply rounded-lg font-medium tracking-wide transition-all duration-150;
+
+  // Alinhar ícone com texto dentro do botão
+  .mat-icon {
+    @apply align-middle;
+    margin-top: -2px;
+  }
 }
 
 .mat-mdc-icon-button {
