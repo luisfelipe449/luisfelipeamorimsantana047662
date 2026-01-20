@@ -31,6 +31,7 @@ Projeto Full Stack desenvolvido como parte do **Processo Seletivo Simplificado n
 |------------|--------|------------|
 | Angular | 17.x | Framework SPA |
 | Angular Material | 17.x | Componentes UI |
+| Tailwind CSS | 3.4.x | Framework CSS utilitario |
 | TypeScript | 5.x | Tipagem estatica |
 | RxJS | 7.x | Programacao reativa |
 | STOMP.js | - | Cliente WebSocket |
@@ -199,7 +200,8 @@ docker-compose ps
 - [x] WebSocket para notificacoes em tempo real
 
 #### UI/UX
-- [x] Angular Material
+- [x] Angular Material (componentes interativos)
+- [x] Tailwind CSS (layout e estilos utilitarios)
 - [x] Layout responsivo (mobile, tablet, desktop)
 - [x] Snackbar para feedback de acoes
 - [x] Loading spinners
@@ -297,6 +299,13 @@ A combinacao STOMP + SockJS garante:
 - Protocolo padrao para mensageria
 - Fallback para browsers sem suporte nativo
 - Integracao facilitada com Spring
+
+### 8. Tailwind CSS + Angular Material
+Conforme orientacao do edital ("Se usar framework CSS, priorize Tailwind"), integrei Tailwind CSS como framework CSS principal. A estrategia adotada:
+- **Angular Material**: apenas para componentes interativos (buttons, forms, dialogs, menus)
+- **Tailwind CSS**: todo o resto (layout, espacamento, cores, tipografia, responsividade)
+- Resultado: reducao de ~2.500 linhas de CSS customizado para ~200 linhas
+- Beneficios: maior consistencia, manutencao simplificada, responsividade declarativa
 
 ## Trade-offs e Priorizacoes
 
