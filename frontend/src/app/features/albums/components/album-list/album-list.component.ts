@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { PageEvent } from '@angular/material/paginator';
-import { Subject, debounceTime, takeUntil } from 'rxjs';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { AlbumsFacade } from '../../facades/albums.facade';
 import { Album } from '../../models/album.model';
 
@@ -15,6 +15,7 @@ export class AlbumListComponent implements OnInit, OnDestroy {
   loading = false;
   searchTerm = '';
   sortDirection: 'asc' | 'desc' = 'asc';
+  viewMode: 'list' | 'grid' = 'list';
 
   // Pagination
   totalElements = 0;
@@ -67,8 +68,17 @@ export class AlbumListComponent implements OnInit, OnDestroy {
 
   private setupSearch(): void {
     this.searchSubject
-      .pipe(debounceTime(300), takeUntil(this.destroy$))
-      .subscribe(term => this.facade.setTitleFilter(term));
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(term => {
+        // Só busca se tiver 2+ caracteres ou estiver vazio (limpar busca)
+        if (term.length >= 2 || term.length === 0) {
+          this.facade.setTitleFilter(term);
+        }
+      });
   }
 
   onSearch(event: Event): void {
@@ -114,5 +124,16 @@ export class AlbumListComponent implements OnInit, OnDestroy {
 
   getArtistNames(album: Album): string {
     return album.artists?.map(a => a.name).join(', ') || 'Sem artista';
+  }
+
+  formatDuration(seconds: number | undefined): string {
+    if (!seconds) return '0:00';
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins}:${secs.toString().padStart(2, '0')}`;
+  }
+
+  setViewMode(mode: 'list' | 'grid'): void {
+    this.viewMode = mode;
   }
 }

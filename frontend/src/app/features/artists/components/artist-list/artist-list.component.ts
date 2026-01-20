@@ -1,9 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
 import { PageEvent } from '@angular/material/paginator';
-import { Subject, debounceTime, takeUntil } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
+import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { ArtistsFacade } from '../../facades/artists.facade';
 import { Artist, ArtistType } from '../../models/artist.model';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-artist-list',
@@ -28,7 +31,9 @@ export class ArtistListComponent implements OnInit, OnDestroy {
 
   constructor(
     private facade: ArtistsFacade,
-    private router: Router
+    private router: Router,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -69,8 +74,17 @@ export class ArtistListComponent implements OnInit, OnDestroy {
 
   private setupSearch(): void {
     this.searchSubject
-      .pipe(debounceTime(300), takeUntil(this.destroy$))
-      .subscribe(term => this.facade.setNameFilter(term));
+      .pipe(
+        debounceTime(500),
+        distinctUntilChanged(),
+        takeUntil(this.destroy$)
+      )
+      .subscribe(term => {
+        // Só busca se tiver 2+ caracteres ou estiver vazio (limpar busca)
+        if (term.length >= 2 || term.length === 0) {
+          this.facade.setNameFilter(term);
+        }
+      });
   }
 
   onSearch(event: Event): void {
@@ -120,6 +134,38 @@ export class ArtistListComponent implements OnInit, OnDestroy {
   }
 
   getTypeLabel(type: ArtistType): string {
-    return type === 'SOLO' ? 'Cantor Solo' : 'Banda';
+    return type === 'SOLO' ? 'Solo' : 'Banda';
+  }
+
+  deleteArtist(artist: Artist): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Desativar Artista',
+        message: `Tem certeza que deseja desativar "${artist.name}"? O artista não aparecerá mais nas listagens, mas seus dados serão mantidos.`,
+        confirmText: 'Desativar',
+        cancelText: 'Cancelar',
+        confirmColor: 'warn'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.facade.deactivateArtist(artist.id).subscribe({
+          next: () => {
+            this.snackBar.open(`"${artist.name}" foi desativado com sucesso`, 'Fechar', {
+              duration: 3000,
+              panelClass: ['success-snackbar']
+            });
+          },
+          error: () => {
+            this.snackBar.open('Erro ao desativar artista', 'Fechar', {
+              duration: 5000,
+              panelClass: ['error-snackbar']
+            });
+          }
+        });
+      }
+    });
   }
 }
