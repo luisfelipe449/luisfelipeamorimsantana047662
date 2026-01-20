@@ -307,6 +307,14 @@ Conforme orientacao do edital ("Se usar framework CSS, priorize Tailwind"), inte
 - Resultado: reducao de ~2.500 linhas de CSS customizado para ~200 linhas
 - Beneficios: maior consistencia, manutencao simplificada, responsividade declarativa
 
+### 9. Otimizacao de Busca (Debounce)
+Para respeitar o rate limit de 10 requisicoes por minuto definido no edital, a busca por texto nas listagens implementa:
+- **Debounce de 500ms**: Aguarda o usuario parar de digitar antes de enviar a requisicao a API
+- **distinctUntilChanged**: Operador RxJS que evita requisicoes duplicadas se o valor nao mudou
+- **Minimo de 2 caracteres**: Busca so e executada com pelo menos 2 caracteres digitados
+
+Esta estrategia garante que mesmo digitando rapidamente (ex: "Serj Tankian" com 12 caracteres), apenas 1-2 requisicoes sejam feitas ao servidor, evitando o estouro do rate limit e melhorando a experiencia do usuario.
+
 ## Trade-offs e Priorizacoes
 
 1. **Simplicidade vs Features**: Priorizei uma implementacao limpa e funcional das features obrigatorias sobre adicionar funcionalidades extras.
