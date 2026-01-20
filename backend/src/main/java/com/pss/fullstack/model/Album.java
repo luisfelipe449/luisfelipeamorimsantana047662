@@ -26,6 +26,17 @@ public class Album extends BaseEntity {
     @Column(length = 1000)
     private String description;
 
+    @Column(length = 100)
+    private String genre;
+
+    @Column(name = "track_count")
+    @Builder.Default
+    private Integer trackCount = 0;
+
+    @Column(name = "total_duration")
+    @Builder.Default
+    private Integer totalDuration = 0;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "artist_albums",
@@ -44,6 +55,11 @@ public class Album extends BaseEntity {
     @Builder.Default
     private List<String> coverKeys = new ArrayList<>();
 
+    @OneToMany(mappedBy = "album", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("trackNumber ASC")
+    @Builder.Default
+    private List<Track> tracks = new ArrayList<>();
+
     public void addArtist(Artist artist) {
         this.artists.add(artist);
         artist.getAlbums().add(this);
@@ -56,6 +72,28 @@ public class Album extends BaseEntity {
 
     public void addCoverKey(String key) {
         this.coverKeys.add(key);
+    }
+
+    public void addTrack(Track track) {
+        this.tracks.add(track);
+        track.setAlbum(this);
+    }
+
+    public void removeTrack(Track track) {
+        this.tracks.remove(track);
+        track.setAlbum(null);
+    }
+
+    public void clearTracks() {
+        this.tracks.forEach(track -> track.setAlbum(null));
+        this.tracks.clear();
+    }
+
+    public void updateTrackMetadata() {
+        this.trackCount = this.tracks.size();
+        this.totalDuration = this.tracks.stream()
+                .mapToInt(Track::getDuration)
+                .sum();
     }
 
 }

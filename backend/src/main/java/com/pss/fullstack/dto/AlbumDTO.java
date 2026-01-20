@@ -20,7 +20,11 @@ public class AlbumDTO {
     private String title;
     private Integer releaseYear;
     private String description;
+    private String genre;
+    private Integer trackCount;
+    private Integer totalDuration;
     private List<ArtistSimpleDTO> artists;
+    private List<TrackDTO> tracks;
     private List<String> coverUrls;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -31,8 +35,14 @@ public class AlbumDTO {
                 .title(album.getTitle())
                 .releaseYear(album.getReleaseYear())
                 .description(album.getDescription())
+                .genre(album.getGenre())
+                .trackCount(album.getTrackCount())
+                .totalDuration(album.getTotalDuration())
                 .artists(album.getArtists().stream()
                         .map(ArtistSimpleDTO::fromEntity)
+                        .collect(Collectors.toList()))
+                .tracks(album.getTracks().stream()
+                        .map(TrackDTO::fromEntity)
                         .collect(Collectors.toList()))
                 .coverUrls(album.getCoverKeys())
                 .createdAt(album.getCreatedAt())

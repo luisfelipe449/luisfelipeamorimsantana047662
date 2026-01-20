@@ -5,6 +5,7 @@ import com.pss.fullstack.exception.BusinessException;
 import com.pss.fullstack.exception.ResourceNotFoundException;
 import com.pss.fullstack.model.Album;
 import com.pss.fullstack.model.Artist;
+import com.pss.fullstack.model.Track;
 import com.pss.fullstack.repository.AlbumRepository;
 import com.pss.fullstack.repository.ArtistRepository;
 import lombok.RequiredArgsConstructor;
@@ -99,6 +100,20 @@ public class AlbumService {
 
         Album album = dto.toEntity();
         album.setArtists(artists);
+
+        // Process tracks if provided
+        if (dto.getTracks() != null && !dto.getTracks().isEmpty()) {
+            for (TrackInputDTO trackDto : dto.getTracks()) {
+                Track track = Track.builder()
+                        .title(trackDto.getTitle())
+                        .trackNumber(trackDto.getTrackNumber())
+                        .duration(trackDto.getDuration())
+                        .build();
+                album.addTrack(track);
+            }
+            album.updateTrackMetadata();
+        }
+
         album = albumRepository.save(album);
 
         log.info("Album created with id: {}", album.getId());
@@ -128,6 +143,15 @@ public class AlbumService {
         if (dto.getDescription() != null) {
             album.setDescription(dto.getDescription());
         }
+        if (dto.getGenre() != null) {
+            album.setGenre(dto.getGenre());
+        }
+        if (dto.getTrackCount() != null) {
+            album.setTrackCount(dto.getTrackCount());
+        }
+        if (dto.getTotalDuration() != null) {
+            album.setTotalDuration(dto.getTotalDuration());
+        }
         if (dto.getArtistIds() != null && !dto.getArtistIds().isEmpty()) {
             Set<Artist> artists = new HashSet<>();
             for (Long artistId : dto.getArtistIds()) {
@@ -136,6 +160,20 @@ public class AlbumService {
                 artists.add(artist);
             }
             album.setArtists(artists);
+        }
+
+        // Process tracks if provided (replace all tracks)
+        if (dto.getTracks() != null) {
+            album.getTracks().clear();
+            for (TrackInputDTO trackDto : dto.getTracks()) {
+                Track track = Track.builder()
+                        .title(trackDto.getTitle())
+                        .trackNumber(trackDto.getTrackNumber())
+                        .duration(trackDto.getDuration())
+                        .build();
+                album.addTrack(track);
+            }
+            album.updateTrackMetadata();
         }
 
         album = albumRepository.save(album);

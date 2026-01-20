@@ -22,6 +22,15 @@ public class AlbumUpdateDTO {
     @Size(max = 1000, message = "Description must be at most 1000 characters")
     private String description;
 
+    @Size(max = 100, message = "Genre must be at most 100 characters")
+    private String genre;
+
+    private Integer trackCount;
+
+    private Integer totalDuration;
+
     private List<Long> artistIds;
+
+    private List<TrackInputDTO> tracks;
 
 }

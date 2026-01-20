@@ -26,14 +26,26 @@ public class AlbumCreateDTO {
     @Size(max = 1000, message = "Description must be at most 1000 characters")
     private String description;
 
+    @Size(max = 100, message = "Genre must be at most 100 characters")
+    private String genre;
+
+    private Integer trackCount;
+
+    private Integer totalDuration;
+
     @NotEmpty(message = "At least one artist is required")
     private List<Long> artistIds;
+
+    private List<TrackInputDTO> tracks;
 
     public Album toEntity() {
         return Album.builder()
                 .title(this.title)
                 .releaseYear(this.releaseYear)
                 .description(this.description)
+                .genre(this.genre)
+                .trackCount(this.trackCount != null ? this.trackCount : 0)
+                .totalDuration(this.totalDuration != null ? this.totalDuration : 0)
                 .build();
     }
 
