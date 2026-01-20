@@ -2,64 +2,23 @@ import { Component, Input, Output, EventEmitter } from '@angular/core';
 
 @Component({
   selector: 'app-empty-state',
+  host: { class: 'block' },
   template: `
-    <div class="empty-state animate-fade-in">
-      <mat-icon class="empty-state-icon">{{ icon }}</mat-icon>
-      <h3 class="empty-state-title">{{ title }}</h3>
-      <p class="empty-state-description">{{ description }}</p>
+    <div class="flex flex-col items-center justify-center p-12 text-center animate-fade-in">
+      <mat-icon class="text-[72px] w-[72px] h-[72px] text-gray-300 mb-6">{{ icon }}</mat-icon>
+      <h3 class="text-xl font-semibold text-gray-900 m-0 mb-2">{{ title }}</h3>
+      <p class="text-sm text-gray-500 m-0 mb-6 max-w-[400px] leading-relaxed">{{ description }}</p>
       <button
         *ngIf="actionText"
         mat-raised-button
         color="primary"
         (click)="actionClick.emit()">
-        <mat-icon *ngIf="actionIcon">{{ actionIcon }}</mat-icon>
+        <mat-icon *ngIf="actionIcon" class="mr-1">{{ actionIcon }}</mat-icon>
         {{ actionText }}
       </button>
     </div>
   `,
-  styles: [`
-    :host {
-      display: block;
-    }
-
-    .empty-state {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: var(--spacing-2xl, 48px);
-      text-align: center;
-    }
-
-    .empty-state-icon {
-      font-size: 72px;
-      width: 72px;
-      height: 72px;
-      color: var(--color-gray-300, #d1d5db);
-      margin-bottom: var(--spacing-lg, 24px);
-    }
-
-    .empty-state-title {
-      font-size: 20px;
-      font-weight: 600;
-      color: var(--text-primary, #111827);
-      margin: 0 0 var(--spacing-sm, 8px);
-    }
-
-    .empty-state-description {
-      font-size: 14px;
-      color: var(--text-secondary, #4b5563);
-      margin: 0 0 var(--spacing-lg, 24px);
-      max-width: 400px;
-      line-height: 1.6;
-    }
-
-    button {
-      mat-icon {
-        margin-right: var(--spacing-xs, 4px);
-      }
-    }
-  `]
+  styles: []
 })
 export class EmptyStateComponent {
   @Input() icon = 'inbox';
