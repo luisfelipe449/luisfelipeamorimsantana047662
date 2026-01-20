@@ -40,7 +40,7 @@
       <div class="flex gap-6 items-start mb-6 max-md:flex-col max-md:items-center max-md:text-center">
         <div class="w-24 h-24 rounded-full flex items-center justify-center shrink-0 shadow-md text-white max-md:w-20 max-md:h-20"
              [class]="artist.type === 'BAND' ? 'bg-gradient-to-br from-accent to-accent-900' : 'bg-gradient-to-br from-primary to-primary-900'">
-          <mat-icon class="text-5xl max-md:text-4xl">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+          <mat-icon class="!text-5xl !leading-none max-md:!text-4xl">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
         </div>
         <div class="flex-1 min-w-0">
           <h1 class="text-3xl font-semibold text-gray-900 mb-2 leading-tight max-md:text-2xl">{{ artist.name }}</h1>

@@ -87,7 +87,7 @@
                  (click)="viewArtist(artist.id)">
               <div class="w-12 h-12 rounded-full flex items-center justify-center shrink-0 text-white max-sm:w-10 max-sm:h-10"
                    [class]="artist.type === 'BAND' ? 'bg-gradient-to-br from-accent to-accent-900' : 'bg-gradient-to-br from-primary to-primary-900'">
-                <mat-icon class="text-2xl max-sm:text-xl">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+                <mat-icon class="!text-2xl !leading-none max-sm:!text-xl">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
               </div>
               <div class="flex-1 min-w-0">
                 <span class="block font-medium text-gray-900">{{ artist.name }}</span>
