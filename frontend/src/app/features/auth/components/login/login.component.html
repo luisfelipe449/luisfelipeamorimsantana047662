@@ -81,15 +81,17 @@
         <button mat-raised-button
                 color="primary"
                 type="submit"
-                class="mt-4 h-13 text-base font-medium rounded-lg flex items-center justify-center gap-2"
+                class="mt-4 h-13 text-base font-medium rounded-lg"
                 [disabled]="loginForm.invalid || isLoading">
-          <ng-container *ngIf="!isLoading; else loadingTemplate">
-            <mat-icon class="text-xl">login</mat-icon>
+          <span class="inline-flex items-center justify-center gap-2" *ngIf="!isLoading; else loadingTemplate">
+            <mat-icon>login</mat-icon>
             <span>Entrar</span>
-          </ng-container>
+          </span>
           <ng-template #loadingTemplate>
-            <mat-spinner diameter="20"></mat-spinner>
-            <span>Autenticando...</span>
+            <span class="inline-flex items-center justify-center gap-2">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>Autenticando...</span>
+            </span>
           </ng-template>
         </button>
       </form>
