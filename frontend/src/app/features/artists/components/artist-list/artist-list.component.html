@@ -1,147 +1,168 @@
 <div class="max-w-7xl mx-auto p-6 max-md:p-4">
-  <!-- Page Header -->
-  <app-page-header
-    title="Artistas"
-    subtitle="Gerencie os artistas e bandas do catálogo"
-    icon="people">
-    <button mat-raised-button color="primary" (click)="createArtist()">
-      <mat-icon>add</mat-icon>
-      <span class="hidden md:inline">Novo Artista</span>
-    </button>
-  </app-page-header>
-
-  <!-- Filters Bar -->
-  <div class="flex flex-wrap gap-4 p-4 bg-white rounded-xl shadow-sm mb-6 border border-gray-100 max-md:flex-col">
-    <mat-form-field appearance="outline" class="flex-1 min-w-[250px] max-md:w-full max-md:min-w-0">
-      <mat-label>Buscar artista</mat-label>
-      <input matInput
-             [value]="searchTerm"
-             (input)="onSearch($event)"
-             placeholder="Digite o nome do artista">
-      <mat-icon matPrefix class="text-gray-400">search</mat-icon>
-      <button mat-icon-button
-              matSuffix
-              *ngIf="searchTerm"
-              (click)="clearSearch()"
-              matTooltip="Limpar busca">
-        <mat-icon>close</mat-icon>
+  <!-- Main Card Container -->
+  <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+    <!-- Header -->
+    <div class="flex items-center justify-between p-6 max-md:p-4 max-md:flex-col max-md:items-start max-md:gap-4">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+          <mat-icon class="text-primary">people</mat-icon>
+        </div>
+        <div>
+          <h2 class="text-lg font-semibold text-gray-900 m-0">Artistas</h2>
+          <p class="text-sm text-gray-500 m-0">{{ totalElements }} artistas cadastrados</p>
+        </div>
+      </div>
+      <button mat-raised-button color="primary" (click)="createArtist()">
+        <mat-icon>add</mat-icon>
+        Novo Artista
       </button>
-    </mat-form-field>
+    </div>
 
-    <mat-form-field appearance="outline" class="min-w-[150px] max-md:w-full max-md:min-w-0">
-      <mat-label>Tipo</mat-label>
-      <mat-select [value]="typeFilter" (selectionChange)="onTypeFilterChange($event.value)">
-        <mat-option [value]="null">Todos os tipos</mat-option>
-        <mat-option value="SOLO">
-          <mat-icon class="text-lg mr-2 align-middle text-gray-500">person</mat-icon>
-          Cantor Solo
-        </mat-option>
-        <mat-option value="BAND">
-          <mat-icon class="text-lg mr-2 align-middle text-gray-500">groups</mat-icon>
-          Banda
-        </mat-option>
-      </mat-select>
-    </mat-form-field>
+    <!-- Toolbar -->
+    <div class="flex items-center gap-4 px-6 pb-6 max-md:px-4 max-md:flex-col max-md:gap-3">
+      <!-- Search Input -->
+      <mat-form-field appearance="outline" class="flex-1 toolbar-input max-md:w-full">
+        <mat-icon matPrefix class="text-gray-400 mr-1">search</mat-icon>
+        <input matInput
+               [value]="searchTerm"
+               (input)="onSearch($event)"
+               placeholder="Buscar artista...">
+        <button mat-icon-button matSuffix *ngIf="searchTerm" (click)="clearSearch()">
+          <mat-icon class="text-gray-400">close</mat-icon>
+        </button>
+      </mat-form-field>
 
-    <button mat-stroked-button
-            class="flex items-center gap-0.5 min-w-0 px-4"
-            (click)="onSortChange()"
-            matTooltip="Ordenar {{ sortDirection === 'asc' ? 'Z-A' : 'A-Z' }}">
-      <mat-icon>sort_by_alpha</mat-icon>
-      <mat-icon class="text-base max-sm:hidden">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
-    </button>
+      <!-- Filters Group -->
+      <div class="flex items-center gap-2 max-md:w-full max-md:justify-end">
+        <!-- Type Filter -->
+        <mat-form-field appearance="outline" class="w-40 toolbar-input">
+          <mat-select [value]="typeFilter" (selectionChange)="onTypeFilterChange($event.value)" placeholder="Tipo">
+            <mat-option [value]="null">Todos</mat-option>
+            <mat-option value="SOLO">Solo</mat-option>
+            <mat-option value="BAND">Banda</mat-option>
+          </mat-select>
+        </mat-form-field>
 
-    <button mat-button
-            color="primary"
-            (click)="clearFilters()"
-            *ngIf="searchTerm || typeFilter">
-      <mat-icon>filter_alt_off</mat-icon>
-      <span class="hidden md:inline">Limpar</span>
-    </button>
-  </div>
+        <!-- Sort Button -->
+        <button mat-stroked-button
+                class="!min-w-0 !px-3 !h-[40px]"
+                (click)="onSortChange()"
+                matTooltip="Ordenar {{ sortDirection === 'asc' ? 'Z-A' : 'A-Z' }}">
+          <mat-icon class="!mr-0">sort_by_alpha</mat-icon>
+          <mat-icon class="!text-sm !w-4 !h-4 !ml-0">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+        </button>
+      </div>
+    </div>
 
-  <!-- Stats Bar -->
-  <div class="flex items-center mb-4 py-2" *ngIf="!loading && totalElements > 0">
-    <span class="text-sm text-gray-500">
-      <strong class="text-gray-900 font-semibold">{{ totalElements }}</strong> artista(s) encontrado(s)
-    </span>
-  </div>
+    <!-- Loading State -->
+    <div class="flex flex-col items-center justify-center min-h-[300px] gap-4 text-gray-500" *ngIf="loading">
+      <mat-spinner diameter="48"></mat-spinner>
+      <p>Carregando artistas...</p>
+    </div>
 
-  <!-- Loading State -->
-  <div class="flex flex-col items-center justify-center min-h-[300px] gap-4 text-gray-500" *ngIf="loading">
-    <mat-spinner diameter="48"></mat-spinner>
-    <p>Carregando artistas...</p>
-  </div>
+    <!-- Artists Grid -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 p-6 max-md:p-4" *ngIf="!loading && artists.length > 0">
+      <mat-card *ngFor="let artist of artists; let i = index"
+                class="artist-card cursor-pointer relative overflow-hidden rounded-xl flex flex-col"
+                [style.animation-delay]="i * 50 + 'ms'"
+                (click)="viewArtist(artist)">
 
-  <!-- Artists Grid -->
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-6 animate-fade-in" *ngIf="!loading && artists.length > 0">
-    <mat-card *ngFor="let artist of artists; let i = index"
-              class="cursor-pointer relative overflow-hidden flex flex-col"
-              [style.animation-delay]="i * 50 + 'ms'"
-              (click)="viewArtist(artist)">
-      <div class="absolute top-0 left-0 right-0 h-1 transition-all duration-150 hover:h-1.5"
-           [class]="artist.type === 'BAND' ? 'bg-accent' : 'bg-primary'"></div>
+        <!-- Header with gradient and background image -->
+        <div class="relative h-28 overflow-hidden"
+             [class]="artist.type === 'BAND' ? 'bg-gradient-to-r from-accent to-accent-700' : 'bg-gradient-to-r from-primary to-primary-700'">
+          <!-- Background image if artist has photo -->
+          <img *ngIf="artist.photoUrl"
+               [src]="artist.photoUrl"
+               alt=""
+               class="absolute inset-0 w-full h-full object-cover opacity-30">
 
-      <mat-card-header class="pt-6">
-        <div mat-card-avatar
-             class="!flex !items-center !justify-center !w-12 !h-12 !rounded-xl !mr-4 text-white"
-             [class]="artist.type === 'BAND' ? 'bg-accent' : 'bg-primary'">
-          <mat-icon class="!text-2xl !leading-none">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
-        </div>
-        <mat-card-title class="text-gray-900">{{ artist.name }}</mat-card-title>
-        <mat-card-subtitle>
-          <div class="flex items-center gap-4 flex-wrap mt-1">
-            <span class="inline-flex items-center px-2.5 py-0.5 bg-gray-100 rounded-full text-xs font-medium text-gray-600">
-              {{ getTypeLabel(artist.type) }}
-            </span>
-            <span *ngIf="artist.country" class="inline-flex items-center gap-0.5 text-sm text-gray-500">
-              <mat-icon class="text-sm">place</mat-icon>
-              {{ artist.country }}
-            </span>
+          <!-- Badge in top right corner -->
+          <div class="absolute top-3 right-3 px-3 py-1 rounded-full bg-white/90 text-sm font-medium inline-flex items-center gap-1"
+               [class.text-accent]="artist.type === 'BAND'"
+               [class.text-primary]="artist.type === 'SOLO'">
+            <mat-icon class="!text-base !w-4 !h-4 !leading-none">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+            <span>{{ getTypeLabel(artist.type) }}</span>
           </div>
-        </mat-card-subtitle>
-      </mat-card-header>
-
-      <mat-card-content class="flex-1">
-        <p *ngIf="artist.biography" class="text-gray-500 text-sm leading-relaxed line-clamp-3 m-0">{{ artist.biography }}</p>
-        <p *ngIf="!artist.biography" class="text-gray-400 text-sm italic m-0">Sem biografia cadastrada</p>
-      </mat-card-content>
-
-      <mat-divider></mat-divider>
-
-      <mat-card-actions class="flex items-center px-4 py-2">
-        <div class="flex items-center gap-1 text-sm text-gray-500" *ngIf="artist.albums?.length">
-          <mat-icon class="text-lg text-primary">album</mat-icon>
-          <span>{{ artist.albums?.length }} álbum(ns)</span>
         </div>
-        <span class="flex-1"></span>
-        <button mat-icon-button
-                color="primary"
-                (click)="viewArtist(artist); $event.stopPropagation()"
-                matTooltip="Ver detalhes">
-          <mat-icon>visibility</mat-icon>
-        </button>
-        <button mat-icon-button
-                (click)="editArtist(artist); $event.stopPropagation()"
-                matTooltip="Editar">
-          <mat-icon>edit</mat-icon>
-        </button>
-      </mat-card-actions>
-    </mat-card>
-  </div>
 
-  <!-- Empty State -->
-  <app-empty-state
-    *ngIf="!loading && artists.length === 0"
-    icon="music_off"
-    title="Nenhum artista encontrado"
-    [description]="searchTerm || typeFilter
-      ? 'Nenhum artista corresponde aos filtros aplicados. Tente ajustar sua busca.'
-      : 'Comece adicionando o primeiro artista ao catálogo.'"
-    [actionText]="searchTerm || typeFilter ? 'Limpar filtros' : 'Adicionar artista'"
-    [actionIcon]="searchTerm || typeFilter ? 'filter_alt_off' : 'add'"
-    (actionClick)="searchTerm || typeFilter ? clearFilters() : createArtist()">
-  </app-empty-state>
+        <!-- Avatar overlapping header -->
+        <div class="relative px-4 -mt-10">
+          <div class="w-20 h-20 rounded-full border-4 border-white shadow-lg overflow-hidden bg-white">
+            <img *ngIf="artist.photoUrl"
+                 [src]="artist.photoUrl"
+                 alt="{{ artist.name }}"
+                 class="w-full h-full object-cover">
+            <div *ngIf="!artist.photoUrl"
+                 class="w-full h-full flex items-center justify-center"
+                 [class]="artist.type === 'BAND' ? 'bg-gradient-to-br from-accent to-accent-700' : 'bg-gradient-to-br from-primary to-primary-700'">
+              <mat-icon class="!text-3xl text-white !leading-none">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <div class="p-4 pt-2 flex-1 flex flex-col">
+          <h3 class="text-xl font-semibold text-gray-900 mb-1 truncate">{{ artist.name }}</h3>
+
+          <!-- Country -->
+          <p *ngIf="artist.country" class="flex items-center gap-1 text-sm text-gray-500 mb-3">
+            <mat-icon class="!text-base !leading-none">place</mat-icon>
+            {{ artist.country }}
+          </p>
+
+          <!-- Biography -->
+          <p class="text-gray-600 text-sm line-clamp-2 mb-4 flex-1" [class.text-gray-400]="!artist.biography" [class.italic]="!artist.biography">
+            {{ artist.biography || 'Sem biografia' }}
+          </p>
+
+          <!-- Statistics -->
+          <div class="flex items-center gap-1 text-sm text-primary">
+            <mat-icon class="!text-lg !leading-none">album</mat-icon>
+            <span class="font-semibold">{{ artist.albums?.length || 0 }}</span>
+            <span class="text-gray-500">álbum(ns)</span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <div class="flex items-center gap-2 px-4 pb-4 pt-3 border-t border-gray-100">
+          <button mat-stroked-button
+                  class="flex-1"
+                  (click)="viewArtist(artist); $event.stopPropagation()">
+            <mat-icon>visibility</mat-icon>
+            Ver detalhes
+          </button>
+          <button mat-icon-button
+                  (click)="editArtist(artist); $event.stopPropagation()"
+                  matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button
+                  color="warn"
+                  (click)="deleteArtist(artist); $event.stopPropagation()"
+                  matTooltip="Desativar">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
+      </mat-card>
+    </div>
+
+    <!-- Empty State -->
+    <div class="p-12 text-center" *ngIf="!loading && artists.length === 0">
+      <mat-icon class="!text-5xl text-gray-300 mb-3">people</mat-icon>
+      <h3 class="text-lg font-medium text-gray-900 mb-1">
+        {{ searchTerm || typeFilter ? 'Nenhum artista encontrado' : 'Nenhum artista cadastrado' }}
+      </h3>
+      <p class="text-sm text-gray-500 mb-4">
+        {{ searchTerm || typeFilter
+          ? 'Nenhum artista corresponde aos filtros aplicados. Tente ajustar sua busca.'
+          : 'Comece adicionando o primeiro artista ao catálogo.' }}
+      </p>
+      <button mat-raised-button color="primary" (click)="searchTerm || typeFilter ? clearFilters() : createArtist()">
+        <mat-icon>{{ searchTerm || typeFilter ? 'filter_alt_off' : 'add' }}</mat-icon>
+        {{ searchTerm || typeFilter ? 'Limpar filtros' : 'Adicionar artista' }}
+      </button>
+    </div>
+  </div>
 
   <!-- Pagination -->
   <div class="flex justify-center mt-6 p-4 bg-white rounded-xl shadow-sm" *ngIf="totalElements > pageSize">

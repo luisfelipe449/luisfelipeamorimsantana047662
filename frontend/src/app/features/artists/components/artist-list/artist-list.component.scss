@@ -1,7 +1,46 @@
-// Artist List - minimal styles for complex selectors only
+// Artist List - Styles for artist cards
 // Layout handled by Tailwind CSS
 
+// Toolbar input styles (clean/minimal)
+.toolbar-input {
+  ::ng-deep {
+    .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+    .mdc-notched-outline__leading,
+    .mdc-notched-outline__notch,
+    .mdc-notched-outline__trailing {
+      border-color: #e5e7eb !important;
+    }
+    .mat-mdc-form-field-infix {
+      padding-top: 8px !important;
+      padding-bottom: 8px !important;
+      min-height: 40px !important;
+    }
+    .mat-mdc-text-field-wrapper {
+      padding: 0 12px !important;
+    }
+  }
+}
+
+// Artist card hover effect
+.artist-card {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+}
+
 // Line clamp utility for biography text
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 .line-clamp-3 {
   display: -webkit-box;
   -webkit-line-clamp: 3;
