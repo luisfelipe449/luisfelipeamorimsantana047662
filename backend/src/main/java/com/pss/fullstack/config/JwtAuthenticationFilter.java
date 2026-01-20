@@ -2,6 +2,7 @@ package com.pss.fullstack.config;
 
 import com.pss.fullstack.service.CustomUserDetailsService;
 import com.pss.fullstack.service.JwtService;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -56,13 +57,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     );
                     authToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                     SecurityContextHolder.getContext().setAuthentication(authToken);
+                } else {
+                    log.warn("Invalid JWT token for user: {}", username);
+                    sendUnauthorizedError(response, "Invalid or expired token");
+                    return;
                 }
             }
+        } catch (ExpiredJwtException e) {
+            log.warn("JWT token expired: {}", e.getMessage());
+            sendUnauthorizedError(response, "Token expired");
+            return;
         } catch (Exception e) {
             log.error("JWT Authentication error: {}", e.getMessage());
+            sendUnauthorizedError(response, "Authentication failed");
+            return;
         }
 
         filterChain.doFilter(request, response);
+    }
+
+    private void sendUnauthorizedError(HttpServletResponse response, String message) throws IOException {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write("{\"error\":\"" + message + "\",\"status\":401}");
     }
 
 }
