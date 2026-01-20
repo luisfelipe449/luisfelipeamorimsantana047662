@@ -1,4 +1,4 @@
-<div class="container">
+<div class="max-w-7xl mx-auto p-6 max-md:p-4">
   <!-- Page Header -->
   <app-page-header
     title="Artistas"
@@ -6,19 +6,19 @@
     icon="people">
     <button mat-raised-button color="primary" (click)="createArtist()">
       <mat-icon>add</mat-icon>
-      <span class="hide-mobile">Novo Artista</span>
+      <span class="hidden md:inline">Novo Artista</span>
     </button>
   </app-page-header>
 
   <!-- Filters Bar -->
-  <div class="filters-bar">
-    <mat-form-field appearance="outline" class="search-field">
+  <div class="flex flex-wrap gap-4 p-4 bg-white rounded-xl shadow-sm mb-6 border border-gray-100 max-md:flex-col">
+    <mat-form-field appearance="outline" class="flex-1 min-w-[250px] max-md:w-full max-md:min-w-0">
       <mat-label>Buscar artista</mat-label>
       <input matInput
              [value]="searchTerm"
              (input)="onSearch($event)"
              placeholder="Digite o nome do artista">
-      <mat-icon matPrefix>search</mat-icon>
+      <mat-icon matPrefix class="text-gray-400">search</mat-icon>
       <button mat-icon-button
               matSuffix
               *ngIf="searchTerm"
@@ -28,89 +28,93 @@
       </button>
     </mat-form-field>
 
-    <mat-form-field appearance="outline" class="filter-field">
+    <mat-form-field appearance="outline" class="min-w-[150px] max-md:w-full max-md:min-w-0">
       <mat-label>Tipo</mat-label>
       <mat-select [value]="typeFilter" (selectionChange)="onTypeFilterChange($event.value)">
         <mat-option [value]="null">Todos os tipos</mat-option>
         <mat-option value="SOLO">
-          <mat-icon class="option-icon">person</mat-icon>
+          <mat-icon class="text-lg mr-2 align-middle text-gray-500">person</mat-icon>
           Cantor Solo
         </mat-option>
         <mat-option value="BAND">
-          <mat-icon class="option-icon">groups</mat-icon>
+          <mat-icon class="text-lg mr-2 align-middle text-gray-500">groups</mat-icon>
           Banda
         </mat-option>
       </mat-select>
     </mat-form-field>
 
     <button mat-stroked-button
-            class="sort-button"
+            class="flex items-center gap-0.5 min-w-0 px-4"
             (click)="onSortChange()"
             matTooltip="Ordenar {{ sortDirection === 'asc' ? 'Z-A' : 'A-Z' }}">
       <mat-icon>sort_by_alpha</mat-icon>
-      <mat-icon class="sort-direction">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+      <mat-icon class="text-base max-sm:hidden">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
     </button>
 
     <button mat-button
             color="primary"
-            class="clear-filters"
             (click)="clearFilters()"
             *ngIf="searchTerm || typeFilter">
       <mat-icon>filter_alt_off</mat-icon>
-      <span class="hide-mobile">Limpar</span>
+      <span class="hidden md:inline">Limpar</span>
     </button>
   </div>
 
   <!-- Stats Bar -->
-  <div class="stats-bar" *ngIf="!loading && totalElements > 0">
-    <span class="stats-text">
-      <strong>{{ totalElements }}</strong> artista(s) encontrado(s)
+  <div class="flex items-center mb-4 py-2" *ngIf="!loading && totalElements > 0">
+    <span class="text-sm text-gray-500">
+      <strong class="text-gray-900 font-semibold">{{ totalElements }}</strong> artista(s) encontrado(s)
     </span>
   </div>
 
   <!-- Loading State -->
-  <div class="loading-container" *ngIf="loading">
+  <div class="flex flex-col items-center justify-center min-h-[300px] gap-4 text-gray-500" *ngIf="loading">
     <mat-spinner diameter="48"></mat-spinner>
     <p>Carregando artistas...</p>
   </div>
 
   <!-- Artists Grid -->
-  <div class="card-grid animate-fade-in" *ngIf="!loading && artists.length > 0">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 py-6 animate-fade-in" *ngIf="!loading && artists.length > 0">
     <mat-card *ngFor="let artist of artists; let i = index"
-              class="artist-card"
+              class="cursor-pointer relative overflow-hidden flex flex-col"
               [style.animation-delay]="i * 50 + 'ms'"
               (click)="viewArtist(artist)">
-      <div class="card-accent" [class.band]="artist.type === 'BAND'"></div>
+      <div class="absolute top-0 left-0 right-0 h-1 transition-all duration-150 hover:h-1.5"
+           [class]="artist.type === 'BAND' ? 'bg-accent' : 'bg-primary'"></div>
 
-      <mat-card-header>
-        <div mat-card-avatar class="artist-avatar" [class.band]="artist.type === 'BAND'">
-          <mat-icon>{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+      <mat-card-header class="pt-6">
+        <div mat-card-avatar
+             class="flex items-center justify-center w-12 h-12 rounded-xl mr-4 text-white"
+             [class]="artist.type === 'BAND' ? 'bg-accent' : 'bg-primary'">
+          <mat-icon class="text-2xl">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
         </div>
-        <mat-card-title>{{ artist.name }}</mat-card-title>
+        <mat-card-title class="text-gray-900">{{ artist.name }}</mat-card-title>
         <mat-card-subtitle>
-          <div class="subtitle-content">
-            <span class="artist-type">{{ getTypeLabel(artist.type) }}</span>
-            <span *ngIf="artist.country" class="artist-country">
-              <mat-icon>place</mat-icon>
+          <div class="flex items-center gap-4 flex-wrap mt-1">
+            <span class="inline-flex items-center px-2.5 py-0.5 bg-gray-100 rounded-full text-xs font-medium text-gray-600">
+              {{ getTypeLabel(artist.type) }}
+            </span>
+            <span *ngIf="artist.country" class="inline-flex items-center gap-0.5 text-sm text-gray-500">
+              <mat-icon class="text-sm">place</mat-icon>
               {{ artist.country }}
             </span>
           </div>
         </mat-card-subtitle>
       </mat-card-header>
 
-      <mat-card-content>
-        <p *ngIf="artist.biography" class="biography">{{ artist.biography }}</p>
-        <p *ngIf="!artist.biography" class="no-biography">Sem biografia cadastrada</p>
+      <mat-card-content class="flex-1">
+        <p *ngIf="artist.biography" class="text-gray-500 text-sm leading-relaxed line-clamp-3 m-0">{{ artist.biography }}</p>
+        <p *ngIf="!artist.biography" class="text-gray-400 text-sm italic m-0">Sem biografia cadastrada</p>
       </mat-card-content>
 
       <mat-divider></mat-divider>
 
-      <mat-card-actions>
-        <div class="albums-info" *ngIf="artist.albums?.length">
-          <mat-icon>album</mat-icon>
+      <mat-card-actions class="flex items-center px-4 py-2">
+        <div class="flex items-center gap-1 text-sm text-gray-500" *ngIf="artist.albums?.length">
+          <mat-icon class="text-lg text-primary">album</mat-icon>
           <span>{{ artist.albums?.length }} álbum(ns)</span>
         </div>
-        <span class="spacer"></span>
+        <span class="flex-1"></span>
         <button mat-icon-button
                 color="primary"
                 (click)="viewArtist(artist); $event.stopPropagation()"
@@ -140,7 +144,7 @@
   </app-empty-state>
 
   <!-- Pagination -->
-  <div class="paginator-container" *ngIf="totalElements > pageSize">
+  <div class="flex justify-center mt-6 p-4 bg-white rounded-xl shadow-sm" *ngIf="totalElements > pageSize">
     <mat-paginator
       [length]="totalElements"
       [pageSize]="pageSize"

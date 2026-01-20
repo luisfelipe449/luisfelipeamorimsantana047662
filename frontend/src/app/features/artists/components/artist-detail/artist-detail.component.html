@@ -1,4 +1,4 @@
-<div class="container">
+<div class="max-w-7xl mx-auto p-6 max-md:p-4">
   <!-- Page Header -->
   <app-page-header
     [title]="artist?.name || 'Carregando...'"
@@ -6,27 +6,27 @@
     [icon]="artist?.type === 'BAND' ? 'groups' : 'person'">
     <button mat-stroked-button (click)="goBack()">
       <mat-icon>arrow_back</mat-icon>
-      <span class="hide-mobile">Voltar</span>
+      <span class="hidden md:inline">Voltar</span>
     </button>
     <button mat-raised-button color="primary" (click)="editArtist()" *ngIf="artist">
       <mat-icon>edit</mat-icon>
-      <span class="hide-mobile">Editar</span>
+      <span class="hidden md:inline">Editar</span>
     </button>
   </app-page-header>
 
   <!-- Loading State -->
-  <div class="loading-container" *ngIf="loading">
+  <div class="flex flex-col items-center justify-center min-h-[300px] gap-4 text-gray-500" *ngIf="loading">
     <mat-spinner diameter="48"></mat-spinner>
     <p>Carregando informações do artista...</p>
   </div>
 
   <!-- Error State -->
-  <div class="error-state" *ngIf="error && !loading">
-    <div class="error-icon">
-      <mat-icon>error_outline</mat-icon>
+  <div class="flex flex-col items-center justify-center p-12 text-center bg-white rounded-xl shadow-sm" *ngIf="error && !loading">
+    <div class="w-20 h-20 rounded-full bg-error-50 flex items-center justify-center mb-6">
+      <mat-icon class="text-4xl text-error-500">error_outline</mat-icon>
     </div>
-    <h2>Erro ao carregar artista</h2>
-    <p>{{ error }}</p>
+    <h2 class="text-2xl font-medium text-gray-900 mb-2">Erro ao carregar artista</h2>
+    <p class="text-gray-500 mb-6 max-w-md">{{ error }}</p>
     <button mat-raised-button color="primary" (click)="goBack()">
       <mat-icon>arrow_back</mat-icon>
       Voltar para lista
@@ -34,27 +34,28 @@
   </div>
 
   <!-- Artist Content -->
-  <div class="artist-content animate-fade-in" *ngIf="artist && !loading && !error">
+  <div class="flex flex-col gap-6 animate-fade-in" *ngIf="artist && !loading && !error">
     <!-- Artist Info Card -->
-    <mat-card class="info-card no-hover">
-      <div class="artist-header">
-        <div class="avatar-container" [class.band]="artist.type === 'BAND'">
-          <mat-icon>{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+    <mat-card class="no-hover p-6 max-md:p-4">
+      <div class="flex gap-6 items-start mb-6 max-md:flex-col max-md:items-center max-md:text-center">
+        <div class="w-24 h-24 rounded-full flex items-center justify-center shrink-0 shadow-md text-white max-md:w-20 max-md:h-20"
+             [class]="artist.type === 'BAND' ? 'bg-gradient-to-br from-accent to-accent-900' : 'bg-gradient-to-br from-primary to-primary-900'">
+          <mat-icon class="text-5xl max-md:text-4xl">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
         </div>
-        <div class="artist-info">
-          <h1 class="artist-name">{{ artist.name }}</h1>
-          <div class="artist-meta">
+        <div class="flex-1 min-w-0">
+          <h1 class="text-3xl font-semibold text-gray-900 mb-2 leading-tight max-md:text-2xl">{{ artist.name }}</h1>
+          <div class="flex flex-wrap gap-2 max-md:justify-center">
             <mat-chip-set>
-              <mat-chip class="type-chip" [class.band]="artist.type === 'BAND'">
-                <mat-icon>{{ artist.type === 'BAND' ? 'groups' : 'mic' }}</mat-icon>
+              <mat-chip [class]="artist.type === 'BAND' ? 'chip-accent' : 'chip-primary'">
+                <mat-icon class="text-base mr-1">{{ artist.type === 'BAND' ? 'groups' : 'mic' }}</mat-icon>
                 {{ getTypeLabel(artist.type) }}
               </mat-chip>
-              <mat-chip *ngIf="artist.country" class="country-chip">
-                <mat-icon>place</mat-icon>
+              <mat-chip *ngIf="artist.country" class="chip-neutral">
+                <mat-icon class="text-base mr-1">place</mat-icon>
                 {{ artist.country }}
               </mat-chip>
-              <mat-chip [class.active-chip]="artist.active" [class.inactive-chip]="!artist.active">
-                <mat-icon>{{ artist.active ? 'check_circle' : 'cancel' }}</mat-icon>
+              <mat-chip [class]="artist.active ? 'chip-success' : 'chip-error'">
+                <mat-icon class="text-base mr-1">{{ artist.active ? 'check_circle' : 'cancel' }}</mat-icon>
                 {{ artist.active ? 'Ativo' : 'Inativo' }}
               </mat-chip>
             </mat-chip-set>
@@ -63,55 +64,55 @@
       </div>
 
       <!-- Biography Section -->
-      <div class="biography-section" *ngIf="artist.biography">
-        <h3 class="section-title">
-          <mat-icon>description</mat-icon>
+      <div class="border-t border-gray-200 pt-6 mt-4" *ngIf="artist.biography">
+        <h3 class="flex items-center gap-2 text-lg font-medium text-gray-900 mb-4">
+          <mat-icon class="text-xl text-primary">description</mat-icon>
           Biografia
         </h3>
-        <p class="biography-text">{{ artist.biography }}</p>
+        <p class="text-base leading-relaxed text-gray-500 whitespace-pre-wrap m-0">{{ artist.biography }}</p>
       </div>
 
-      <div class="no-biography" *ngIf="!artist.biography">
-        <mat-icon>description</mat-icon>
-        <p>Nenhuma biografia cadastrada</p>
+      <div class="flex flex-col items-center p-8 text-gray-400 border-t border-gray-200 mt-4" *ngIf="!artist.biography">
+        <mat-icon class="text-4xl mb-2 opacity-50">description</mat-icon>
+        <p class="m-0 text-sm">Nenhuma biografia cadastrada</p>
       </div>
     </mat-card>
 
     <!-- Albums Section -->
-    <div class="albums-section">
-      <div class="section-header">
-        <h2 class="section-title">
-          <mat-icon>album</mat-icon>
+    <div class="bg-white rounded-xl p-6 shadow-sm max-md:p-4">
+      <div class="mb-6">
+        <h2 class="flex items-center gap-2 text-lg font-medium text-gray-900 m-0">
+          <mat-icon class="text-xl text-primary">album</mat-icon>
           Álbuns
-          <span class="albums-count" *ngIf="artist.albums?.length">({{ artist.albums?.length }})</span>
+          <span class="font-normal text-gray-500" *ngIf="artist.albums?.length">({{ artist.albums?.length }})</span>
         </h2>
       </div>
 
       <!-- Albums Grid -->
-      <div class="albums-grid" *ngIf="artist.albums?.length">
+      <div class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 max-md:grid-cols-2 max-md:gap-3" *ngIf="artist.albums?.length">
         <mat-card *ngFor="let album of artist.albums; let i = index"
-                  class="album-card"
+                  class="cursor-pointer overflow-hidden album-card"
                   [style.animation-delay]="i * 50 + 'ms'"
                   (click)="viewAlbum(album.id)">
-          <div class="cover-container">
+          <div class="relative overflow-hidden aspect-square bg-gray-100">
             <img *ngIf="album.coverUrl"
                  [src]="album.coverUrl"
                  [alt]="album.title"
-                 class="album-cover"
+                 class="w-full h-full object-cover transition-transform duration-200"
                  loading="lazy">
-            <div *ngIf="!album.coverUrl" class="album-cover-placeholder">
-              <mat-icon>album</mat-icon>
+            <div *ngIf="!album.coverUrl" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+              <mat-icon class="text-6xl text-gray-300 opacity-50">album</mat-icon>
             </div>
-            <div class="cover-overlay">
+            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-200 cover-overlay">
               <button mat-mini-fab color="primary">
                 <mat-icon>visibility</mat-icon>
               </button>
             </div>
           </div>
-          <mat-card-content>
-            <h4 class="album-title">{{ album.title }}</h4>
-            <p class="album-year" *ngIf="album.releaseYear">
-              <mat-icon>calendar_today</mat-icon>
+          <mat-card-content class="p-4">
+            <h4 class="text-sm font-medium text-gray-900 m-0 mb-1 line-clamp-2 leading-snug max-md:text-xs">{{ album.title }}</h4>
+            <p class="flex items-center gap-1 text-xs text-gray-400 m-0" *ngIf="album.releaseYear">
+              <mat-icon class="text-sm opacity-70">calendar_today</mat-icon>
               {{ album.releaseYear }}
             </p>
           </mat-card-content>

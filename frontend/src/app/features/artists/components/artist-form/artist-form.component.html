@@ -1,4 +1,4 @@
-<div class="container">
+<div class="max-w-7xl mx-auto p-6 max-md:p-4">
   <!-- Page Header -->
   <app-page-header
     [title]="isEditMode ? 'Editar Artista' : 'Novo Artista'"
@@ -6,21 +6,21 @@
     icon="person">
     <button mat-stroked-button (click)="cancel()">
       <mat-icon>arrow_back</mat-icon>
-      <span class="hide-mobile">Voltar</span>
+      <span class="hidden md:inline">Voltar</span>
     </button>
   </app-page-header>
 
   <!-- Form Card -->
-  <mat-card class="form-card no-hover animate-fade-in">
+  <mat-card class="no-hover animate-fade-in max-w-2xl mx-auto p-6 max-md:p-4 max-md:mx-0">
     <form [formGroup]="form" (ngSubmit)="onSubmit()">
       <!-- Basic Info Section -->
-      <div class="form-section">
-        <h3 class="section-title">
-          <mat-icon>info</mat-icon>
+      <div class="py-4 first:pt-0">
+        <h3 class="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-6">
+          <mat-icon class="text-xl text-primary">info</mat-icon>
           Informações Básicas
         </h3>
 
-        <mat-form-field appearance="outline" class="form-field">
+        <mat-form-field appearance="outline" class="w-full">
           <mat-label>Nome do artista</mat-label>
           <input matInput
                  formControlName="name"
@@ -36,16 +36,16 @@
           </mat-error>
         </mat-form-field>
 
-        <div class="form-row">
-          <mat-form-field appearance="outline" class="form-field">
+        <div class="flex gap-4 max-md:flex-col max-md:gap-0">
+          <mat-form-field appearance="outline" class="flex-1">
             <mat-label>Tipo</mat-label>
             <mat-select formControlName="type">
               <mat-option value="SOLO">
-                <mat-icon class="option-icon">person</mat-icon>
+                <mat-icon class="text-lg mr-2 align-middle text-gray-500">person</mat-icon>
                 Cantor Solo
               </mat-option>
               <mat-option value="BAND">
-                <mat-icon class="option-icon">groups</mat-icon>
+                <mat-icon class="text-lg mr-2 align-middle text-gray-500">groups</mat-icon>
                 Banda
               </mat-option>
             </mat-select>
@@ -54,7 +54,7 @@
             </mat-error>
           </mat-form-field>
 
-          <mat-form-field appearance="outline" class="form-field">
+          <mat-form-field appearance="outline" class="flex-1">
             <mat-label>País de origem</mat-label>
             <input matInput
                    formControlName="country"
@@ -64,26 +64,28 @@
         </div>
       </div>
 
-      <mat-divider></mat-divider>
+      <mat-divider class="my-6"></mat-divider>
 
       <!-- Biography Section -->
-      <div class="form-section">
-        <h3 class="section-title">
-          <mat-icon>description</mat-icon>
+      <div class="py-4">
+        <h3 class="flex items-center gap-2 text-sm font-semibold text-gray-900 mb-6">
+          <mat-icon class="text-xl text-primary">description</mat-icon>
           Biografia
         </h3>
 
-        <mat-form-field appearance="outline" class="form-field textarea-field">
+        <mat-form-field appearance="outline" class="w-full">
           <mat-label>Biografia do artista</mat-label>
           <textarea matInput
                     formControlName="biography"
                     placeholder="Escreva uma breve biografia sobre o artista ou banda..."
-                    rows="5">
+                    rows="5"
+                    class="resize-y min-h-[100px]">
           </textarea>
           <mat-hint align="start">Opcional</mat-hint>
           <mat-hint align="end">
-            <span [class.char-warning]="(form.get('biography')?.value?.length || 0) > 900"
-                  [class.char-error]="(form.get('biography')?.value?.length || 0) > 1000">
+            <span [class.text-warning-500]="(form.get('biography')?.value?.length || 0) > 900"
+                  [class.text-error-500]="(form.get('biography')?.value?.length || 0) > 1000"
+                  [class.font-medium]="(form.get('biography')?.value?.length || 0) > 900">
               {{ form.get('biography')?.value?.length || 0 }}/1000
             </span>
           </mat-hint>
@@ -93,22 +95,23 @@
         </mat-form-field>
       </div>
 
-      <mat-divider></mat-divider>
+      <mat-divider class="my-6"></mat-divider>
 
       <!-- Form Actions -->
-      <div class="form-actions">
+      <div class="flex justify-end gap-4 pt-6 max-sm:flex-col-reverse max-sm:gap-2">
         <button mat-stroked-button
                 type="button"
                 (click)="cancel()"
-                [disabled]="loading">
+                [disabled]="loading"
+                class="min-w-[120px] max-sm:w-full">
           Cancelar
         </button>
         <button mat-flat-button
                 color="primary"
                 type="submit"
                 [disabled]="form.invalid || loading"
-                class="submit-btn">
-          <mat-spinner *ngIf="loading" diameter="20"></mat-spinner>
+                class="min-w-[120px] max-sm:w-full">
+          <mat-spinner *ngIf="loading" diameter="20" class="inline-block mr-2"></mat-spinner>
           <span *ngIf="!loading">{{ isEditMode ? 'Salvar' : 'Criar' }}</span>
         </button>
       </div>
