@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 
 import { JwtInterceptor } from './interceptors/jwt.interceptor';
+import { ErrorInterceptor } from './interceptors/error.interceptor';
 import { AuthService } from './services/auth.service';
 import { ApiService } from './services/api.service';
 import { WebSocketService } from './services/websocket.service';
@@ -19,6 +20,11 @@ import { WebSocketService } from './services/websocket.service';
     {
       provide: HTTP_INTERCEPTORS,
       useClass: JwtInterceptor,
+      multi: true
+    },
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: ErrorInterceptor,
       multi: true
     }
   ]
