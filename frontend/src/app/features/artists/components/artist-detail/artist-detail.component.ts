@@ -1,8 +1,11 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialog } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
 import { ArtistsFacade } from '../../facades/artists.facade';
 import { Artist } from '../../models/artist.model';
+import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 
 @Component({
   selector: 'app-artist-detail',
@@ -19,7 +22,9 @@ export class ArtistDetailComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private facade: ArtistsFacade
+    private facade: ArtistsFacade,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -74,5 +79,38 @@ export class ArtistDetailComponent implements OnInit, OnDestroy {
 
   getTypeLabel(type: string): string {
     return type === 'SOLO' ? 'Cantor Solo' : 'Banda';
+  }
+
+  deleteArtist(): void {
+    if (!this.artist) return;
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      data: {
+        title: 'Desativar Artista',
+        message: `Tem certeza que deseja desativar "${this.artist.name}"?`,
+        confirmText: 'Desativar',
+        cancelText: 'Cancelar'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(result => {
+      if (result && this.artist) {
+        this.facade.deactivateArtist(this.artist.id).subscribe({
+          next: () => {
+            this.snackBar.open('Artista desativado com sucesso!', 'Fechar', {
+              duration: 3000,
+              panelClass: ['success-snackbar']
+            });
+            this.router.navigate(['/artists']);
+          },
+          error: () => {
+            this.snackBar.open('Erro ao desativar artista', 'Fechar', {
+              duration: 3000,
+              panelClass: ['error-snackbar']
+            });
+          }
+        });
+      }
+    });
   }
 }

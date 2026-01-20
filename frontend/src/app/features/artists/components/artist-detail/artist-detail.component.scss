@@ -9,19 +9,13 @@
   overflow: hidden;
 }
 
-// Album card hover effects
-.album-card {
+// Album row hover effects
+.album-row {
   @apply transition-all duration-200;
 
   &:hover {
-    @apply -translate-y-1 shadow-lg;
-
-    img {
-      @apply scale-105;
-    }
-
-    .cover-overlay {
-      @apply opacity-100;
+    mat-icon.text-gray-400 {
+      @apply text-primary;
     }
   }
 }

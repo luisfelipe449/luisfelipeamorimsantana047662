@@ -5,9 +5,16 @@ export interface Artist {
   country?: string;
   biography?: string;
   active: boolean;
+  photoKey?: string;
+  photoUrl?: string;
   albums?: AlbumSummary[];
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface PhotoUploadResponse {
+  key: string;
+  url: string;
 }
 
 export interface AlbumSummary {

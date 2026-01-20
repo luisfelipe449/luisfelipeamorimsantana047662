@@ -5,7 +5,8 @@ import {
   Artist,
   CreateArtistRequest,
   UpdateArtistRequest,
-  ArtistSearchParams
+  ArtistSearchParams,
+  PhotoUploadResponse
 } from '../models/artist.model';
 
 @Injectable()
@@ -40,5 +41,21 @@ export class ArtistsService {
 
   getByType(type: 'SOLO' | 'BAND'): Observable<PageResponse<Artist>> {
     return this.api.get<PageResponse<Artist>>(this.PATH, { type });
+  }
+
+  uploadPhoto(id: number, file: File): Observable<PhotoUploadResponse> {
+    return this.api.uploadFile(`${this.PATH}/${id}/photo`, file);
+  }
+
+  deletePhoto(id: number): Observable<void> {
+    return this.api.delete<void>(`${this.PATH}/${id}/photo`);
+  }
+
+  getPhotoUrl(id: number): Observable<{ url: string }> {
+    return this.api.get<{ url: string }>(`${this.PATH}/${id}/photo/url`);
+  }
+
+  deactivate(id: number): Observable<void> {
+    return this.api.delete<void>(`${this.PATH}/${id}`);
   }
 }

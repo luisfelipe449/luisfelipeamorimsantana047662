@@ -1,19 +1,4 @@
 <div class="max-w-7xl mx-auto p-6 max-md:p-4">
-  <!-- Page Header -->
-  <app-page-header
-    [title]="artist?.name || 'Carregando...'"
-    subtitle="Detalhes do artista"
-    [icon]="artist?.type === 'BAND' ? 'groups' : 'person'">
-    <button mat-stroked-button (click)="goBack()">
-      <mat-icon>arrow_back</mat-icon>
-      <span class="hidden md:inline">Voltar</span>
-    </button>
-    <button mat-raised-button color="primary" (click)="editArtist()" *ngIf="artist">
-      <mat-icon>edit</mat-icon>
-      <span class="hidden md:inline">Editar</span>
-    </button>
-  </app-page-header>
-
   <!-- Loading State -->
   <div class="flex flex-col items-center justify-center min-h-[300px] gap-4 text-gray-500" *ngIf="loading">
     <mat-spinner diameter="48"></mat-spinner>
@@ -23,7 +8,7 @@
   <!-- Error State -->
   <div class="flex flex-col items-center justify-center p-12 text-center bg-white rounded-xl shadow-sm" *ngIf="error && !loading">
     <div class="w-20 h-20 rounded-full bg-error-50 flex items-center justify-center mb-6">
-      <mat-icon class="text-4xl text-error-500">error_outline</mat-icon>
+      <mat-icon class="!text-4xl !w-10 !h-10 text-error-500">error_outline</mat-icon>
     </div>
     <h2 class="text-2xl font-medium text-gray-900 mb-2">Erro ao carregar artista</h2>
     <p class="text-gray-500 mb-6 max-w-md">{{ error }}</p>
@@ -35,100 +20,151 @@
 
   <!-- Artist Content -->
   <div class="flex flex-col gap-6 animate-fade-in" *ngIf="artist && !loading && !error">
-    <!-- Artist Info Card -->
-    <mat-card class="no-hover p-6 max-md:p-4">
-      <div class="flex gap-6 items-start mb-6 max-md:flex-col max-md:items-center max-md:text-center">
-        <div class="w-24 h-24 rounded-full flex items-center justify-center shrink-0 shadow-md text-white max-md:w-20 max-md:h-20"
-             [class]="artist.type === 'BAND' ? 'bg-gradient-to-br from-accent to-accent-900' : 'bg-gradient-to-br from-primary to-primary-900'">
-          <mat-icon class="!text-5xl !leading-none max-md:!text-4xl">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+    <!-- Breadcrumb + Actions -->
+    <div class="flex items-center justify-between max-md:flex-col max-md:items-start max-md:gap-4">
+      <nav class="text-sm text-gray-500 flex items-center gap-2">
+        <a routerLink="/artists" class="no-underline text-gray-500 hover:text-primary transition-colors">Artistas</a>
+        <span>/</span>
+        <span class="text-gray-900 font-medium">{{ artist.name }}</span>
+      </nav>
+      <div class="flex items-center gap-2 max-md:w-full max-md:justify-end">
+        <button mat-stroked-button (click)="goBack()">
+          <mat-icon>arrow_back</mat-icon>
+          <span class="max-sm:hidden">Voltar</span>
+        </button>
+        <button mat-raised-button color="primary" (click)="editArtist()">
+          <mat-icon>edit</mat-icon>
+          <span class="max-sm:hidden">Editar</span>
+        </button>
+        <button mat-icon-button color="warn" (click)="deleteArtist()" matTooltip="Desativar artista">
+          <mat-icon>delete</mat-icon>
+        </button>
+      </div>
+    </div>
+
+    <!-- Hero Card -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <!-- Header com gradiente e foto de fundo -->
+      <div class="relative h-36 overflow-hidden"
+           [class]="artist.type === 'BAND' ? 'bg-gradient-to-r from-accent to-accent-700' : 'bg-gradient-to-r from-primary to-primary-700'">
+        <img *ngIf="artist.photoUrl"
+             [src]="artist.photoUrl"
+             alt=""
+             class="absolute inset-0 w-full h-full object-cover opacity-30">
+      </div>
+
+      <!-- Content -->
+      <div class="px-6 pb-6 max-md:px-4">
+        <!-- Avatar sobrepondo -->
+        <div class="-mt-12 mb-4">
+          <div class="w-24 h-24 rounded-xl border-4 border-white shadow-lg overflow-hidden bg-white">
+            <img *ngIf="artist.photoUrl"
+                 [src]="artist.photoUrl"
+                 [alt]="artist.name"
+                 class="w-full h-full object-cover">
+            <div *ngIf="!artist.photoUrl"
+                 class="w-full h-full flex items-center justify-center"
+                 [class]="artist.type === 'BAND' ? 'bg-gradient-to-br from-accent to-accent-700' : 'bg-gradient-to-br from-primary to-primary-700'">
+              <mat-icon class="!text-4xl text-white !leading-none">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+            </div>
+          </div>
         </div>
-        <div class="flex-1 min-w-0">
-          <h1 class="text-3xl font-semibold text-gray-900 mb-2 leading-tight max-md:text-2xl">{{ artist.name }}</h1>
-          <div class="flex flex-wrap gap-2 max-md:justify-center">
-            <mat-chip-set>
-              <mat-chip [class]="artist.type === 'BAND' ? 'chip-accent' : 'chip-primary'">
-                <mat-icon class="text-base mr-1">{{ artist.type === 'BAND' ? 'groups' : 'mic' }}</mat-icon>
-                {{ getTypeLabel(artist.type) }}
-              </mat-chip>
-              <mat-chip *ngIf="artist.country" class="chip-neutral">
-                <mat-icon class="text-base mr-1">place</mat-icon>
-                {{ artist.country }}
-              </mat-chip>
-              <mat-chip [class]="artist.active ? 'chip-success' : 'chip-error'">
-                <mat-icon class="text-base mr-1">{{ artist.active ? 'check_circle' : 'cancel' }}</mat-icon>
-                {{ artist.active ? 'Ativo' : 'Inativo' }}
-              </mat-chip>
-            </mat-chip-set>
+
+        <!-- Nome -->
+        <h1 class="text-2xl font-bold text-gray-900 mb-3">{{ artist.name }}</h1>
+
+        <!-- Badges -->
+        <div class="flex flex-wrap gap-2 mb-6">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium bg-gray-100 text-gray-700">
+            <mat-icon class="!text-base !w-4 !h-4 !leading-none">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+            {{ getTypeLabel(artist.type) }}
+          </span>
+          <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium"
+                [class]="artist.active ? 'bg-success-50 text-success-700' : 'bg-error-50 text-error-700'">
+            <mat-icon class="!text-base !w-4 !h-4 !leading-none">{{ artist.active ? 'check_circle' : 'cancel' }}</mat-icon>
+            {{ artist.active ? 'Ativo' : 'Inativo' }}
+          </span>
+        </div>
+
+        <!-- Stats Card -->
+        <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl w-fit">
+          <div class="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center">
+            <mat-icon class="text-primary !text-xl">music_note</mat-icon>
+          </div>
+          <div>
+            <div class="text-2xl font-bold text-gray-900">{{ artist.albums?.length || 0 }}</div>
+            <div class="text-sm text-gray-500">Álbuns</div>
           </div>
         </div>
       </div>
 
-      <!-- Biography Section -->
-      <div class="border-t border-gray-200 pt-6 mt-4" *ngIf="artist.biography">
-        <h3 class="flex items-center gap-2 text-lg font-medium text-gray-900 mb-4">
-          <mat-icon class="text-xl text-primary">description</mat-icon>
-          Biografia
-        </h3>
-        <p class="text-base leading-relaxed text-gray-500 whitespace-pre-wrap m-0">{{ artist.biography }}</p>
+      <!-- Biografia -->
+      <div class="px-6 py-6 border-t border-gray-100 max-md:px-4" *ngIf="artist.biography">
+        <h2 class="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">Biografia</h2>
+        <p class="text-gray-600 leading-relaxed whitespace-pre-wrap m-0">{{ artist.biography }}</p>
       </div>
 
-      <div class="flex flex-col items-center p-8 text-gray-400 border-t border-gray-200 mt-4" *ngIf="!artist.biography">
-        <mat-icon class="text-4xl mb-2 opacity-50">description</mat-icon>
-        <p class="m-0 text-sm">Nenhuma biografia cadastrada</p>
+      <div class="px-6 py-8 border-t border-gray-100 text-center max-md:px-4" *ngIf="!artist.biography">
+        <mat-icon class="!text-4xl text-gray-300 mb-2">description</mat-icon>
+        <p class="text-sm text-gray-400 m-0">Nenhuma biografia cadastrada</p>
       </div>
-    </mat-card>
+    </div>
 
-    <!-- Albums Section -->
-    <div class="bg-white rounded-xl p-6 shadow-sm max-md:p-4">
-      <div class="mb-6">
-        <h2 class="flex items-center gap-2 text-lg font-medium text-gray-900 m-0">
-          <mat-icon class="text-xl text-primary">album</mat-icon>
-          Álbuns
-          <span class="font-normal text-gray-500" *ngIf="artist.albums?.length">({{ artist.albums?.length }})</span>
-        </h2>
+    <!-- Discografia -->
+    <div class="bg-white rounded-xl shadow-sm overflow-hidden">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-6 max-md:p-4 max-md:flex-col max-md:items-start max-md:gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-primary-50 flex items-center justify-center">
+            <mat-icon class="text-primary">album</mat-icon>
+          </div>
+          <div>
+            <h2 class="text-lg font-semibold text-gray-900 m-0">Discografia</h2>
+            <p class="text-sm text-gray-500 m-0">{{ artist.albums?.length || 0 }} álbuns cadastrados</p>
+          </div>
+        </div>
+        <button mat-raised-button color="primary" (click)="createAlbum()">
+          <mat-icon>add</mat-icon>
+          Novo álbum
+        </button>
       </div>
 
-      <!-- Albums Grid -->
-      <div class="grid grid-cols-[repeat(auto-fill,minmax(180px,1fr))] gap-4 max-md:grid-cols-2 max-md:gap-3" *ngIf="artist.albums?.length">
-        <mat-card *ngFor="let album of artist.albums; let i = index"
-                  class="cursor-pointer overflow-hidden album-card"
-                  [style.animation-delay]="i * 50 + 'ms'"
-                  (click)="viewAlbum(album.id)">
-          <div class="relative overflow-hidden aspect-square bg-gray-100">
+      <!-- Lista de álbuns -->
+      <div class="divide-y divide-gray-100" *ngIf="artist.albums?.length">
+        <div *ngFor="let album of artist.albums"
+             class="album-row flex items-center gap-4 py-4 px-6 cursor-pointer transition-colors hover:bg-gray-50 max-md:px-4"
+             (click)="viewAlbum(album.id)">
+          <!-- Cover -->
+          <div class="w-14 h-14 rounded-lg overflow-hidden bg-gray-100 shrink-0">
             <img *ngIf="album.coverUrl"
                  [src]="album.coverUrl"
                  [alt]="album.title"
-                 class="w-full h-full object-cover transition-transform duration-200"
-                 loading="lazy">
-            <div *ngIf="!album.coverUrl" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-              <mat-icon class="text-6xl text-gray-300 opacity-50">album</mat-icon>
-            </div>
-            <div class="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-200 cover-overlay">
-              <button mat-mini-fab color="primary">
-                <mat-icon>visibility</mat-icon>
-              </button>
+                 class="w-full h-full object-cover">
+            <div *ngIf="!album.coverUrl"
+                 class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+              <mat-icon class="text-gray-400">album</mat-icon>
             </div>
           </div>
-          <mat-card-content class="p-4">
-            <h4 class="text-sm font-medium text-gray-900 m-0 mb-1 line-clamp-2 leading-snug max-md:text-xs">{{ album.title }}</h4>
-            <p class="flex items-center gap-1 text-xs text-gray-400 m-0" *ngIf="album.releaseYear">
-              <mat-icon class="text-sm opacity-70">calendar_today</mat-icon>
-              {{ album.releaseYear }}
-            </p>
-          </mat-card-content>
-        </mat-card>
+          <!-- Info -->
+          <div class="flex-1 min-w-0">
+            <div class="font-medium text-gray-900 truncate">{{ album.title }}</div>
+            <div class="text-sm text-gray-500">{{ album.releaseYear }}</div>
+          </div>
+          <!-- Arrow -->
+          <mat-icon class="text-gray-400">chevron_right</mat-icon>
+        </div>
       </div>
 
-      <!-- Empty Albums State -->
-      <app-empty-state
-        *ngIf="!artist.albums?.length"
-        icon="album"
-        title="Nenhum álbum cadastrado"
-        description="Este artista ainda não possui álbuns vinculados."
-        actionText="Adicionar álbum"
-        actionIcon="add"
-        (actionClick)="createAlbum()">
-      </app-empty-state>
+      <!-- Empty State -->
+      <div class="p-12 text-center" *ngIf="!artist.albums?.length">
+        <mat-icon class="!text-5xl text-gray-300 mb-3">album</mat-icon>
+        <h3 class="text-lg font-medium text-gray-900 mb-1">Nenhum álbum cadastrado</h3>
+        <p class="text-sm text-gray-500 mb-4">Este artista ainda não possui álbuns vinculados.</p>
+        <button mat-raised-button color="primary" (click)="createAlbum()">
+          <mat-icon>add</mat-icon>
+          Adicionar álbum
+        </button>
+      </div>
     </div>
   </div>
 </div>

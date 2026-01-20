@@ -6,7 +6,8 @@ import {
   CreateArtistRequest,
   UpdateArtistRequest,
   ArtistSearchParams,
-  ArtistType
+  ArtistType,
+  PhotoUploadResponse
 } from '../models/artist.model';
 import { ArtistsService } from '../services/artists.service';
 
@@ -87,7 +88,7 @@ export class ArtistsFacade {
       }),
       finalize(() => this.loading$.next(false))
     ).subscribe({
-      error: (err) => this.error$.next(err.message || 'Erro ao carregar artistas')
+      error: (err) => this.error$.next(err.error?.message || 'Erro ao carregar artistas')
     });
   }
 
@@ -99,7 +100,7 @@ export class ArtistsFacade {
       tap((artist: Artist) => this.selectedArtist$.next(artist)),
       finalize(() => this.loading$.next(false))
     ).subscribe({
-      error: (err) => this.error$.next(err.message || 'Erro ao carregar artista')
+      error: (err) => this.error$.next(err.error?.message || 'Erro ao carregar artista')
     });
   }
 
@@ -155,5 +156,51 @@ export class ArtistsFacade {
   clearFilters(): void {
     this.filters$.next(initialState.filters);
     this.loadArtists({ page: 0 });
+  }
+
+  uploadPhoto(id: number, file: File): Observable<PhotoUploadResponse> {
+    this.loading$.next(true);
+    return this.artistsService.uploadPhoto(id, file).pipe(
+      tap((response) => {
+        const current = this.selectedArtist$.value;
+        if (current && current.id === id) {
+          this.selectedArtist$.next({
+            ...current,
+            photoKey: response.key,
+            photoUrl: response.url
+          });
+        }
+        this.loadArtists();
+      }),
+      finalize(() => this.loading$.next(false))
+    );
+  }
+
+  deletePhoto(id: number): Observable<void> {
+    this.loading$.next(true);
+    return this.artistsService.deletePhoto(id).pipe(
+      tap(() => {
+        const current = this.selectedArtist$.value;
+        if (current && current.id === id) {
+          this.selectedArtist$.next({
+            ...current,
+            photoKey: undefined,
+            photoUrl: undefined
+          });
+        }
+        this.loadArtists();
+      }),
+      finalize(() => this.loading$.next(false))
+    );
+  }
+
+  deactivateArtist(id: number): Observable<void> {
+    this.loading$.next(true);
+    return this.artistsService.deactivate(id).pipe(
+      tap(() => {
+        this.loadArtists();
+      }),
+      finalize(() => this.loading$.next(false))
+    );
   }
 }
