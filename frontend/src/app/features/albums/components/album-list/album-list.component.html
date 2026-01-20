@@ -1,4 +1,4 @@
-<div class="container">
+<div class="max-w-7xl mx-auto p-6 max-md:p-4">
   <!-- Page Header -->
   <app-page-header
     title="Álbuns"
@@ -6,19 +6,19 @@
     icon="album">
     <button mat-flat-button color="primary" (click)="createAlbum()">
       <mat-icon>add</mat-icon>
-      <span class="hide-mobile">Novo Álbum</span>
+      <span class="hidden md:inline">Novo Álbum</span>
     </button>
   </app-page-header>
 
   <!-- Filters Toolbar -->
-  <div class="filters-toolbar">
-    <mat-form-field appearance="outline" class="search-field">
+  <div class="flex items-center gap-4 mb-6 p-4 bg-white rounded-xl shadow-sm max-md:flex-wrap max-md:gap-2">
+    <mat-form-field appearance="outline" class="flex-1 max-w-md mb-0 max-md:flex-[1_1_100%] max-md:max-w-none max-md:-order-1 hide-subscript">
       <mat-label>Buscar álbum</mat-label>
       <input matInput
              [value]="searchTerm"
              (input)="onSearch($event)"
              placeholder="Digite o título do álbum">
-      <mat-icon matPrefix>search</mat-icon>
+      <mat-icon matPrefix class="text-gray-400">search</mat-icon>
       <button mat-icon-button
               matSuffix
               *ngIf="searchTerm"
@@ -28,86 +28,88 @@
       </button>
     </mat-form-field>
 
-    <div class="filter-actions">
+    <div class="flex items-center gap-2 ml-auto max-md:w-full max-md:justify-end">
       <button mat-stroked-button
-              class="sort-btn"
+              class="flex items-center gap-1 min-w-0 px-4"
               (click)="onSortChange()"
               matTooltip="Ordenar {{ sortDirection === 'asc' ? 'Z-A' : 'A-Z' }}">
         <mat-icon>sort_by_alpha</mat-icon>
-        <mat-icon class="sort-arrow">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+        <mat-icon class="text-base max-sm:hidden">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
       </button>
 
       <button mat-stroked-button
               color="primary"
-              class="clear-btn"
+              class="min-w-0"
               (click)="clearFilters()"
               *ngIf="searchTerm">
         <mat-icon>filter_alt_off</mat-icon>
-        <span class="hide-mobile">Limpar</span>
+        <span class="hidden md:inline">Limpar</span>
       </button>
     </div>
   </div>
 
   <!-- Results Info -->
-  <div class="results-info" *ngIf="!loading && totalElements > 0">
-    <span class="results-count">
-      <strong>{{ totalElements }}</strong> álbum(ns) encontrado(s)
+  <div class="mb-4 py-1" *ngIf="!loading && totalElements > 0">
+    <span class="text-sm text-gray-500">
+      <strong class="text-gray-900 font-semibold">{{ totalElements }}</strong> álbum(ns) encontrado(s)
     </span>
   </div>
 
   <!-- Loading State -->
-  <div class="loading-container" *ngIf="loading">
+  <div class="flex flex-col items-center justify-center min-h-[300px] gap-4 text-gray-500" *ngIf="loading">
     <mat-spinner diameter="48"></mat-spinner>
     <p>Carregando álbuns...</p>
   </div>
 
   <!-- Albums Grid -->
-  <div class="albums-grid" *ngIf="!loading && albums.length > 0">
+  <div class="grid grid-cols-[repeat(auto-fill,minmax(240px,1fr))] gap-6 max-md:grid-cols-2 max-md:gap-4 max-sm:grid-cols-1" *ngIf="!loading && albums.length > 0">
     <div *ngFor="let album of albums; let i = index"
-         class="album-card"
+         class="album-card bg-white rounded-xl shadow-sm overflow-hidden cursor-pointer flex flex-col animate-fade-in-up"
          [style.animation-delay]="i * 30 + 'ms'"
          (click)="viewAlbum(album)">
       <!-- Cover -->
-      <div class="card-cover">
+      <div class="relative aspect-square overflow-hidden bg-gray-100">
         <img *ngIf="album.coverUrl"
              [src]="album.coverUrl"
              [alt]="album.title"
-             class="cover-img"
+             class="w-full h-full object-cover transition-transform duration-200"
              loading="lazy">
-        <div *ngIf="!album.coverUrl" class="cover-placeholder">
-          <mat-icon>album</mat-icon>
+        <div *ngIf="!album.coverUrl" class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
+          <mat-icon class="text-6xl text-gray-300 opacity-40">album</mat-icon>
         </div>
-        <div class="cover-actions">
+        <div class="cover-overlay absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 transition-opacity duration-200">
           <button mat-mini-fab
                   color="primary"
                   (click)="viewAlbum(album); $event.stopPropagation()"
-                  matTooltip="Ver detalhes">
+                  matTooltip="Ver detalhes"
+                  class="scale-90 hover:scale-100 transition-transform duration-150">
             <mat-icon>visibility</mat-icon>
           </button>
         </div>
       </div>
 
       <!-- Info -->
-      <div class="card-info">
-        <h3 class="card-title" [matTooltip]="album.title">{{ album.title }}</h3>
-        <p class="card-artist">{{ getArtistNames(album) }}</p>
-        <div class="card-meta">
-          <span class="meta-item" *ngIf="album.releaseYear">
-            <mat-icon>event</mat-icon>
+      <div class="p-4 flex-1 flex flex-col min-h-0">
+        <h3 class="text-sm font-semibold text-gray-900 mb-1 leading-tight line-clamp-2" [matTooltip]="album.title">{{ album.title }}</h3>
+        <p class="text-xs text-gray-500 mb-2 line-clamp-1">{{ getArtistNames(album) }}</p>
+        <div class="flex flex-wrap gap-2 mt-auto">
+          <span class="inline-flex items-center gap-1 text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded" *ngIf="album.releaseYear">
+            <mat-icon class="text-sm text-primary">event</mat-icon>
             {{ album.releaseYear }}
           </span>
-          <span class="meta-item" *ngIf="album.genre">
-            <mat-icon>music_note</mat-icon>
+          <span class="inline-flex items-center gap-1 text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded" *ngIf="album.genre">
+            <mat-icon class="text-sm text-primary">music_note</mat-icon>
             {{ album.genre }}
           </span>
         </div>
       </div>
 
       <!-- Quick Actions -->
-      <div class="card-actions">
+      <div class="card-actions flex justify-end px-2 pb-2 opacity-60 transition-opacity duration-150">
         <button mat-icon-button
                 (click)="editAlbum(album); $event.stopPropagation()"
-                matTooltip="Editar álbum">
+                matTooltip="Editar álbum"
+                class="text-gray-500 hover:text-primary">
           <mat-icon>edit</mat-icon>
         </button>
       </div>
@@ -128,7 +130,7 @@
   </app-empty-state>
 
   <!-- Pagination -->
-  <div class="pagination-container" *ngIf="totalElements > pageSize">
+  <div class="flex justify-center mt-8 p-4 bg-white rounded-xl shadow-sm" *ngIf="totalElements > pageSize">
     <mat-paginator
       [length]="totalElements"
       [pageSize]="pageSize"
