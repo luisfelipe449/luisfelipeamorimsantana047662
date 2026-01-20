@@ -1,4 +1,4 @@
-<header class="app-header">
+<header class="app-header" *ngIf="showNavbar">
   <div class="header-content">
     <!-- Logo/Brand -->
     <a routerLink="/" class="brand">
@@ -55,12 +55,10 @@
 
       <!-- User Menu -->
       <div class="user-section hide-mobile">
-        <button mat-button [matMenuTriggerFor]="userMenu" class="user-menu-trigger">
+        <button mat-icon-button [matMenuTriggerFor]="userMenu" class="user-menu-trigger" matTooltip="Menu do usuário">
           <div class="user-avatar">
             <span>{{ username?.charAt(0)?.toUpperCase() }}</span>
           </div>
-          <span class="username">{{ username }}</span>
-          <mat-icon class="dropdown-icon">expand_more</mat-icon>
         </button>
 
         <mat-menu #userMenu="matMenu" xPosition="before" class="user-dropdown">
