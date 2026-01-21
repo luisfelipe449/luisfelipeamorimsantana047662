@@ -144,7 +144,7 @@
                  class="w-full h-full object-cover">
             <div *ngIf="!album.coverUrl"
                  class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-              <mat-icon class="!text-3xl text-gray-400 !leading-none">album</mat-icon>
+              <mat-icon class="!text-3xl !w-8 !h-8 text-gray-400">album</mat-icon>
             </div>
           </div>
         </div>
@@ -155,14 +155,14 @@
 
           <!-- Artists -->
           <p class="flex items-center gap-1 text-sm text-gray-500 mb-3">
-            <mat-icon class="!text-base !leading-none">person</mat-icon>
+            <mat-icon class="!text-base !w-4 !h-4">person</mat-icon>
             <span class="line-clamp-1">{{ getArtistNames(album) }}</span>
           </p>
 
           <!-- Genre and Stats -->
           <div class="text-gray-600 text-sm mb-4 flex-1 space-y-1">
             <p *ngIf="album.genre" class="inline-flex items-center gap-1 m-0">
-              <mat-icon class="!text-base !leading-none text-gray-400">music_note</mat-icon>
+              <mat-icon class="!text-base !w-4 !h-4 text-gray-400">music_note</mat-icon>
               {{ album.genre }}
             </p>
             <p *ngIf="album.trackCount" class="inline-flex items-center gap-1 m-0 ml-2">
@@ -172,7 +172,7 @@
 
           <!-- Statistics -->
           <div class="flex items-center gap-1 text-sm text-primary">
-            <mat-icon class="!text-lg !leading-none">people</mat-icon>
+            <mat-icon class="!text-lg !w-5 !h-5">people</mat-icon>
             <span class="font-semibold">{{ album.artists?.length || 0 }}</span>
             <span class="text-gray-500">artista(s)</span>
           </div>
@@ -197,7 +197,7 @@
 
     <!-- Empty State -->
     <div class="p-12 text-center" *ngIf="!loading && albums.length === 0">
-      <mat-icon class="!text-5xl text-gray-300 mb-3">album</mat-icon>
+      <mat-icon class="!text-5xl !w-12 !h-12 text-gray-300 mb-3">album</mat-icon>
       <h3 class="text-lg font-medium text-gray-900 mb-1">
         {{ searchTerm ? 'Nenhum álbum encontrado' : 'Nenhum álbum cadastrado' }}
       </h3>

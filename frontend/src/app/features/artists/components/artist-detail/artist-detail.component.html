@@ -65,7 +65,7 @@
             <div *ngIf="!artist.photoUrl"
                  class="w-full h-full flex items-center justify-center"
                  [class]="artist.type === 'BAND' ? 'bg-gradient-to-br from-accent to-accent-700' : 'bg-gradient-to-br from-primary to-primary-700'">
-              <mat-icon class="!text-4xl text-white !leading-none">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+              <mat-icon class="!text-4xl !w-10 !h-10 text-white">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
             </div>
           </div>
         </div>
@@ -89,7 +89,7 @@
         <!-- Stats Card -->
         <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl w-fit">
           <div class="w-12 h-12 rounded-xl bg-primary-100 flex items-center justify-center">
-            <mat-icon class="text-primary !text-xl">music_note</mat-icon>
+            <mat-icon class="text-primary !text-xl !w-6 !h-6">music_note</mat-icon>
           </div>
           <div>
             <div class="text-2xl font-bold text-gray-900">{{ artist.albums?.length || 0 }}</div>
@@ -105,7 +105,7 @@
       </div>
 
       <div class="px-6 py-8 border-t border-gray-100 text-center max-md:px-4" *ngIf="!artist.biography">
-        <mat-icon class="!text-4xl text-gray-300 mb-2">description</mat-icon>
+        <mat-icon class="!text-4xl !w-10 !h-10 text-gray-300 mb-2">description</mat-icon>
         <p class="text-sm text-gray-400 m-0">Nenhuma biografia cadastrada</p>
       </div>
     </div>
@@ -157,7 +157,7 @@
 
       <!-- Empty State -->
       <div class="p-12 text-center" *ngIf="!artist.albums?.length">
-        <mat-icon class="!text-5xl text-gray-300 mb-3">album</mat-icon>
+        <mat-icon class="!text-5xl !w-12 !h-12 text-gray-300 mb-3">album</mat-icon>
         <h3 class="text-lg font-medium text-gray-900 mb-1">Nenhum álbum cadastrado</h3>
         <p class="text-sm text-gray-500 m-0">Este artista ainda não possui álbuns vinculados.</p>
       </div>

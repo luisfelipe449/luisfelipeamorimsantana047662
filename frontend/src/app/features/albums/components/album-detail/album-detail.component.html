@@ -45,7 +45,7 @@
                class="w-full h-full object-cover">
           <div *ngIf="!album.coverUrl"
                class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-600 to-gray-800">
-            <mat-icon class="!text-6xl text-white/50">album</mat-icon>
+            <mat-icon class="!text-6xl !w-16 !h-16 text-white/50">album</mat-icon>
           </div>
         </div>
 
@@ -57,7 +57,7 @@
             <!-- Artist Avatar -->
             <div *ngIf="album.artists?.length"
                  class="w-6 h-6 rounded-full bg-white/20 flex items-center justify-center overflow-hidden">
-              <mat-icon class="!text-sm text-white">person</mat-icon>
+              <mat-icon class="!text-sm !w-4 !h-4 text-white">person</mat-icon>
             </div>
             <span *ngIf="album.artists?.length" class="font-semibold">{{ getArtistNames() }}</span>
             <span class="text-white/70">•</span>
@@ -117,7 +117,7 @@
 
         <!-- Empty State -->
         <div *ngIf="!album.tracks?.length" class="p-12 text-center">
-          <mat-icon class="!text-5xl text-gray-300 mb-3">music_off</mat-icon>
+          <mat-icon class="!text-5xl !w-12 !h-12 text-gray-300 mb-3">music_off</mat-icon>
           <h3 class="text-lg font-medium text-gray-900 mb-1">Nenhuma faixa cadastrada</h3>
           <p class="text-sm text-gray-500 mb-4">Este álbum ainda não possui faixas vinculadas.</p>
           <button mat-raised-button color="primary" (click)="editAlbum()">
@@ -162,7 +162,7 @@
                (click)="viewArtist(artist.id)">
             <div class="w-14 h-14 rounded-full overflow-hidden shrink-0 flex items-center justify-center"
                  [class]="artist.type === 'BAND' ? 'bg-gradient-to-br from-accent to-accent-700' : 'bg-gradient-to-br from-primary to-primary-700'">
-              <mat-icon class="!text-2xl text-white">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+              <mat-icon class="!text-2xl !w-7 !h-7 text-white">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
             </div>
             <div class="flex-1 min-w-0">
               <div class="font-semibold text-gray-900">{{ artist.name }}</div>
