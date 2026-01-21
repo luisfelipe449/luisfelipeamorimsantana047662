@@ -207,6 +207,25 @@ public class ArtistService {
             }
         }
 
+        // Include albums with cover URLs
+        if (artist.getAlbums() != null && !artist.getAlbums().isEmpty()) {
+            List<AlbumSummaryDTO> albumDTOs = artist.getAlbums().stream()
+                    .map(album -> {
+                        AlbumSummaryDTO albumDTO = AlbumSummaryDTO.fromEntity(album);
+                        // Add first cover URL if exists
+                        if (album.getCoverKeys() != null && !album.getCoverKeys().isEmpty()) {
+                            try {
+                                albumDTO.setCoverUrl(storageService.getPresignedUrl(album.getCoverKeys().get(0)));
+                            } catch (Exception e) {
+                                log.warn("Could not generate cover URL for album {}", album.getId());
+                            }
+                        }
+                        return albumDTO;
+                    })
+                    .collect(Collectors.toList());
+            dto.setAlbums(albumDTOs);
+        }
+
         return dto;
     }
 

@@ -8,6 +8,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Data
 @Builder
@@ -24,6 +26,7 @@ public class ArtistDTO {
     private String photoUrl;
     private Boolean active;
     private int albumCount;
+    private List<AlbumSummaryDTO> albums;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -37,6 +40,7 @@ public class ArtistDTO {
                 .photoKey(artist.getPhotoKey())
                 .active(artist.getActive())
                 .albumCount(artist.getAlbums() != null ? artist.getAlbums().size() : 0)
+                .albums(new ArrayList<>())
                 .createdAt(artist.getCreatedAt())
                 .updatedAt(artist.getUpdatedAt())
                 .build();
