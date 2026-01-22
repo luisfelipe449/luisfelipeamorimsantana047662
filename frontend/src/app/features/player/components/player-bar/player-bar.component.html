@@ -1,0 +1,150 @@
+<div class="player-bar" *ngIf="playerState$ | async as state">
+  <div class="player-container" [class.has-track]="state.currentTrack">
+
+    <!-- Left Section: Track Info -->
+    <div class="track-info">
+      <div class="track-details" *ngIf="state.currentTrack">
+        <div class="track-cover">
+          <mat-icon *ngIf="!state.currentTrack.coverUrl" class="!w-12 !h-12 !text-5xl">album</mat-icon>
+          <img *ngIf="state.currentTrack.coverUrl"
+               [src]="state.currentTrack.coverUrl"
+               [alt]="state.currentTrack.title"
+               class="cover-image">
+        </div>
+        <div class="track-text">
+          <div class="track-title" [title]="state.currentTrack.title">
+            {{ state.currentTrack.title }}
+          </div>
+          <div class="track-artist" *ngIf="state.currentTrack.artistName">
+            {{ state.currentTrack.artistName }}
+          </div>
+        </div>
+      </div>
+      <div class="no-track" *ngIf="!state.currentTrack">
+        <span class="text-gray-500">No track selected</span>
+      </div>
+    </div>
+
+    <!-- Center Section: Player Controls & Progress -->
+    <div class="player-controls">
+      <!-- Control Buttons -->
+      <div class="control-buttons">
+        <!-- Shuffle -->
+        <button mat-icon-button
+                class="control-btn small-btn"
+                [class.active]="state.shuffleEnabled"
+                (click)="playerFacade.toggleShuffle()"
+                [disabled]="!state.currentTrack"
+                matTooltip="Toggle shuffle">
+          <mat-icon class="!w-5 !h-5 !text-xl">shuffle</mat-icon>
+        </button>
+
+        <!-- Previous -->
+        <button mat-icon-button
+                class="control-btn"
+                (click)="playerFacade.previous()"
+                [disabled]="!state.currentTrack"
+                matTooltip="Previous (P)">
+          <mat-icon class="!w-8 !h-8 !text-3xl">skip_previous</mat-icon>
+        </button>
+
+        <!-- Play/Pause -->
+        <button mat-fab
+                class="play-pause-btn"
+                (click)="togglePlayPause()"
+                [disabled]="!state.currentTrack && state.playlist.length === 0"
+                [matTooltip]="state.isPlaying ? 'Pause (Space)' : 'Play (Space)'">
+          <mat-icon class="!w-8 !h-8 !text-3xl" *ngIf="!state.isLoading">
+            {{ state.isPlaying ? 'pause' : 'play_arrow' }}
+          </mat-icon>
+          <mat-spinner *ngIf="state.isLoading" diameter="24" strokeWidth="2"></mat-spinner>
+        </button>
+
+        <!-- Next -->
+        <button mat-icon-button
+                class="control-btn"
+                (click)="playerFacade.next()"
+                [disabled]="!state.currentTrack"
+                matTooltip="Next (N)">
+          <mat-icon class="!w-8 !h-8 !text-3xl">skip_next</mat-icon>
+        </button>
+
+        <!-- Repeat -->
+        <button mat-icon-button
+                class="control-btn small-btn"
+                [class.active]="state.repeatMode !== RepeatMode.NONE"
+                [class.repeat-one]="state.repeatMode === RepeatMode.ONE"
+                (click)="playerFacade.toggleRepeat()"
+                [disabled]="!state.currentTrack"
+                matTooltip="Toggle repeat">
+          <mat-icon class="!w-5 !h-5 !text-xl">{{ getRepeatIcon(state.repeatMode) }}</mat-icon>
+        </button>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="progress-section">
+        <span class="time-label">{{ formatTime(state.currentTime) }}</span>
+
+        <div class="progress-bar-container"
+             (mousedown)="onProgressMouseDown($event)"
+             (mousemove)="onProgressMouseMove($event)"
+             (mouseup)="onProgressMouseUp($event)"
+             (mouseleave)="onProgressMouseUp($event)"
+             (click)="onProgressClick($event)">
+          <div class="progress-bar">
+            <div class="progress-fill"
+                 [style.width.%]="getProgressPercent(state)"></div>
+            <div class="progress-handle"
+                 [style.left.%]="getProgressPercent(state)"></div>
+          </div>
+        </div>
+
+        <span class="time-label">{{ formatTime(state.duration) }}</span>
+      </div>
+    </div>
+
+    <!-- Right Section: Volume & Queue -->
+    <div class="extra-controls">
+      <!-- Queue -->
+      <button mat-icon-button
+              class="control-btn"
+              [class.active]="showQueue"
+              (click)="showQueue = !showQueue"
+              [disabled]="state.playlist.length === 0"
+              matTooltip="Queue">
+        <mat-icon class="!w-6 !h-6 !text-2xl">queue_music</mat-icon>
+      </button>
+
+      <!-- Volume -->
+      <div class="volume-control"
+           (mouseenter)="showVolumeSlider = true"
+           (mouseleave)="showVolumeSlider = false">
+        <button mat-icon-button
+                class="control-btn"
+                (click)="playerFacade.toggleMute()"
+                matTooltip="Mute (M)">
+          <mat-icon class="!w-6 !h-6 !text-2xl">{{ getVolumeIcon(state) }}</mat-icon>
+        </button>
+
+        <div class="volume-slider" [class.show]="showVolumeSlider">
+          <input type="range"
+                 min="0"
+                 max="1"
+                 step="0.01"
+                 [value]="state.isMuted ? 0 : state.volume"
+                 (input)="onVolumeChange($event)"
+                 class="volume-input">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Error Message -->
+  <div class="error-message" *ngIf="state.error">
+    <mat-icon class="!w-5 !h-5 !text-xl">error</mat-icon>
+    <span>{{ state.error }}</span>
+    <button mat-icon-button (click)="playerFacade.clearPlaylist()">
+      <mat-icon class="!w-5 !h-5 !text-xl">close</mat-icon>
+    </button>
+  </div>
+</div>
