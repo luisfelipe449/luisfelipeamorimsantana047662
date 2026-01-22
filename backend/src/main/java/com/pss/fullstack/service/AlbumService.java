@@ -30,6 +30,8 @@ public class AlbumService {
     private final AlbumRepository albumRepository;
     private final ArtistRepository artistRepository;
     private final NotificationService notificationService;
+    private final AudioService audioService;
+    private final StorageService storageService;
 
     @Transactional(readOnly = true)
     public PageResponse<AlbumDTO> findAll(int page, int size, String sortBy, String sortDir) {
@@ -198,6 +200,53 @@ public class AlbumService {
         Album album = albumRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Album", id));
         return album.getCoverKeys();
+    }
+
+    @Transactional(readOnly = true)
+    public PlaylistDTO getAlbumPlaylist(Long id) {
+        Album album = albumRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Album", id));
+
+        // Build playlist DTO
+        PlaylistDTO.PlaylistDTOBuilder playlistBuilder = PlaylistDTO.builder()
+                .albumId(album.getId())
+                .albumTitle(album.getTitle())
+                .releaseYear(album.getReleaseYear())
+                .totalDuration(album.getTotalDuration());
+
+        // Add artist name (first artist if multiple)
+        if (album.getArtists() != null && !album.getArtists().isEmpty()) {
+            playlistBuilder.artistName(album.getArtists().iterator().next().getName());
+        }
+
+        // Add cover URL (first cover if multiple)
+        if (album.getCoverKeys() != null && !album.getCoverKeys().isEmpty()) {
+            try {
+                String coverUrl = storageService.getPresignedUrl(album.getCoverKeys().get(0));
+                playlistBuilder.coverUrl(coverUrl);
+            } catch (Exception e) {
+                log.warn("Could not generate cover URL for album {}: {}", id, e.getMessage());
+            }
+        }
+
+        // Add tracks with streaming URLs
+        List<TrackDTO> tracksWithUrls = album.getTracks().stream()
+                .map(track -> {
+                    TrackDTO dto = TrackDTO.fromEntity(track);
+                    if (track.getAudioKey() != null) {
+                        try {
+                            dto.setStreamUrl(audioService.getStreamUrl(track.getId()));
+                        } catch (Exception e) {
+                            log.warn("Could not generate stream URL for track {}: {}", track.getId(), e.getMessage());
+                        }
+                    }
+                    return dto;
+                })
+                .collect(Collectors.toList());
+
+        playlistBuilder.tracks(tracksWithUrls);
+
+        return playlistBuilder.build();
     }
 
 }

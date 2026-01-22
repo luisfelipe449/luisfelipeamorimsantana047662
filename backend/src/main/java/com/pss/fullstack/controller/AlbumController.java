@@ -155,4 +155,14 @@ public class AlbumController {
         return ResponseEntity.ok(presignedUrls);
     }
 
+    @GetMapping("/{id}/playlist")
+    @Operation(summary = "Get album playlist with all tracks and streaming URLs")
+    public ResponseEntity<PlaylistDTO> getAlbumPlaylist(
+            @Parameter(description = "Album ID")
+            @PathVariable Long id
+    ) {
+        PlaylistDTO playlist = albumService.getAlbumPlaylist(id);
+        return ResponseEntity.ok(playlist);
+    }
+
 }
