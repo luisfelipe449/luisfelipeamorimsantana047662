@@ -16,6 +16,10 @@ public class TrackDTO {
     private String title;
     private Integer trackNumber;
     private Integer duration;
+    private String audioFormat;
+    private Integer bitrate;
+    private Long fileSize;
+    private String streamUrl; // Presigned URL for streaming
 
     public static TrackDTO fromEntity(Track track) {
         return TrackDTO.builder()
@@ -23,6 +27,10 @@ public class TrackDTO {
                 .title(track.getTitle())
                 .trackNumber(track.getTrackNumber())
                 .duration(track.getDuration())
+                .audioFormat(track.getAudioFormat())
+                .bitrate(track.getBitrate())
+                .fileSize(track.getFileSize())
+                // streamUrl will be set by service when needed
                 .build();
     }
 
