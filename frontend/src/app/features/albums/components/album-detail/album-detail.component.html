@@ -74,8 +74,10 @@
     <!-- Actions Bar -->
     <div class="bg-gradient-to-b from-gray-600/20 to-transparent px-6 py-4">
       <div class="flex items-center gap-4 max-w-7xl mx-auto">
-        <!-- Play Button (decorative) -->
-        <button mat-fab color="primary" class="!bg-green-500 hover:!bg-green-400 !shadow-lg">
+        <!-- Play Button -->
+        <button mat-fab color="primary" class="!bg-green-500 hover:!bg-green-400 !shadow-lg"
+                (click)="playAlbum()"
+                [disabled]="!album.tracks || album.tracks.length === 0">
           <mat-icon>play_arrow</mat-icon>
         </button>
         <span class="text-gray-700 font-medium max-sm:hidden">Reproduzir</span>
@@ -97,7 +99,8 @@
     <div class="px-6 py-6 max-w-7xl mx-auto">
       <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <!-- Track List Header -->
-        <div class="grid grid-cols-[40px_1fr_80px] gap-4 px-6 py-3 border-b border-gray-100 text-xs font-medium text-gray-500 uppercase tracking-wider">
+        <div class="grid grid-cols-[40px_40px_1fr_80px] gap-4 px-6 py-3 border-b border-gray-100 text-xs font-medium text-gray-500 uppercase tracking-wider">
+          <span></span>
           <span class="text-center">#</span>
           <span>Título</span>
           <span class="flex items-center justify-end">
@@ -108,9 +111,18 @@
         <!-- Track List -->
         <div *ngIf="album.tracks?.length" class="divide-y divide-gray-50">
           <div *ngFor="let track of album.tracks; let i = index"
-               class="grid grid-cols-[40px_1fr_80px] gap-4 px-6 py-3 hover:bg-gray-50 transition-colors group">
+               class="grid grid-cols-[40px_40px_1fr_80px] gap-4 px-6 py-3 hover:bg-gray-50 transition-colors group cursor-pointer"
+               (click)="playTrack(track, i)">
+            <!-- Play Button -->
+            <button mat-icon-button
+                    class="!w-8 !h-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                    (click)="playTrack(track, i); $event.stopPropagation()">
+              <mat-icon class="!text-xl !w-5 !h-5" [class.text-green-500]="isTrackPlaying(track)">
+                {{ isTrackPlaying(track) ? 'pause_circle' : 'play_circle' }}
+              </mat-icon>
+            </button>
             <span class="text-center text-gray-400 group-hover:text-gray-600">{{ track.trackNumber }}</span>
-            <span class="font-medium text-gray-900 truncate">{{ track.title }}</span>
+            <span class="font-medium text-gray-900 truncate" [class.text-green-500]="isTrackPlaying(track)">{{ track.title }}</span>
             <span class="text-right text-gray-500">{{ formatDuration(track.duration) }}</span>
           </div>
         </div>

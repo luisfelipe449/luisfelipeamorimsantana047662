@@ -3,6 +3,8 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { Subject, takeUntil } from 'rxjs';
 import { AlbumsFacade } from '../../facades/albums.facade';
 import { Album } from '../../models/album.model';
+import { PlayerFacade } from '@features/player/facades/player.facade';
+import { TrackDTO } from '../../models/track.model';
 
 @Component({
   selector: 'app-album-detail',
@@ -19,7 +21,8 @@ export class AlbumDetailComponent implements OnInit, OnDestroy {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-    private facade: AlbumsFacade
+    private facade: AlbumsFacade,
+    private playerFacade: PlayerFacade
   ) {}
 
   ngOnInit(): void {
@@ -93,5 +96,48 @@ export class AlbumDetailComponent implements OnInit, OnDestroy {
   deleteAlbum(): void {
     // TODO: Implement delete functionality with confirmation dialog
     console.log('Delete album:', this.album?.id);
+  }
+
+  async playAlbum(): Promise<void> {
+    if (!this.album || !this.album.tracks || this.album.tracks.length === 0) {
+      return;
+    }
+
+    // Create TrackDTO objects with album info
+    const tracks: TrackDTO[] = this.album.tracks.map(track => ({
+      ...track,
+      albumTitle: this.album!.title,
+      artistName: this.getArtistNames(),
+      coverUrl: this.album!.coverUrls?.[0],
+      // For now, using a placeholder stream URL
+      // This should come from the backend playlist endpoint
+      streamUrl: undefined
+    }));
+
+    await this.playerFacade.playAlbum(tracks, 0);
+  }
+
+  async playTrack(track: any, index: number): Promise<void> {
+    if (!this.album || !this.album.tracks) {
+      return;
+    }
+
+    // Create TrackDTO objects with album info
+    const tracks: TrackDTO[] = this.album.tracks.map(t => ({
+      ...t,
+      albumTitle: this.album!.title,
+      artistName: this.getArtistNames(),
+      coverUrl: this.album!.coverUrls?.[0],
+      // For now, using a placeholder stream URL
+      // This should come from the backend playlist endpoint
+      streamUrl: undefined
+    }));
+
+    await this.playerFacade.playAlbum(tracks, index);
+  }
+
+  isTrackPlaying(track: any): boolean {
+    // TODO: Check if this track is currently playing
+    return false;
   }
 }
