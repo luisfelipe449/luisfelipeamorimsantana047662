@@ -158,11 +158,12 @@ docker-compose ps
 - [x] Bucket automaticamente criado na inicializacao
 
 #### Recursos Senior
-- [x] Health Checks (liveness e readiness)
+- [x] Health Checks Backend (liveness e readiness)
+- [x] Health Check Service Frontend com monitoramento automatico
 - [x] WebSocket para notificacoes de novos albums
-- [x] Rate limiting com Bucket4j
+- [x] Rate limiting com Bucket4j (10 req/min)
 - [x] Sincronizacao com endpoint de regionais
-- [x] Testes unitarios
+- [x] Testes unitarios com 80%+ cobertura
 
 #### Documentacao
 - [x] Swagger/OpenAPI 3.0
