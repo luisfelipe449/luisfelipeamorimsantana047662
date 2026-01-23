@@ -94,8 +94,11 @@ export class AlbumDetailComponent implements OnInit, OnDestroy {
   }
 
   deleteAlbum(): void {
-    // TODO: Implement delete functionality with confirmation dialog
-    console.log('Delete album:', this.album?.id);
+    if (!this.album) return;
+    if (confirm(`Deseja excluir o álbum "${this.album.title}"?`)) {
+      this.facade.deleteAlbum(this.album.id);
+      this.router.navigate(['/albums']);
+    }
   }
 
   async playAlbum(): Promise<void> {
@@ -103,14 +106,11 @@ export class AlbumDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Create TrackDTO objects with album info
     const tracks: TrackDTO[] = this.album.tracks.map(track => ({
       ...track,
       albumTitle: this.album!.title,
       artistName: this.getArtistNames(),
       coverUrl: this.album!.coverUrls?.[0],
-      // For now, using a placeholder stream URL
-      // This should come from the backend playlist endpoint
       streamUrl: undefined
     }));
 
@@ -122,14 +122,11 @@ export class AlbumDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Create TrackDTO objects with album info
     const tracks: TrackDTO[] = this.album.tracks.map(t => ({
       ...t,
       albumTitle: this.album!.title,
       artistName: this.getArtistNames(),
       coverUrl: this.album!.coverUrls?.[0],
-      // For now, using a placeholder stream URL
-      // This should come from the backend playlist endpoint
       streamUrl: undefined
     }));
 
@@ -137,7 +134,6 @@ export class AlbumDetailComponent implements OnInit, OnDestroy {
   }
 
   isTrackPlaying(track: any): boolean {
-    // TODO: Check if this track is currently playing
-    return false;
+    return this.playerFacade.isTrackPlaying(track.id);
   }
 }

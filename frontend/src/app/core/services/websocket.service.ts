@@ -44,30 +44,22 @@ export class WebSocketService {
       connectHeaders: {
         Authorization: `Bearer ${token}`
       },
-      debug: (str) => {
-        if (!environment.production) {
-          console.log('STOMP:', str);
-        }
-      },
       reconnectDelay: 5000,
       heartbeatIncoming: 4000,
       heartbeatOutgoing: 4000
     });
 
     this.client.onConnect = () => {
-      console.log('WebSocket connected');
       this.connectionStatusSubject.next(true);
       this.subscribeToNotifications();
     };
 
     this.client.onDisconnect = () => {
-      console.log('WebSocket disconnected');
       this.connectionStatusSubject.next(false);
     };
 
-    this.client.onStompError = (frame) => {
-      console.error('STOMP error:', frame.headers['message']);
-      console.error('Details:', frame.body);
+    this.client.onStompError = () => {
+      this.connectionStatusSubject.next(false);
     };
 
     this.client.activate();
@@ -96,8 +88,8 @@ export class WebSocketService {
       try {
         const notification: AlbumNotification = JSON.parse(message.body);
         this.albumNotificationsSubject.next(notification);
-      } catch (error) {
-        console.error('Error parsing notification:', error);
+      } catch {
+        // Ignore invalid messages
       }
     });
   }

@@ -31,10 +31,7 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<TokenResponse> {
     return this.http.post<TokenResponse>(`${this.API_URL}/login`, credentials).pipe(
       tap(response => this.handleAuthResponse(response, credentials.username)),
-      catchError(error => {
-        console.error('Login error:', error);
-        return throwError(() => error);
-      })
+      catchError(error => throwError(() => error))
     );
   }
 
@@ -47,7 +44,6 @@ export class AuthService {
     return this.http.post<TokenResponse>(`${this.API_URL}/refresh`, { refreshToken }).pipe(
       tap(response => this.handleAuthResponse(response)),
       catchError(error => {
-        console.error('Token refresh error:', error);
         this.logout();
         return throwError(() => error);
       })

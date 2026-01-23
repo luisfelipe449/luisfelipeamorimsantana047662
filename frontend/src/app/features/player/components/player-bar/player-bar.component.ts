@@ -24,9 +24,7 @@ export class PlayerBarComponent implements OnInit, OnDestroy {
     this.playerState$ = this.playerFacade.state;
   }
 
-  ngOnInit(): void {
-    // Component initialization
-  }
+  ngOnInit(): void {}
 
   ngOnDestroy(): void {
     if (this.keyboardSubscription) {
@@ -36,7 +34,6 @@ export class PlayerBarComponent implements OnInit, OnDestroy {
 
   @HostListener('document:keydown', ['$event'])
   handleKeyboardEvent(event: KeyboardEvent): void {
-    // Ignore if user is typing in an input field
     const target = event.target as HTMLElement;
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
       return;

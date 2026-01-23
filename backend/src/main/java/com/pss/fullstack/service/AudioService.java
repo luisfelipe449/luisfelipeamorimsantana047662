@@ -27,7 +27,7 @@ public class AudioService {
     @Value("${minio.bucket.audio:audio-tracks}")
     private String audioBucket;
 
-    @Value("${audio.max-file-size:52428800}") // 50MB default
+    @Value("${audio.max-file-size:52428800}")
     private long maxFileSize;
 
     private static final List<String> ALLOWED_FORMATS = Arrays.asList(

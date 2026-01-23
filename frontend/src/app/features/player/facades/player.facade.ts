@@ -306,16 +306,11 @@ export class PlayerFacade implements PlayerEvents {
   }
 
   private updateMediaSession(track: TrackDTO): void {
-    // This would need album info - for now just use track info
-    const artist = 'Unknown Artist'; // Would come from album
-    const album = 'Unknown Album'; // Would come from album
-    const artwork = undefined; // Would come from album cover
-
     this.audioService.setMediaSessionMetadata(
       track.title,
-      artist,
-      album,
-      artwork
+      track.artistName || 'Unknown Artist',
+      track.albumTitle || 'Unknown Album',
+      track.coverUrl
     );
   }
 

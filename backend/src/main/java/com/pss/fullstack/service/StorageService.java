@@ -26,7 +26,7 @@ public class StorageService {
     private String bucketName;
 
     @Value("${minio.presigned-url-expiration}")
-    private int presignedUrlExpiration; // 30 minutes
+    private int presignedUrlExpiration;
 
     /**
      * Upload a file to MinIO and return the object key

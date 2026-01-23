@@ -24,10 +24,10 @@ public class JwtService {
     private String secretKey;
 
     @Value("${jwt.expiration}")
-    private long accessTokenExpiration; // 5 minutes
+    private long accessTokenExpiration;
 
     @Value("${jwt.refresh-expiration}")
-    private long refreshTokenExpiration; // 24 hours
+    private long refreshTokenExpiration;
 
     public String generateAccessToken(UserDetails userDetails) {
         return generateToken(new HashMap<>(), userDetails, accessTokenExpiration);

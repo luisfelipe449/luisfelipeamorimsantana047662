@@ -99,8 +99,6 @@ public class ArtistController {
         return ResponseEntity.ok(artistService.update(id, dto));
     }
 
-    // ==================== Photo Endpoints ====================
-
     @PostMapping(value = "/{id}/photo", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @Operation(summary = "Upload artist photo")
     public ResponseEntity<Map<String, String>> uploadPhoto(
@@ -139,8 +137,6 @@ public class ArtistController {
         }
         return ResponseEntity.ok(Map.of("url", url));
     }
-
-    // ==================== Soft Delete ====================
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Deactivate an artist (soft delete)")

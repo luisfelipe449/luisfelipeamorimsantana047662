@@ -80,7 +80,6 @@ export class ArtistListComponent implements OnInit, OnDestroy {
         takeUntil(this.destroy$)
       )
       .subscribe(term => {
-        // Só busca se tiver 2+ caracteres ou estiver vazio (limpar busca)
         if (term.length >= 2 || term.length === 0) {
           this.facade.setNameFilter(term);
         }

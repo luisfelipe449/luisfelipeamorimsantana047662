@@ -126,8 +126,6 @@ public class ArtistService {
         return artistRepository.existsById(id);
     }
 
-    // ==================== Photo Methods ====================
-
     @Transactional
     public String uploadPhoto(Long id, MultipartFile file) {
         log.info("Uploading photo for artist: {}", id);
@@ -178,8 +176,6 @@ public class ArtistService {
         return storageService.getPresignedUrl(artist.getPhotoKey());
     }
 
-    // ==================== Soft Delete ====================
-
     @Transactional
     public void deactivate(Long id) {
         log.info("Deactivating artist: {}", id);
@@ -192,8 +188,6 @@ public class ArtistService {
 
         log.info("Artist deactivated: {}", id);
     }
-
-    // ==================== Helper Methods ====================
 
     private ArtistDTO toDTO(Artist artist) {
         ArtistDTO dto = ArtistDTO.fromEntity(artist);

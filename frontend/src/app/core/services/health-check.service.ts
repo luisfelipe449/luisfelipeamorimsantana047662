@@ -63,11 +63,8 @@ export class HealthCheckService {
       retry({
         count: this.MAX_RETRIES,
         delay: (error, retryCount) => {
-          // Exponential backoff: 1s, 2s, 4s
           const delay = Math.pow(2, retryCount - 1) * 1000;
-          console.warn(`Health check retry ${retryCount}/${this.MAX_RETRIES} after ${delay}ms`);
 
-          // Update status with retry count
           this.healthStatus$.next({
             ...this.healthStatus$.value,
             retryCount
@@ -77,7 +74,6 @@ export class HealthCheckService {
         }
       }),
       catchError(error => {
-        console.error('Health check failed:', error);
         return of({
           isHealthy: false,
           lastCheck: new Date(),
