@@ -3,6 +3,7 @@ import { Router, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { AuthService } from './core/services/auth.service';
 import { WebSocketService } from './core/services/websocket.service';
+import { HealthCheckService, HealthStatus } from './core/services/health-check.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
@@ -15,16 +16,46 @@ export class AppComponent implements OnInit, OnDestroy {
   isLoggedIn = false;
   username = '';
   showNavbar = true;
+  healthStatus: HealthStatus | null = null;
   private subscriptions = new Subscription();
 
   constructor(
     private authService: AuthService,
     private wsService: WebSocketService,
+    private healthCheckService: HealthCheckService,
     private router: Router,
     private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
+    // Start health check monitoring
+    this.healthCheckService.startPeriodicCheck();
+
+    // Subscribe to health status changes
+    this.subscriptions.add(
+      this.healthCheckService.getHealthStatus().subscribe(status => {
+        const previousStatus = this.healthStatus;
+        this.healthStatus = status;
+
+        // Show notification when status changes
+        if (previousStatus && previousStatus.isHealthy !== status.isHealthy) {
+          if (status.isHealthy) {
+            this.snackBar.open('Connection to server restored', 'OK', {
+              duration: 3000,
+              panelClass: ['success-snackbar']
+            });
+          } else {
+            this.snackBar.open('Connection to server lost. Some features may be unavailable.', 'Retry', {
+              duration: 0,  // Keep open until dismissed
+              panelClass: ['error-snackbar']
+            }).onAction().subscribe(() => {
+              this.healthCheckService.forceCheck();
+            });
+          }
+        }
+      })
+    );
+
     // Check route to show/hide navbar
     this.subscriptions.add(
       this.router.events.pipe(
@@ -62,6 +93,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.subscriptions.unsubscribe();
     this.wsService.disconnect();
+    this.healthCheckService.stopPeriodicCheck();
   }
 
   private connectWebSocket(): void {

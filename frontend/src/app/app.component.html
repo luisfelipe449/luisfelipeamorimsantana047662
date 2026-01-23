@@ -1,4 +1,20 @@
-<header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm" *ngIf="showNavbar">
+<!-- Health Status Banner -->
+<div *ngIf="healthStatus && !healthStatus.isHealthy"
+     class="bg-red-500 text-white px-4 py-2 text-center text-sm font-medium sticky top-0 z-[60] flex items-center justify-center gap-2">
+  <mat-icon class="!text-base !w-5 !h-5">warning</mat-icon>
+  <span>{{ healthStatus.error || 'Connection to server lost' }}</span>
+  <span *ngIf="healthStatus.retryCount && healthStatus.retryCount > 0" class="text-red-100">
+    (Retry {{ healthStatus.retryCount }}/3)
+  </span>
+  <button mat-icon-button class="!text-white ml-2" (click)="healthCheckService.forceCheck()" matTooltip="Retry connection">
+    <mat-icon class="!text-xl !w-5 !h-5">refresh</mat-icon>
+  </button>
+</div>
+
+<header class="bg-white border-b border-gray-200 sticky z-50 shadow-sm"
+        [class.top-0]="!healthStatus || healthStatus.isHealthy"
+        [class.top-10]="healthStatus && !healthStatus.isHealthy"
+        *ngIf="showNavbar">
   <div class="flex items-center w-full max-w-7xl mx-auto px-6 h-16 md:h-16 max-md:px-4 max-md:h-14">
     <!-- Logo/Brand -->
     <a routerLink="/" class="flex items-center gap-2 no-underline hover:opacity-80 transition-opacity duration-150">
