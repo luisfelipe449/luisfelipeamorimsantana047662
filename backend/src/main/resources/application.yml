@@ -7,6 +7,13 @@ spring:
   application:
     name: pss-fullstack-backend
 
+  servlet:
+    multipart:
+      enabled: true
+      max-file-size: 5MB
+      max-request-size: 10MB
+      file-size-threshold: 1MB
+
   datasource:
     url: jdbc:postgresql://localhost:5432/pss_fullstack
     username: pss_user

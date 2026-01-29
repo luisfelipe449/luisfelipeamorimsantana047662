@@ -1,6 +1,7 @@
 package com.pss.fullstack.service;
 
 import com.pss.fullstack.exception.BusinessException;
+import com.pss.fullstack.exception.InvalidFileException;
 import io.minio.*;
 import io.minio.http.Method;
 import lombok.RequiredArgsConstructor;
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
+import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -19,6 +21,11 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class StorageService {
+
+    private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
+    private static final List<String> ALLOWED_CONTENT_TYPES = Arrays.asList(
+            "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"
+    );
 
     private final MinioClient minioClient;
 
@@ -32,6 +39,17 @@ public class StorageService {
      * Upload a file to MinIO and return the object key
      */
     public String uploadFile(MultipartFile file) {
+        // Validate file size
+        if (file.getSize() > MAX_FILE_SIZE) {
+            throw new InvalidFileException("File size exceeds 5MB limit");
+        }
+
+        // Validate content type
+        String contentType = file.getContentType();
+        if (contentType == null || !ALLOWED_CONTENT_TYPES.contains(contentType.toLowerCase())) {
+            throw new InvalidFileException("Invalid file type. Only images (JPEG, PNG, GIF, WebP) are allowed");
+        }
+
         try {
             ensureBucketExists();
 

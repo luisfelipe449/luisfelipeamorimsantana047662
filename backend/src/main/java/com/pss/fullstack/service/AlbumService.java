@@ -189,6 +189,19 @@ public class AlbumService {
         Album album = albumRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Album", id));
 
+        // Delete old covers from storage if they exist
+        if (!album.getCoverKeys().isEmpty()) {
+            for (String oldKey : album.getCoverKeys()) {
+                try {
+                    storageService.deleteFile(oldKey);
+                    log.info("Deleted old cover: {}", oldKey);
+                } catch (Exception e) {
+                    log.warn("Could not delete old cover {}: {}", oldKey, e.getMessage());
+                }
+            }
+            album.getCoverKeys().clear();
+        }
+
         album.addCoverKey(coverKey);
         albumRepository.save(album);
 

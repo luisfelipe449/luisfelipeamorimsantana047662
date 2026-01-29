@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, tap, finalize } from 'rxjs';
+import { BehaviorSubject, Observable, tap, finalize, map } from 'rxjs';
 import { PageResponse } from '../../../core/services/api.service';
 import {
   Album,
@@ -55,6 +55,17 @@ export class AlbumsFacade {
 
   constructor(private albumsService: AlbumsService) {}
 
+  /**
+   * Maps album from backend format, normalizing coverUrls array to single coverUrl
+   */
+  private mapAlbum(album: any): Album {
+    return {
+      ...album,
+      // Normalize: use coverUrl if present, otherwise first coverUrls item
+      coverUrl: album.coverUrl || (album.coverUrls && album.coverUrls[0]) || null
+    };
+  }
+
   loadAlbums(params?: AlbumSearchParams): void {
     this.loading$.next(true);
     this.error$.next(null);
@@ -69,6 +80,10 @@ export class AlbumsFacade {
     };
 
     this.albumsService.getAll(searchParams).pipe(
+      map((response: PageResponse<Album>) => ({
+        ...response,
+        content: response.content.map(album => this.mapAlbum(album))
+      })),
       tap((response: PageResponse<Album>) => {
         this.albums$.next(response.content);
         this.pagination$.next({
@@ -89,6 +104,7 @@ export class AlbumsFacade {
     this.error$.next(null);
 
     this.albumsService.getById(id).pipe(
+      map((album: Album) => this.mapAlbum(album)),
       tap((album: Album) => this.selectedAlbum$.next(album)),
       finalize(() => this.loading$.next(false))
     ).subscribe({
@@ -107,6 +123,7 @@ export class AlbumsFacade {
   updateAlbum(id: number, album: UpdateAlbumRequest): Observable<Album> {
     this.loading$.next(true);
     return this.albumsService.update(id, album).pipe(
+      map((updated: Album) => this.mapAlbum(updated)),
       tap((updated) => {
         this.selectedAlbum$.next(updated);
         this.loadAlbums();
@@ -150,5 +167,13 @@ export class AlbumsFacade {
   clearFilters(): void {
     this.filters$.next(initialState.filters);
     this.loadAlbums({ page: 0 });
+  }
+
+  deleteAlbum(id: number): Observable<void> {
+    this.loading$.next(true);
+    return this.albumsService.delete(id).pipe(
+      tap(() => this.loadAlbums()),
+      finalize(() => this.loading$.next(false))
+    );
   }
 }

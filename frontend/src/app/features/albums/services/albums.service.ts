@@ -37,4 +37,8 @@ export class AlbumsService {
   getCoverUrl(id: number): Observable<{ url: string; expiresAt: string }> {
     return this.api.get<{ url: string; expiresAt: string }>(`${this.PATH}/${id}/covers/url`);
   }
+
+  delete(id: number): Observable<void> {
+    return this.api.delete<void>(`${this.PATH}/${id}`);
+  }
 }

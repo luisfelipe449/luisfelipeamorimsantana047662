@@ -7,7 +7,8 @@ export interface Album {
   genre?: string;
   trackCount?: number;
   totalDuration?: number;
-  coverUrl?: string;
+  coverUrl?: string;        // Keep for compatibility (single URL)
+  coverUrls?: string[];      // Add array from backend
   active: boolean;
   artists: ArtistSummary[];
   tracks?: Track[];

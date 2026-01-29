@@ -382,6 +382,11 @@ export class PlayerFacade implements PlayerEvents {
     );
   }
 
+  isTrackPlaying(trackId: number): boolean {
+    const state = this.state$.value;
+    return state.isPlaying && state.currentTrack?.id === trackId;
+  }
+
   destroy(): void {
     this.subscriptions.unsubscribe();
     this.audioService.destroy();

@@ -41,7 +41,24 @@ export class ApiService {
   uploadFile(path: string, file: File): Observable<any> {
     const formData = new FormData();
     formData.append('file', file);
-    return this.http.post(`${this.BASE_URL}${path}`, formData);
+
+    // Add HTTP options for proper multipart handling
+    return this.http.post<any>(`${this.BASE_URL}${path}`, formData, {
+      reportProgress: true,
+      observe: 'body'
+    });
+  }
+
+  uploadBatchFiles(path: string, files: File[]): Observable<any> {
+    const formData = new FormData();
+    files.forEach(file => {
+      formData.append('files', file);
+    });
+
+    return this.http.post<any>(`${this.BASE_URL}${path}`, formData, {
+      reportProgress: true,
+      observe: 'body'
+    });
   }
 
   private buildParams(params?: Record<string, any>): HttpParams {

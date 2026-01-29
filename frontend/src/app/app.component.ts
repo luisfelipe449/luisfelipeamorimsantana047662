@@ -22,7 +22,7 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     private authService: AuthService,
     private wsService: WebSocketService,
-    private healthCheckService: HealthCheckService,
+    public healthCheckService: HealthCheckService,
     private router: Router,
     private snackBar: MatSnackBar
   ) {}
