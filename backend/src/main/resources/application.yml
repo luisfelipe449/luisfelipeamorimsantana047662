@@ -43,6 +43,7 @@ jwt:
 # MinIO Configuration
 minio:
   endpoint: http://localhost:9000
+  external-url: ${MINIO_EXTERNAL_URL:http://localhost:9000}  # URL accessible from browser
   access-key: minioadmin
   secret-key: minioadmin
   bucket-name: album-covers

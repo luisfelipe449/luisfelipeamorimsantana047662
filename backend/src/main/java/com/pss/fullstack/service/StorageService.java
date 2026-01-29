@@ -35,6 +35,12 @@ public class StorageService {
     @Value("${minio.presigned-url-expiration}")
     private int presignedUrlExpiration;
 
+    @Value("${minio.endpoint}")
+    private String minioInternalUrl;
+
+    @Value("${minio.external-url}")
+    private String minioExternalUrl;
+
     /**
      * Upload a file to MinIO and return the object key
      */
@@ -93,6 +99,11 @@ public class StorageService {
                             .expiry(presignedUrlExpiration, TimeUnit.MINUTES)
                             .build()
             );
+
+            // Replace internal URL with external URL for browser access
+            if (minioExternalUrl != null && !minioInternalUrl.equals(minioExternalUrl)) {
+                url = url.replace(minioInternalUrl, minioExternalUrl);
+            }
 
             log.debug("Generated presigned URL for: {}", objectKey);
             return url;

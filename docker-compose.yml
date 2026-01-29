@@ -70,7 +70,8 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/pss_fullstack
       SPRING_DATASOURCE_USERNAME: pss_user
       SPRING_DATASOURCE_PASSWORD: pss_password
-      MINIO_ENDPOINT: http://minio:9000
+      MINIO_ENDPOINT: http://minio:9000  # Internal endpoint for backend-to-MinIO communication
+      MINIO_EXTERNAL_URL: http://localhost:9000  # External endpoint for presigned URLs accessible from browser
       MINIO_ACCESS_KEY: minioadmin
       MINIO_SECRET_KEY: minioadmin
       JWT_SECRET: pss-fullstack-mt-2026-super-secret-key-for-jwt-authentication
