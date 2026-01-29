@@ -43,7 +43,13 @@ public class AlbumService {
         Page<Album> albumPage = albumRepository.findAll(pageable);
 
         List<AlbumDTO> albums = albumPage.getContent().stream()
-                .map(AlbumDTO::fromEntity)
+                .map(album -> {
+                    // Generate presigned URLs for cover images
+                    List<String> presignedUrls = album.getCoverKeys().stream()
+                            .map(storageService::getPresignedUrl)
+                            .collect(Collectors.toList());
+                    return AlbumDTO.fromEntityWithPresignedUrls(album, presignedUrls);
+                })
                 .collect(Collectors.toList());
 
         return PageResponse.from(albumPage, albums);
@@ -59,7 +65,13 @@ public class AlbumService {
         Page<Album> albumPage = albumRepository.findByFilters(title, year, pageable);
 
         List<AlbumDTO> albums = albumPage.getContent().stream()
-                .map(AlbumDTO::fromEntity)
+                .map(album -> {
+                    // Generate presigned URLs for cover images
+                    List<String> presignedUrls = album.getCoverKeys().stream()
+                            .map(storageService::getPresignedUrl)
+                            .collect(Collectors.toList());
+                    return AlbumDTO.fromEntityWithPresignedUrls(album, presignedUrls);
+                })
                 .collect(Collectors.toList());
 
         return PageResponse.from(albumPage, albums);
@@ -75,7 +87,13 @@ public class AlbumService {
         Page<Album> albumPage = albumRepository.findByArtistId(artistId, pageable);
 
         List<AlbumDTO> albums = albumPage.getContent().stream()
-                .map(AlbumDTO::fromEntity)
+                .map(album -> {
+                    // Generate presigned URLs for cover images
+                    List<String> presignedUrls = album.getCoverKeys().stream()
+                            .map(storageService::getPresignedUrl)
+                            .collect(Collectors.toList());
+                    return AlbumDTO.fromEntityWithPresignedUrls(album, presignedUrls);
+                })
                 .collect(Collectors.toList());
 
         return PageResponse.from(albumPage, albums);
@@ -85,7 +103,13 @@ public class AlbumService {
     public AlbumDTO findById(Long id) {
         Album album = albumRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Album", id));
-        return AlbumDTO.fromEntity(album);
+
+        // Generate presigned URLs for cover images
+        List<String> presignedUrls = album.getCoverKeys().stream()
+                .map(storageService::getPresignedUrl)
+                .collect(Collectors.toList());
+
+        return AlbumDTO.fromEntityWithPresignedUrls(album, presignedUrls);
     }
 
     @Transactional
@@ -126,7 +150,12 @@ public class AlbumService {
                 .collect(Collectors.joining(", "));
         notificationService.notifyNewAlbum(album.getId(), album.getTitle(), artistNames);
 
-        return AlbumDTO.fromEntity(album);
+        // Generate presigned URLs for cover images
+        List<String> presignedUrls = album.getCoverKeys().stream()
+                .map(storageService::getPresignedUrl)
+                .collect(Collectors.toList());
+
+        return AlbumDTO.fromEntityWithPresignedUrls(album, presignedUrls);
     }
 
     @Transactional
@@ -181,7 +210,12 @@ public class AlbumService {
         album = albumRepository.save(album);
         log.info("Album updated: {}", album.getId());
 
-        return AlbumDTO.fromEntity(album);
+        // Generate presigned URLs for cover images
+        List<String> presignedUrls = album.getCoverKeys().stream()
+                .map(storageService::getPresignedUrl)
+                .collect(Collectors.toList());
+
+        return AlbumDTO.fromEntityWithPresignedUrls(album, presignedUrls);
     }
 
     @Transactional
