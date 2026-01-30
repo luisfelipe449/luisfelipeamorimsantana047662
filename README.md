@@ -346,6 +346,8 @@ Sem essa configuracao, o Spring Security retornaria 403 (Forbidden), que semanti
 - Latência adicional comparado a acesso direto ao MinIO
 - Mitigado com cache headers apropriados (1 hora para imagens)
 
+**Configuração Nginx**: Ajustado o arquivo `nginx.conf` para usar `location ^~ /api` com prioridade sobre regras de cache de assets estáticos, garantindo que requisições de imagens pela API sejam corretamente proxiadas para o backend
+
 ## Trade-offs e Priorizacoes
 
 1. **Simplicidade vs Features**: Priorizei uma implementacao limpa e funcional das features obrigatorias sobre adicionar funcionalidades extras.
