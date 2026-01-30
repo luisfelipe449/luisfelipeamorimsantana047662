@@ -2,14 +2,19 @@ package com.pss.fullstack.service;
 
 import com.pss.fullstack.exception.BusinessException;
 import com.pss.fullstack.exception.InvalidFileException;
+import com.pss.fullstack.exception.ResourceNotFoundException;
 import io.minio.*;
+import io.minio.errors.ErrorResponseException;
 import io.minio.http.Method;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import jakarta.annotation.PostConstruct;
 
+import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Arrays;
 import java.util.List;
@@ -18,7 +23,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class StorageService {
 
@@ -27,7 +31,8 @@ public class StorageService {
             "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"
     );
 
-    private final MinioClient minioClient;
+    @Autowired
+    private MinioClient minioClient;
 
     @Value("${minio.bucket-name}")
     private String bucketName;
@@ -38,8 +43,15 @@ public class StorageService {
     @Value("${minio.endpoint}")
     private String minioInternalUrl;
 
-    @Value("${minio.external-url}")
+    @Value("${minio.external-url:#{null}}")
     private String minioExternalUrl;
+
+    @PostConstruct
+    public void init() {
+        log.info("MinIO Configuration:");
+        log.info("  Internal URL: {}", minioInternalUrl);
+        log.info("  External URL: {}", minioExternalUrl);
+    }
 
     /**
      * Upload a file to MinIO and return the object key
@@ -124,6 +136,34 @@ public class StorageService {
     }
 
     /**
+     * Generate a presigned URL for accessing a file in a specific bucket
+     */
+    public String getPresignedUrlForBucket(String objectKey, String bucket, int expirySeconds) {
+        try {
+            String url = minioClient.getPresignedObjectUrl(
+                    GetPresignedObjectUrlArgs.builder()
+                            .method(Method.GET)
+                            .bucket(bucket)
+                            .object(objectKey)
+                            .expiry(expirySeconds, TimeUnit.SECONDS)
+                            .build()
+            );
+
+            // Replace internal URL with external URL for browser access
+            if (minioExternalUrl != null && !minioInternalUrl.equals(minioExternalUrl)) {
+                url = url.replace(minioInternalUrl, minioExternalUrl);
+            }
+
+            log.debug("Generated presigned URL for: {} in bucket: {}", objectKey, bucket);
+            return url;
+
+        } catch (Exception e) {
+            log.error("Error generating presigned URL: {}", e.getMessage());
+            throw new BusinessException("Failed to generate presigned URL: " + e.getMessage());
+        }
+    }
+
+    /**
      * Delete a file from MinIO
      */
     public void deleteFile(String objectKey) {
@@ -140,6 +180,89 @@ public class StorageService {
         } catch (Exception e) {
             log.error("Error deleting file: {}", e.getMessage());
             throw new BusinessException("Failed to delete file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get object data from MinIO as byte array
+     */
+    public byte[] getObject(String objectKey) {
+        try (InputStream stream = minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectKey)
+                        .build());
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = stream.read(buffer)) != -1) {
+                baos.write(buffer, 0, bytesRead);
+            }
+
+            log.debug("Retrieved object: {} ({} bytes)", objectKey, baos.size());
+            return baos.toByteArray();
+
+        } catch (ErrorResponseException e) {
+            if ("NoSuchKey".equals(e.errorResponse().code())) {
+                throw new ResourceNotFoundException("Image", "key", objectKey);
+            }
+            throw new BusinessException("Failed to retrieve image: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Error retrieving object: {}", objectKey, e);
+            throw new BusinessException("Failed to retrieve image");
+        }
+    }
+
+    /**
+     * Get object data from a specific bucket
+     */
+    public byte[] getObjectFromBucket(String objectKey, String bucketName) {
+        try (InputStream stream = minioClient.getObject(
+                GetObjectArgs.builder()
+                        .bucket(bucketName)
+                        .object(objectKey)
+                        .build());
+             ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
+
+            stream.transferTo(baos);
+            return baos.toByteArray();
+
+        } catch (ErrorResponseException e) {
+            if ("NoSuchKey".equals(e.errorResponse().code())) {
+                throw new ResourceNotFoundException("File", "key", objectKey);
+            }
+            throw new BusinessException("Failed to retrieve file: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Error retrieving object from bucket {}: {}", bucketName, objectKey, e);
+            throw new BusinessException("Failed to retrieve file");
+        }
+    }
+
+    /**
+     * Get object content type from MinIO metadata
+     */
+    public String getContentType(String objectKey) {
+        try {
+            StatObjectResponse stat = minioClient.statObject(
+                    StatObjectArgs.builder()
+                            .bucket(bucketName)
+                            .object(objectKey)
+                            .build()
+            );
+
+            String contentType = stat.contentType();
+            // Default to image/jpeg if not set
+            return contentType != null ? contentType : "image/jpeg";
+
+        } catch (ErrorResponseException e) {
+            if ("NoSuchKey".equals(e.errorResponse().code())) {
+                throw new ResourceNotFoundException("Image", "key", objectKey);
+            }
+            throw new BusinessException("Failed to get image metadata: " + e.getMessage());
+        } catch (Exception e) {
+            log.error("Error getting object metadata: {}", objectKey, e);
+            return "image/jpeg"; // Default fallback
         }
     }
 

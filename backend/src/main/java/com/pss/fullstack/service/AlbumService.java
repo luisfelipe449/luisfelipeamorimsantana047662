@@ -32,6 +32,7 @@ public class AlbumService {
     private final NotificationService notificationService;
     private final AudioService audioService;
     private final StorageService storageService;
+    private final UrlGeneratorService urlGeneratorService;
 
     @Transactional(readOnly = true)
     public PageResponse<AlbumDTO> findAll(int page, int size, String sortBy, String sortDir) {
@@ -44,11 +45,11 @@ public class AlbumService {
 
         List<AlbumDTO> albums = albumPage.getContent().stream()
                 .map(album -> {
-                    // Generate presigned URLs for cover images
-                    List<String> presignedUrls = album.getCoverKeys().stream()
-                            .map(storageService::getPresignedUrl)
+                    // Generate proxy URLs for cover images
+                    List<String> proxyUrls = album.getCoverKeys().stream()
+                            .map(urlGeneratorService::generateAlbumCoverUrl)
                             .collect(Collectors.toList());
-                    return AlbumDTO.fromEntityWithPresignedUrls(album, presignedUrls);
+                    return AlbumDTO.fromEntityWithPresignedUrls(album, proxyUrls);
                 })
                 .collect(Collectors.toList());
 
@@ -66,11 +67,11 @@ public class AlbumService {
 
         List<AlbumDTO> albums = albumPage.getContent().stream()
                 .map(album -> {
-                    // Generate presigned URLs for cover images
-                    List<String> presignedUrls = album.getCoverKeys().stream()
-                            .map(storageService::getPresignedUrl)
+                    // Generate proxy URLs for cover images
+                    List<String> proxyUrls = album.getCoverKeys().stream()
+                            .map(urlGeneratorService::generateAlbumCoverUrl)
                             .collect(Collectors.toList());
-                    return AlbumDTO.fromEntityWithPresignedUrls(album, presignedUrls);
+                    return AlbumDTO.fromEntityWithPresignedUrls(album, proxyUrls);
                 })
                 .collect(Collectors.toList());
 
@@ -88,11 +89,11 @@ public class AlbumService {
 
         List<AlbumDTO> albums = albumPage.getContent().stream()
                 .map(album -> {
-                    // Generate presigned URLs for cover images
-                    List<String> presignedUrls = album.getCoverKeys().stream()
-                            .map(storageService::getPresignedUrl)
+                    // Generate proxy URLs for cover images
+                    List<String> proxyUrls = album.getCoverKeys().stream()
+                            .map(urlGeneratorService::generateAlbumCoverUrl)
                             .collect(Collectors.toList());
-                    return AlbumDTO.fromEntityWithPresignedUrls(album, presignedUrls);
+                    return AlbumDTO.fromEntityWithPresignedUrls(album, proxyUrls);
                 })
                 .collect(Collectors.toList());
 
@@ -104,12 +105,12 @@ public class AlbumService {
         Album album = albumRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Album", id));
 
-        // Generate presigned URLs for cover images
-        List<String> presignedUrls = album.getCoverKeys().stream()
-                .map(storageService::getPresignedUrl)
+        // Generate proxy URLs for cover images
+        List<String> proxyUrls = album.getCoverKeys().stream()
+                .map(urlGeneratorService::generateAlbumCoverUrl)
                 .collect(Collectors.toList());
 
-        return AlbumDTO.fromEntityWithPresignedUrls(album, presignedUrls);
+        return AlbumDTO.fromEntityWithPresignedUrls(album, proxyUrls);
     }
 
     @Transactional
@@ -150,12 +151,12 @@ public class AlbumService {
                 .collect(Collectors.joining(", "));
         notificationService.notifyNewAlbum(album.getId(), album.getTitle(), artistNames);
 
-        // Generate presigned URLs for cover images
-        List<String> presignedUrls = album.getCoverKeys().stream()
-                .map(storageService::getPresignedUrl)
+        // Generate proxy URLs for cover images
+        List<String> proxyUrls = album.getCoverKeys().stream()
+                .map(urlGeneratorService::generateAlbumCoverUrl)
                 .collect(Collectors.toList());
 
-        return AlbumDTO.fromEntityWithPresignedUrls(album, presignedUrls);
+        return AlbumDTO.fromEntityWithPresignedUrls(album, proxyUrls);
     }
 
     @Transactional
@@ -210,12 +211,12 @@ public class AlbumService {
         album = albumRepository.save(album);
         log.info("Album updated: {}", album.getId());
 
-        // Generate presigned URLs for cover images
-        List<String> presignedUrls = album.getCoverKeys().stream()
-                .map(storageService::getPresignedUrl)
+        // Generate proxy URLs for cover images
+        List<String> proxyUrls = album.getCoverKeys().stream()
+                .map(urlGeneratorService::generateAlbumCoverUrl)
                 .collect(Collectors.toList());
 
-        return AlbumDTO.fromEntityWithPresignedUrls(album, presignedUrls);
+        return AlbumDTO.fromEntityWithPresignedUrls(album, proxyUrls);
     }
 
     @Transactional
@@ -268,12 +269,8 @@ public class AlbumService {
 
         // Add cover URL (first cover if multiple)
         if (album.getCoverKeys() != null && !album.getCoverKeys().isEmpty()) {
-            try {
-                String coverUrl = storageService.getPresignedUrl(album.getCoverKeys().get(0));
-                playlistBuilder.coverUrl(coverUrl);
-            } catch (Exception e) {
-                log.warn("Could not generate cover URL for album {}: {}", id, e.getMessage());
-            }
+            String coverUrl = urlGeneratorService.generateAlbumCoverUrl(album.getCoverKeys().get(0));
+            playlistBuilder.coverUrl(coverUrl);
         }
 
         // Add tracks with streaming URLs

@@ -65,7 +65,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 path.startsWith("/api/actuator") ||
                 path.startsWith("/api/swagger-ui") ||
                 path.startsWith("/api/v3/api-docs") ||
-                path.startsWith("/api/ws");
+                path.startsWith("/api/ws") ||
+                path.startsWith("/api/v1/images"); // Image proxy endpoints
     }
 
     private String getUserKey(HttpServletRequest request) {

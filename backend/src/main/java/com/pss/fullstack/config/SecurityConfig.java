@@ -61,6 +61,7 @@ public class SecurityConfig {
                         .requestMatchers("/actuator/**").permitAll()
                         .requestMatchers("/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html").permitAll()
                         .requestMatchers("/ws/**").permitAll() // WebSocket endpoint
+                        .requestMatchers("/v1/images/**").permitAll() // Public access for image proxy
                         // All other requests require authentication
                         .anyRequest().authenticated()
                 )

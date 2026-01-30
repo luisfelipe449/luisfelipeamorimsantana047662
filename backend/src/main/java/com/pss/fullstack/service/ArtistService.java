@@ -25,6 +25,7 @@ public class ArtistService {
 
     private final ArtistRepository artistRepository;
     private final StorageService storageService;
+    private final UrlGeneratorService urlGeneratorService;
 
     @Transactional(readOnly = true)
     public PageResponse<ArtistDTO> findAll(int page, int size, String sortBy, String sortDir) {
@@ -173,7 +174,7 @@ public class ArtistService {
             return null;
         }
 
-        return storageService.getPresignedUrl(artist.getPhotoKey());
+        return urlGeneratorService.generateArtistPhotoUrl(artist.getPhotoKey());
     }
 
     @Transactional
@@ -194,11 +195,7 @@ public class ArtistService {
 
         // Add presigned URL for photo
         if (artist.getPhotoKey() != null) {
-            try {
-                dto.setPhotoUrl(storageService.getPresignedUrl(artist.getPhotoKey()));
-            } catch (Exception e) {
-                log.warn("Could not generate presigned URL for artist {}: {}", artist.getId(), e.getMessage());
-            }
+            dto.setPhotoUrl(urlGeneratorService.generateArtistPhotoUrl(artist.getPhotoKey()));
         }
 
         // Include albums with cover URLs
@@ -208,11 +205,7 @@ public class ArtistService {
                         AlbumSummaryDTO albumDTO = AlbumSummaryDTO.fromEntity(album);
                         // Add first cover URL if exists
                         if (album.getCoverKeys() != null && !album.getCoverKeys().isEmpty()) {
-                            try {
-                                albumDTO.setCoverUrl(storageService.getPresignedUrl(album.getCoverKeys().get(0)));
-                            } catch (Exception e) {
-                                log.warn("Could not generate cover URL for album {}", album.getId());
-                            }
+                            albumDTO.setCoverUrl(urlGeneratorService.generateAlbumCoverUrl(album.getCoverKeys().get(0)));
                         }
                         return albumDTO;
                     })

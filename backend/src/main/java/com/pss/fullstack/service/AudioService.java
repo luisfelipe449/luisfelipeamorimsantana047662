@@ -1,11 +1,13 @@
 package com.pss.fullstack.service;
 
+import com.pss.fullstack.exception.BusinessException;
 import com.pss.fullstack.exception.InvalidFileException;
+import com.pss.fullstack.exception.ResourceNotFoundException;
 import com.pss.fullstack.model.Track;
 import com.pss.fullstack.repository.TrackRepository;
 import io.minio.*;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,12 +19,16 @@ import java.util.UUID;
 
 @Service
 @Slf4j
-@RequiredArgsConstructor
 public class AudioService {
 
-    private final MinioClient minioClient;
-    private final StorageService storageService;
-    private final TrackRepository trackRepository;
+    @Autowired
+    private MinioClient minioClient;
+
+    @Autowired
+    private StorageService storageService;
+
+    @Autowired
+    private TrackRepository trackRepository;
 
     @Value("${minio.bucket.audio:audio-tracks}")
     private String audioBucket;
@@ -96,29 +102,14 @@ public class AudioService {
      */
     public String getStreamUrl(Long trackId) {
         Track track = trackRepository.findById(trackId)
-                .orElseThrow(() -> new RuntimeException("Track not found: " + trackId));
+                .orElseThrow(() -> new ResourceNotFoundException("Track", trackId));
 
         if (track.getAudioKey() == null) {
-            return null;
+            throw new BusinessException("Track has no audio file");
         }
 
-        try {
-            // Generate presigned URL with 1 hour expiration
-            String url = minioClient.getPresignedObjectUrl(
-                    GetPresignedObjectUrlArgs.builder()
-                            .bucket(audioBucket)
-                            .object(track.getAudioKey())
-                            .expiry(60 * 60) // 1 hour in seconds
-                            .build()
-            );
-
-            log.debug("Generated stream URL for track {}: {}", trackId, url);
-            return url;
-
-        } catch (Exception e) {
-            log.error("Failed to generate stream URL for track {}: {}", trackId, e.getMessage());
-            throw new RuntimeException("Failed to generate stream URL", e);
-        }
+        // Use StorageService to generate URL with proper external URL handling
+        return storageService.getPresignedUrlForBucket(track.getAudioKey(), audioBucket, 3600);
     }
 
     /**

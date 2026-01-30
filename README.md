@@ -324,6 +324,28 @@ O filtro JWT foi configurado para retornar HTTP 401 (Unauthorized) explicitament
 
 Sem essa configuracao, o Spring Security retornaria 403 (Forbidden), que semanticamente significa "autenticado mas sem permissao", impedindo o fluxo correto de refresh token.
 
+### Endpoint Proxy para Imagens (Solução para SignatureDoesNotMatch)
+
+**Problema**: As URLs presigned do MinIO apresentavam erro `SignatureDoesNotMatch` quando geradas com URL interno (`minio:9000`) mas acessadas externamente (`localhost:9000`). A assinatura AWS S3 inclui o hostname no cálculo, tornando a simples substituição de strings insuficiente.
+
+**Solução Implementada**: Criado endpoint proxy no backend que serve imagens diretamente do MinIO:
+- **Endpoints públicos**: `/api/v1/images/album-covers/{objectKey}` e `/api/v1/images/artist-photos/{objectKey}`
+- **Sem autenticação**: Imagens são públicas para visualização
+- **Cache otimizado**: Headers Cache-Control (1 hora) e ETag para performance
+- **Segurança**: Validação de object keys previne directory traversal
+
+**Benefícios**:
+- ✅ Elimina completamente problemas de assinatura S3
+- ✅ URLs mais simples e previsíveis
+- ✅ Controle total sobre cache e headers HTTP
+- ✅ Possibilidade de adicionar transformações futuras (resize, watermark)
+- ✅ Métricas e logs centralizados de acesso a imagens
+
+**Trade-offs**:
+- Backend processa todas requisições de imagem (maior uso de CPU/memória)
+- Latência adicional comparado a acesso direto ao MinIO
+- Mitigado com cache headers apropriados (1 hora para imagens)
+
 ## Trade-offs e Priorizacoes
 
 1. **Simplicidade vs Features**: Priorizei uma implementacao limpa e funcional das features obrigatorias sobre adicionar funcionalidades extras.
