@@ -166,39 +166,114 @@
             </div>
 
             <!-- Track List -->
-            <div class="space-y-3" *ngIf="tracks.length > 0">
+            <div class="space-y-4" *ngIf="tracks.length > 0">
               <div *ngFor="let track of tracks; let i = index"
-                   class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                <!-- Track Number Badge -->
-                <span class="w-8 h-8 rounded-full bg-gray-800 text-white flex items-center justify-center text-sm font-medium shrink-0">
-                  {{ i + 1 }}
-                </span>
+                   class="track-card">
+                <!-- Track Header Row -->
+                <div class="track-header">
+                  <!-- Track Number Badge -->
+                  <span class="track-number">
+                    {{ i + 1 }}
+                  </span>
 
-                <!-- Track Title -->
-                <mat-form-field appearance="outline" class="flex-1 hide-subscript">
-                  <input matInput
-                         [(ngModel)]="track.title"
-                         [ngModelOptions]="{standalone: true}"
-                         placeholder="Nome da faixa">
-                </mat-form-field>
+                  <!-- Track Title Field -->
+                  <mat-form-field appearance="outline" class="flex-1">
+                    <mat-label>Nome da faixa</mat-label>
+                    <input matInput
+                           [(ngModel)]="track.title"
+                           [ngModelOptions]="{standalone: true}"
+                           placeholder="Ex: Aerials">
+                  </mat-form-field>
 
-                <!-- Duration Input -->
-                <mat-form-field appearance="outline" class="w-24 hide-subscript">
-                  <input matInput
-                         [(ngModel)]="track.durationFormatted"
-                         [ngModelOptions]="{standalone: true}"
-                         placeholder="0:00"
-                         (blur)="onDurationBlur(i)">
-                </mat-form-field>
+                  <!-- Duration Field -->
+                  <mat-form-field appearance="outline" class="track-duration">
+                    <mat-label>Duração</mat-label>
+                    <input matInput
+                           [(ngModel)]="track.durationFormatted"
+                           [ngModelOptions]="{standalone: true}"
+                           placeholder="3:45"
+                           (blur)="onDurationBlur(i)">
+                  </mat-form-field>
 
-                <!-- Remove Button -->
-                <button mat-icon-button
-                        type="button"
-                        color="warn"
-                        (click)="removeTrack(i)"
-                        matTooltip="Remover faixa">
-                  <mat-icon>delete</mat-icon>
-                </button>
+                  <!-- Remove Button -->
+                  <button mat-icon-button
+                          type="button"
+                          color="warn"
+                          (click)="removeTrack(i)"
+                          matTooltip="Remover faixa"
+                          class="shrink-0">
+                    <mat-icon>delete</mat-icon>
+                  </button>
+                </div>
+
+                <!-- Audio Section -->
+                <div class="track-audio-section">
+                  <!-- No Track ID - Show save message -->
+                  <ng-container *ngIf="!track.id">
+                    <div class="audio-save-hint">
+                      <mat-icon class="text-gray-400">info</mat-icon>
+                      <span>Salve o álbum para adicionar áudio</span>
+                    </div>
+                  </ng-container>
+
+                  <!-- Has Track ID - Show audio controls -->
+                  <ng-container *ngIf="track.id">
+                    <!-- Uploading State -->
+                    <div class="audio-upload-progress" *ngIf="track.isUploading">
+                      <mat-spinner diameter="20"></mat-spinner>
+                      <span>Enviando... {{ track.uploadProgress }}%</span>
+                      <mat-progress-bar mode="determinate"
+                                        [value]="track.uploadProgress"
+                                        class="flex-1">
+                      </mat-progress-bar>
+                    </div>
+
+                    <!-- Has Audio -->
+                    <div class="audio-info" *ngIf="track.audioKey && !track.isUploading">
+                      <div class="audio-badge">
+                        <mat-icon class="text-sm">audiotrack</mat-icon>
+                        <span class="audio-format">{{ track.audioFormat || 'AUDIO' }}</span>
+                        <span class="audio-size" *ngIf="track.fileSize">({{ formatFileSize(track.fileSize) }})</span>
+                        <span class="audio-bitrate" *ngIf="track.bitrate">{{ track.bitrate }}kbps</span>
+                      </div>
+
+                      <div class="audio-controls">
+                        <button mat-icon-button
+                                type="button"
+                                (click)="toggleAudioPlayback(i)"
+                                [matTooltip]="track.isPlaying ? 'Pausar' : 'Reproduzir'"
+                                class="audio-play-btn">
+                          <mat-icon>{{ track.isPlaying ? 'pause' : 'play_arrow' }}</mat-icon>
+                        </button>
+
+                        <button mat-icon-button
+                                type="button"
+                                color="warn"
+                                (click)="deleteTrackAudio(i)"
+                                matTooltip="Remover áudio"
+                                class="audio-delete-btn">
+                          <mat-icon>delete_outline</mat-icon>
+                        </button>
+                      </div>
+                    </div>
+
+                    <!-- No Audio - Upload Area -->
+                    <div class="audio-upload-area"
+                         *ngIf="!track.audioKey && !track.isUploading"
+                         (click)="audioInput.click()"
+                         (dragover)="onAudioDragOver($event, i)"
+                         (drop)="onAudioDrop($event, i)">
+                      <input type="file"
+                             #audioInput
+                             accept="audio/mpeg,audio/ogg,audio/wav,.mp3,.ogg,.wav"
+                             (change)="onAudioFileSelected($event, i)"
+                             hidden>
+                      <mat-icon class="upload-icon">upload_file</mat-icon>
+                      <span class="upload-text">Adicionar áudio</span>
+                      <span class="upload-hint">MP3, OGG, WAV (max. 50MB)</span>
+                    </div>
+                  </ng-container>
+                </div>
               </div>
             </div>
 

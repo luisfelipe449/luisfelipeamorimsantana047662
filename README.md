@@ -346,6 +346,42 @@ Sem essa configuracao, o Spring Security retornaria 403 (Forbidden), que semanti
 - Latência adicional comparado a acesso direto ao MinIO
 - Mitigado com cache headers apropriados (1 hora para imagens)
 
+### 11. Modo de Desenvolvimento Local com Hot Reload
+
+**Problema**: O desenvolvimento usando Docker Compose completo é lento devido ao processo de build/restart a cada mudança de código, impactando a produtividade do desenvolvedor.
+
+**Solução Implementada**: Criado modo de desenvolvimento híbrido que:
+- **Docker Compose Dev**: Executa apenas dependências (PostgreSQL + MinIO)
+- **Backend Local**: Spring Boot com DevTools para hot reload automático
+- **Frontend Local**: Angular dev server com hot reload e proxy para backend
+
+**Arquivos criados**:
+- `docker-compose.dev.yml`: Apenas PostgreSQL e MinIO
+- `start-dev.sh`: Script para iniciar dependências
+- `stop-dev.sh`: Script para parar dependências
+- `proxy.conf.json`: Configuração de proxy do Angular
+- `application-dev.yml`: Profile Spring com DevTools habilitado
+- `DEVELOPMENT.md`: Documentação completa do modo dev
+
+**Benefícios**:
+- ✅ Hot reload instantâneo (backend e frontend)
+- ✅ Debugging facilitado com IDEs
+- ✅ Ciclo de feedback 10x mais rápido
+- ✅ Logs mais verbosos para desenvolvimento
+- ✅ Volumes Docker separados (`*_dev`) não conflitam com produção
+
+**Decisão Técnica**: Optei por manter as dependências (PostgreSQL/MinIO) em Docker para:
+- Garantir consistência entre ambientes
+- Evitar instalação manual de serviços
+- Facilitar reset de dados com `docker-compose down -v`
+- Manter paridade com ambiente de produção
+
+Enquanto backend/frontend rodam localmente para:
+- Aproveitar hot reload nativo das ferramentas
+- Facilitar debugging com breakpoints
+- Reduzir overhead de containerização durante desenvolvimento
+- Permitir uso completo de ferramentas de desenvolvimento das IDEs
+
 **Configuração Nginx**: Ajustado o arquivo `nginx.conf` para usar `location ^~ /api` com prioridade sobre regras de cache de assets estáticos, garantindo que requisições de imagens pela API sejam corretamente proxiadas para o backend
 
 ## Trade-offs e Priorizacoes

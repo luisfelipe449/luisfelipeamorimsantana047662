@@ -1,5 +1,4 @@
-// Album Form - minimal styles
-// Layout handled by Tailwind CSS
+// Album Form Styles
 
 // Spinner styles for submit button
 mat-spinner {
@@ -13,9 +12,154 @@ mat-spinner {
   @apply text-primary;
 }
 
-// Hide mat-form-field subscript (hints/errors)
-.hide-subscript {
-  ::ng-deep .mat-mdc-form-field-subscript-wrapper {
-    display: none;
+// Track card styles
+.track-card {
+  @apply bg-gray-50 rounded-lg border border-gray-200 overflow-hidden;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+
+  &:hover {
+    @apply border-gray-300;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+}
+
+.track-header {
+  @apply flex items-center gap-3 p-4;
+
+  // Hide mat-form-field subscript in track header
+  mat-form-field {
+    ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+      display: none;
+    }
+  }
+}
+
+.track-number {
+  @apply w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium shrink-0;
+  background-color: var(--primary-color, #6366f1);
+  color: white;
+}
+
+.track-duration {
+  @apply w-24;
+}
+
+// Audio section styles
+.track-audio-section {
+  @apply px-4 pb-4 pt-0;
+  margin-left: 44px; // Align with track title (8px gap + 36px badge)
+}
+
+.audio-save-hint {
+  @apply flex items-center gap-2 text-sm text-gray-400 py-2;
+}
+
+.audio-upload-progress {
+  @apply flex items-center gap-3 py-2;
+
+  span {
+    @apply text-sm text-gray-600 whitespace-nowrap;
+  }
+
+  mat-progress-bar {
+    @apply rounded;
+    min-width: 100px;
+  }
+}
+
+.audio-info {
+  @apply flex items-center justify-between gap-4 py-2 px-3 rounded-lg;
+  background-color: rgba(99, 102, 241, 0.08);
+}
+
+.audio-badge {
+  @apply flex items-center gap-2 text-sm;
+
+  mat-icon {
+    @apply text-primary;
+  }
+}
+
+.audio-format {
+  @apply font-semibold text-primary;
+}
+
+.audio-size,
+.audio-bitrate {
+  @apply text-gray-500;
+}
+
+.audio-controls {
+  @apply flex items-center gap-1;
+}
+
+.audio-play-btn {
+  @apply text-primary;
+
+  &:hover {
+    background-color: rgba(99, 102, 241, 0.1);
+  }
+}
+
+.audio-delete-btn {
+  opacity: 0.7;
+
+  &:hover {
+    opacity: 1;
+  }
+}
+
+.audio-upload-area {
+  @apply flex items-center gap-3 py-3 px-4 rounded-lg cursor-pointer;
+  @apply border-2 border-dashed border-gray-300 bg-gray-50;
+  transition: all 0.2s ease;
+
+  &:hover {
+    @apply border-primary bg-white;
+
+    .upload-icon {
+      @apply text-primary;
+    }
+  }
+}
+
+.upload-icon {
+  @apply text-2xl text-gray-400;
+  transition: color 0.2s ease;
+}
+
+.upload-text {
+  @apply text-sm font-medium text-gray-700;
+}
+
+.upload-hint {
+  @apply text-xs text-gray-400;
+}
+
+// Responsive adjustments
+@media (max-width: 640px) {
+  .track-header {
+    @apply flex-wrap gap-2 p-3;
+  }
+
+  .track-number {
+    @apply w-7 h-7 text-xs;
+  }
+
+  .track-duration {
+    @apply w-20;
+  }
+
+  .track-audio-section {
+    margin-left: 0;
+    @apply pt-2;
+  }
+
+  .audio-info {
+    @apply flex-col items-start gap-2;
+  }
+
+  .audio-upload-area {
+    @apply flex-col text-center py-4;
   }
 }

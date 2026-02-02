@@ -1,0 +1,33 @@
+# Development profile - for local development with hot reload
+spring:
+  devtools:
+    restart:
+      enabled: true
+      additional-exclude: static/**,public/**
+    livereload:
+      enabled: true
+      port: 35729
+
+  # Show SQL in development
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+
+# More verbose logging in development
+logging:
+  level:
+    root: INFO
+    com.pss.fullstack: DEBUG
+    org.springframework.web: DEBUG
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+
+# CORS for Angular dev server
+cors:
+  allowed-origins: http://localhost:4200,http://localhost:80
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+  allow-credentials: true

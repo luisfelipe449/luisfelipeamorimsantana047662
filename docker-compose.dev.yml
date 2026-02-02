@@ -1,0 +1,62 @@
+# Docker Compose para desenvolvimento local
+# Apenas dependências (PostgreSQL e MinIO)
+# Backend e Frontend rodam localmente com hot reload
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:15-alpine
+    container_name: pss-postgres-dev
+    environment:
+      POSTGRES_DB: pss_fullstack
+      POSTGRES_USER: pss_user
+      POSTGRES_PASSWORD: pss_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data_dev:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U pss_user -d pss_fullstack"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO - S3 Compatible Storage
+  minio:
+    image: minio/minio:latest
+    container_name: pss-minio-dev
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data_dev:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # MinIO Client - Create bucket on startup
+  minio-init:
+    image: minio/mc:latest
+    container_name: pss-minio-init-dev
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set myminio http://minio:9000 minioadmin minioadmin;
+      mc mb myminio/album-covers --ignore-existing;
+      mc mb myminio/audio-tracks --ignore-existing;
+      mc anonymous set download myminio/album-covers;
+      mc anonymous set download myminio/audio-tracks;
+      exit 0;
+      "
+
+volumes:
+  postgres_data_dev:
+  minio_data_dev:

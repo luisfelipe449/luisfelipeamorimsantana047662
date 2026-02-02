@@ -8,6 +8,7 @@ import { AlbumDetailComponent } from './components/album-detail/album-detail.com
 
 import { AlbumsFacade } from './facades/albums.facade';
 import { AlbumsService } from './services/albums.service';
+import { TrackAudioService } from './services/track-audio.service';
 
 @NgModule({
   declarations: [
@@ -21,7 +22,8 @@ import { AlbumsService } from './services/albums.service';
   ],
   providers: [
     AlbumsService,
-    AlbumsFacade
+    AlbumsFacade,
+    TrackAudioService
   ]
 })
 export class AlbumsModule { }

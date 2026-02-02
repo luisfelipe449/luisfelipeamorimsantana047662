@@ -6,6 +6,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { AlbumsFacade } from '../../facades/albums.facade';
 import { Album } from '../../models/album.model';
 import { ApiService } from '../../../../core/services/api.service';
+import { TrackAudioService } from '../../services/track-audio.service';
 
 interface ArtistOption {
   id: number;
@@ -13,9 +14,18 @@ interface ArtistOption {
 }
 
 interface TrackFormItem {
+  id?: number;
   title: string;
   durationFormatted: string;
   duration: number;
+  audioKey?: string;
+  audioFormat?: string;
+  bitrate?: number;
+  fileSize?: number;
+  streamUrl?: string;
+  isUploading?: boolean;
+  uploadProgress?: number;
+  isPlaying?: boolean;
 }
 
 @Component({
@@ -37,6 +47,7 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
   coverPreview: string | null = null;
 
   private destroy$ = new Subject<void>();
+  private audioElements: Map<number, HTMLAudioElement> = new Map();
 
   constructor(
     private fb: FormBuilder,
@@ -44,7 +55,8 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
     private router: Router,
     private facade: AlbumsFacade,
     private api: ApiService,
-    private snackBar: MatSnackBar
+    private snackBar: MatSnackBar,
+    private trackAudioService: TrackAudioService
   ) {}
 
   ngOnInit(): void {
@@ -58,6 +70,15 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
     this.facade.clearSelectedAlbum();
     this.destroy$.next();
     this.destroy$.complete();
+    this.cleanupAudioElements();
+  }
+
+  private cleanupAudioElements(): void {
+    this.audioElements.forEach(audio => {
+      audio.pause();
+      audio.src = '';
+    });
+    this.audioElements.clear();
   }
 
   private initForm(): void {
@@ -115,12 +136,20 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
     });
     this.coverPreview = album.coverUrl || null;
 
-    // Populate tracks
+    // Populate tracks with audio info
     if (album.tracks?.length) {
       this.tracks = album.tracks.map(track => ({
+        id: track.id,
         title: track.title,
         duration: track.duration,
-        durationFormatted: this.formatDuration(track.duration)
+        durationFormatted: this.formatDuration(track.duration),
+        audioKey: track.audioKey,
+        audioFormat: track.audioFormat,
+        bitrate: track.bitrate,
+        fileSize: track.fileSize,
+        isUploading: false,
+        uploadProgress: 0,
+        isPlaying: false
       }));
     }
   }
@@ -156,7 +185,7 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
 
   private handleFile(file: File): void {
     if (!file.type.startsWith('image/')) {
-      this.snackBar.open('Por favor, selecione uma imagem válida', 'Fechar', {
+      this.snackBar.open('Por favor, selecione uma imagem valida', 'Fechar', {
         duration: 3000,
         panelClass: ['error-snackbar']
       });
@@ -164,7 +193,7 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      this.snackBar.open('A imagem deve ter no máximo 5MB', 'Fechar', {
+      this.snackBar.open('A imagem deve ter no maximo 5MB', 'Fechar', {
         duration: 3000,
         panelClass: ['error-snackbar']
       });
@@ -201,11 +230,18 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
     this.tracks.push({
       title: '',
       duration: 0,
-      durationFormatted: ''
+      durationFormatted: '',
+      isUploading: false,
+      uploadProgress: 0,
+      isPlaying: false
     });
   }
 
   removeTrack(index: number): void {
+    const track = this.tracks[index];
+    if (track.isPlaying) {
+      this.stopAudio(index);
+    }
     this.tracks.splice(index, 1);
   }
 
@@ -231,6 +267,213 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
       return mins * 60 + secs;
     }
     return parseInt(formatted, 10) || 0;
+  }
+
+  // Audio upload methods
+  onAudioFileSelected(event: Event, index: number): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      this.handleAudioFile(input.files[0], index);
+    }
+  }
+
+  onAudioDragOver(event: DragEvent, index: number): void {
+    event.preventDefault();
+    event.stopPropagation();
+  }
+
+  onAudioDrop(event: DragEvent, index: number): void {
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (event.dataTransfer?.files && event.dataTransfer.files.length > 0) {
+      this.handleAudioFile(event.dataTransfer.files[0], index);
+    }
+  }
+
+  private handleAudioFile(file: File, index: number): void {
+    const track = this.tracks[index];
+    const allowedTypes = ['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp3'];
+    const allowedExtensions = ['.mp3', '.ogg', '.wav'];
+
+    const fileExtension = file.name.substring(file.name.lastIndexOf('.')).toLowerCase();
+    const isValidType = allowedTypes.includes(file.type) || allowedExtensions.includes(fileExtension);
+
+    if (!isValidType) {
+      this.snackBar.open('Formato invalido. Use MP3, OGG ou WAV', 'Fechar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      this.snackBar.open('O arquivo deve ter no maximo 50MB', 'Fechar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    if (!track.id) {
+      this.snackBar.open('Salve o album primeiro para adicionar audio', 'Fechar', {
+        duration: 3000,
+        panelClass: ['error-snackbar']
+      });
+      return;
+    }
+
+    this.uploadTrackAudio(track, file, index);
+  }
+
+  private uploadTrackAudio(track: TrackFormItem, file: File, index: number): void {
+    track.isUploading = true;
+    track.uploadProgress = 0;
+
+    this.trackAudioService.uploadAudio(track.id!, file).subscribe({
+      next: (progress) => {
+        track.uploadProgress = progress.progress;
+        if (progress.completed && progress.response) {
+          track.isUploading = false;
+          track.audioKey = progress.response.audioKey;
+          track.streamUrl = progress.response.streamUrl;
+          track.audioFormat = this.getAudioFormat(file.name);
+          track.fileSize = file.size;
+
+          this.snackBar.open('Audio enviado com sucesso', 'Fechar', {
+            duration: 3000,
+            panelClass: ['success-snackbar']
+          });
+        }
+      },
+      error: () => {
+        track.isUploading = false;
+        track.uploadProgress = 0;
+        this.snackBar.open('Erro ao enviar audio', 'Fechar', {
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
+      }
+    });
+  }
+
+  private getAudioFormat(filename: string): string {
+    const ext = filename.substring(filename.lastIndexOf('.')).toLowerCase();
+    const formats: { [key: string]: string } = {
+      '.mp3': 'MP3',
+      '.ogg': 'OGG',
+      '.wav': 'WAV'
+    };
+    return formats[ext] || 'AUDIO';
+  }
+
+  deleteTrackAudio(index: number): void {
+    const track = this.tracks[index];
+    if (!track.id || !track.audioKey) return;
+
+    if (track.isPlaying) {
+      this.stopAudio(index);
+    }
+
+    this.trackAudioService.deleteAudio(track.id).subscribe({
+      next: () => {
+        track.audioKey = undefined;
+        track.audioFormat = undefined;
+        track.bitrate = undefined;
+        track.fileSize = undefined;
+        track.streamUrl = undefined;
+
+        this.snackBar.open('Audio removido com sucesso', 'Fechar', {
+          duration: 3000,
+          panelClass: ['success-snackbar']
+        });
+      },
+      error: () => {
+        this.snackBar.open('Erro ao remover audio', 'Fechar', {
+          duration: 5000,
+          panelClass: ['error-snackbar']
+        });
+      }
+    });
+  }
+
+  // Audio playback methods
+  toggleAudioPlayback(index: number): void {
+    const track = this.tracks[index];
+
+    if (track.isPlaying) {
+      this.stopAudio(index);
+    } else {
+      this.playAudio(index);
+    }
+  }
+
+  private playAudio(index: number): void {
+    const track = this.tracks[index];
+    if (!track.id) return;
+
+    // Stop any other playing track
+    this.tracks.forEach((t, i) => {
+      if (t.isPlaying && i !== index) {
+        this.stopAudio(i);
+      }
+    });
+
+    // Get or create audio element
+    let audio = this.audioElements.get(index);
+    if (!audio) {
+      audio = new Audio();
+      audio.addEventListener('ended', () => {
+        track.isPlaying = false;
+      });
+      audio.addEventListener('error', () => {
+        track.isPlaying = false;
+        this.snackBar.open('Erro ao reproduzir audio', 'Fechar', {
+          duration: 3000,
+          panelClass: ['error-snackbar']
+        });
+      });
+      this.audioElements.set(index, audio);
+    }
+
+    // Fetch fresh stream URL and play
+    if (track.streamUrl) {
+      audio.src = track.streamUrl;
+      audio.play();
+      track.isPlaying = true;
+    } else {
+      this.trackAudioService.getStreamUrl(track.id).subscribe({
+        next: (response) => {
+          track.streamUrl = response.streamUrl;
+          audio!.src = response.streamUrl;
+          audio!.play();
+          track.isPlaying = true;
+        },
+        error: () => {
+          this.snackBar.open('Erro ao obter URL de streaming', 'Fechar', {
+            duration: 3000,
+            panelClass: ['error-snackbar']
+          });
+        }
+      });
+    }
+  }
+
+  private stopAudio(index: number): void {
+    const track = this.tracks[index];
+    const audio = this.audioElements.get(index);
+
+    if (audio) {
+      audio.pause();
+      audio.currentTime = 0;
+    }
+    track.isPlaying = false;
+  }
+
+  formatFileSize(bytes?: number): string {
+    if (!bytes) return '';
+    const mb = bytes / (1024 * 1024);
+    return mb >= 1 ? `${mb.toFixed(1)} MB` : `${(bytes / 1024).toFixed(0)} KB`;
   }
 
   private getTracksForSubmit(): any[] {
