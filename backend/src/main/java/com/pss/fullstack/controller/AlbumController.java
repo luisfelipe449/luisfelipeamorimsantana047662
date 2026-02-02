@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("/v1/albums")
 @RequiredArgsConstructor
@@ -47,6 +49,7 @@ public class AlbumController {
             @Parameter(description = "Sort direction (asc or desc)")
             @RequestParam(defaultValue = "asc") String sortDir
     ) {
+        log.info("Fetching albums - page: {}, size: {}, sortBy: {}, sortDir: {}", page, size, sortBy, sortDir);
         PageResponse<AlbumDTO> response;
 
         if (title != null || year != null) {

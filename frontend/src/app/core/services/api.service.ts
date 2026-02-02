@@ -66,7 +66,9 @@ export class ApiService {
     if (params) {
       Object.keys(params).forEach(key => {
         if (params[key] !== null && params[key] !== undefined) {
-          httpParams = httpParams.set(key, params[key].toString());
+          // Map frontend sortDirection to backend sortDir
+          const paramKey = key === 'sortDirection' ? 'sortDir' : key;
+          httpParams = httpParams.set(paramKey, params[key].toString());
         }
       });
     }

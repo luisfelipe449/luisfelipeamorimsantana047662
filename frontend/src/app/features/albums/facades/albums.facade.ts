@@ -148,6 +148,7 @@ export class AlbumsFacade {
 
   setSortDirection(sortDirection: 'asc' | 'desc'): void {
     const current = this.filters$.value;
+    console.log('AlbumsFacade - Setting sort direction:', sortDirection);
     this.filters$.next({ ...current, sortDirection });
     this.loadAlbums();
   }

@@ -87,7 +87,9 @@ export class AlbumListComponent implements OnInit, OnDestroy {
   }
 
   onSortChange(): void {
+    console.log('Sorting albums - current:', this.sortDirection);
     this.sortDirection = this.sortDirection === 'asc' ? 'desc' : 'asc';
+    console.log('Sorting albums - new:', this.sortDirection);
     this.facade.setSortDirection(this.sortDirection);
   }
 
@@ -134,5 +136,7 @@ export class AlbumListComponent implements OnInit, OnDestroy {
 
   setViewMode(mode: 'list' | 'grid'): void {
     this.viewMode = mode;
+    // Forçar recarga dos dados para garantir ordenação correta
+    this.facade.loadAlbums();
   }
 }
