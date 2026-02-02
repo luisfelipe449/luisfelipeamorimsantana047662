@@ -192,7 +192,9 @@
                            [(ngModel)]="track.durationFormatted"
                            [ngModelOptions]="{standalone: true}"
                            placeholder="3:45"
-                           (blur)="onDurationBlur(i)">
+                           (blur)="onDurationBlur(i)"
+                           [disabled]="!!track.durationFromAudio || !!track.audioKey">
+                    <mat-hint *ngIf="track.durationFromAudio">Do áudio</mat-hint>
                   </mat-form-field>
 
                   <!-- Remove Button -->
@@ -208,11 +210,39 @@
 
                 <!-- Audio Section -->
                 <div class="track-audio-section">
-                  <!-- No Track ID - Show save message -->
+                  <!-- No Track ID - Show pending audio or upload area -->
                   <ng-container *ngIf="!track.id">
-                    <div class="audio-save-hint">
-                      <mat-icon class="text-gray-400">info</mat-icon>
-                      <span>Salve o álbum para adicionar áudio</span>
+                    <!-- Has pending audio file -->
+                    <div class="audio-pending" *ngIf="track.pendingAudioFile">
+                      <div class="audio-badge pending">
+                        <mat-icon>schedule</mat-icon>
+                        <span class="audio-format">{{ track.audioFormat }}</span>
+                        <span class="audio-size">({{ formatFileSize(track.fileSize) }})</span>
+                        <span class="pending-label">Pendente</span>
+                      </div>
+                      <button mat-icon-button
+                              type="button"
+                              color="warn"
+                              (click)="removePendingAudio(i)"
+                              matTooltip="Remover áudio">
+                        <mat-icon>close</mat-icon>
+                      </button>
+                    </div>
+
+                    <!-- No pending audio - Upload area (optional) -->
+                    <div class="audio-upload-area"
+                         *ngIf="!track.pendingAudioFile"
+                         (click)="audioInputNew.click()"
+                         (dragover)="onAudioDragOver($event, i)"
+                         (drop)="onAudioDrop($event, i)">
+                      <input type="file"
+                             #audioInputNew
+                             accept="audio/mpeg,audio/ogg,audio/wav,.mp3,.ogg,.wav"
+                             (change)="onAudioFileSelected($event, i)"
+                             hidden>
+                      <mat-icon class="upload-icon">upload_file</mat-icon>
+                      <span class="upload-text">Adicionar áudio</span>
+                      <span class="upload-hint">Opcional - MP3, OGG, WAV (max. 50MB)</span>
                     </div>
                   </ng-container>
 

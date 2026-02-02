@@ -26,6 +26,8 @@ interface TrackFormItem {
   isUploading?: boolean;
   uploadProgress?: number;
   isPlaying?: boolean;
+  pendingAudioFile?: File;
+  durationFromAudio?: boolean;
 }
 
 @Component({
@@ -291,7 +293,7 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
     }
   }
 
-  private handleAudioFile(file: File, index: number): void {
+  private async handleAudioFile(file: File, index: number): Promise<void> {
     const track = this.tracks[index];
     const allowedTypes = ['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp3'];
     const allowedExtensions = ['.mp3', '.ogg', '.wav'];
@@ -315,15 +317,53 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
       return;
     }
 
-    if (!track.id) {
-      this.snackBar.open('Salve o album primeiro para adicionar audio', 'Fechar', {
+    try {
+      const durationSeconds = await this.getAudioDuration(file);
+      track.duration = durationSeconds;
+      track.durationFormatted = this.formatDuration(durationSeconds);
+      track.durationFromAudio = true;
+      track.audioFormat = this.getAudioFormat(file.name);
+      track.fileSize = file.size;
+
+      if (track.id) {
+        this.uploadTrackAudio(track, file, index);
+      } else {
+        track.pendingAudioFile = file;
+        this.snackBar.open('Audio sera enviado ao salvar o album', 'OK', { duration: 3000 });
+      }
+    } catch {
+      this.snackBar.open('Erro ao processar arquivo de audio', 'Fechar', {
         duration: 3000,
         panelClass: ['error-snackbar']
       });
-      return;
     }
+  }
 
-    this.uploadTrackAudio(track, file, index);
+  private getAudioDuration(file: File): Promise<number> {
+    return new Promise((resolve, reject) => {
+      const audio = new Audio();
+      audio.preload = 'metadata';
+
+      audio.onloadedmetadata = () => {
+        URL.revokeObjectURL(audio.src);
+        resolve(Math.round(audio.duration));
+      };
+
+      audio.onerror = () => {
+        URL.revokeObjectURL(audio.src);
+        reject(new Error('Nao foi possivel ler o arquivo de audio'));
+      };
+
+      audio.src = URL.createObjectURL(file);
+    });
+  }
+
+  removePendingAudio(index: number): void {
+    const track = this.tracks[index];
+    track.pendingAudioFile = undefined;
+    track.audioFormat = undefined;
+    track.fileSize = undefined;
+    track.durationFromAudio = false;
   }
 
   private uploadTrackAudio(track: TrackFormItem, file: File, index: number): void {
@@ -507,7 +547,18 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
   private createAlbum(formValue: any): void {
     this.facade.createAlbum(formValue).subscribe({
       next: (album) => {
-        if (this.selectedFile) {
+        const hasPendingAudios = this.tracks.some(t => t.pendingAudioFile);
+        const hasCover = !!this.selectedFile;
+
+        if (hasPendingAudios && album.tracks?.length) {
+          this.uploadPendingAudioFiles(album.tracks).then(() => {
+            if (hasCover) {
+              this.uploadCover(album.id);
+            } else {
+              this.onSuccess('Album criado com sucesso!', album.id);
+            }
+          });
+        } else if (hasCover) {
           this.uploadCover(album.id);
         } else {
           this.onSuccess('Album criado com sucesso!', album.id);
@@ -515,6 +566,43 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
       },
       error: () => this.onError('Erro ao criar album')
     });
+  }
+
+  private async uploadPendingAudioFiles(savedTracks: any[]): Promise<void> {
+    const pendingUploads: Promise<void>[] = [];
+
+    for (let i = 0; i < this.tracks.length; i++) {
+      const formTrack = this.tracks[i];
+      if (formTrack.pendingAudioFile && formTrack.title.trim()) {
+        const savedTrack = savedTracks.find(t => t.trackNumber === i + 1);
+        if (savedTrack?.id) {
+          formTrack.id = savedTrack.id;
+          const file = formTrack.pendingAudioFile;
+          pendingUploads.push(
+            new Promise<void>((resolve) => {
+              this.trackAudioService.uploadAudio(savedTrack.id, file).subscribe({
+                next: (progress) => {
+                  formTrack.uploadProgress = progress.progress;
+                  if (progress.completed) {
+                    formTrack.pendingAudioFile = undefined;
+                    resolve();
+                  }
+                },
+                error: () => {
+                  this.snackBar.open(`Erro ao enviar audio da faixa ${i + 1}`, 'Fechar', {
+                    duration: 3000,
+                    panelClass: ['error-snackbar']
+                  });
+                  resolve();
+                }
+              });
+            })
+          );
+        }
+      }
+    }
+
+    await Promise.all(pendingUploads);
   }
 
   private updateAlbum(formValue: any): void {

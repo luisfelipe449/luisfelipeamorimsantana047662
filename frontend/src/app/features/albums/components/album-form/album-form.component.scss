@@ -26,10 +26,16 @@ mat-spinner {
 .track-header {
   @apply flex items-center gap-3 p-4;
 
-  // Hide mat-form-field subscript in track header
-  mat-form-field {
+  // Hide mat-form-field subscript in track header (except duration hint)
+  mat-form-field:not(.track-duration) {
     ::ng-deep .mat-mdc-form-field-subscript-wrapper {
       display: none;
+    }
+  }
+
+  .track-duration {
+    ::ng-deep .mat-mdc-form-field-subscript-wrapper {
+      height: 16px;
     }
   }
 }
@@ -70,6 +76,29 @@ mat-spinner {
 .audio-info {
   @apply flex items-center justify-between gap-4 py-2 px-3 rounded-lg;
   background-color: rgba(99, 102, 241, 0.08);
+}
+
+.audio-pending {
+  @apply flex items-center justify-between gap-4 py-2 px-3 rounded-lg;
+  background-color: rgba(251, 191, 36, 0.1);
+
+  .audio-badge {
+    @apply flex items-center gap-2 text-sm;
+
+    mat-icon {
+      @apply text-amber-500;
+    }
+  }
+
+  .audio-format {
+    @apply font-semibold text-amber-600;
+  }
+}
+
+.pending-label {
+  @apply text-xs font-medium px-2 py-0.5 rounded;
+  background-color: rgba(251, 191, 36, 0.2);
+  color: #b45309;
 }
 
 .audio-badge {
