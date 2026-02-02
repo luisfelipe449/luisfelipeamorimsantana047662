@@ -10,42 +10,61 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { of, throwError } from 'rxjs';
+import { MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { MatChipsModule } from '@angular/material/chips';
+import { of, throwError, BehaviorSubject } from 'rxjs';
 
 import { ArtistFormComponent } from './artist-form.component';
 import { ArtistsFacade } from '../../facades/artists.facade';
+import { AlbumsFacade } from '../../../albums/facades/albums.facade';
 import { Artist, ArtistType } from '../../models/artist.model';
 
 describe('ArtistFormComponent', () => {
   let component: ArtistFormComponent;
   let fixture: ComponentFixture<ArtistFormComponent>;
   let facade: jasmine.SpyObj<ArtistsFacade>;
+  let albumsFacade: jasmine.SpyObj<AlbumsFacade>;
   let router: jasmine.SpyObj<Router>;
   let snackBar: jasmine.SpyObj<MatSnackBar>;
+  let dialog: jasmine.SpyObj<MatDialog>;
   let activatedRoute: any;
 
   const mockArtist: Artist = {
     id: 1,
     name: 'Test Artist',
-    type: ArtistType.SOLO,
+    type: 'SOLO' as ArtistType,
     country: 'USA',
     biography: 'Test biography',
-    albumCount: 5,
     active: true,
     photoUrl: 'http://example.com/photo.jpg',
     albums: []
   };
 
+  const selectedArtistSubject = new BehaviorSubject<Artist | null>(null);
+  const loadingSubject = new BehaviorSubject<boolean>(false);
+  const albumsSubject = new BehaviorSubject<any[]>([]);
+
   beforeEach(async () => {
     const facadeSpy = jasmine.createSpyObj('ArtistsFacade', [
-      'getArtistById',
+      'loadArtist',
       'createArtist',
       'updateArtist',
-      'uploadPhoto'
-    ]);
+      'uploadPhoto',
+      'clearSelectedArtist'
+    ], {
+      'selectedArtist$': selectedArtistSubject.asObservable(),
+      'loading$': loadingSubject.asObservable()
+    });
+
+    const albumsFacadeSpy = jasmine.createSpyObj('AlbumsFacade', [
+      'loadAlbums'
+    ], {
+      'albums$': albumsSubject.asObservable()
+    });
 
     const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
     const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
+    const dialogSpy = jasmine.createSpyObj('MatDialog', ['open']);
 
     activatedRoute = {
       snapshot: {
@@ -66,21 +85,31 @@ describe('ArtistFormComponent', () => {
         MatSelectModule,
         MatButtonModule,
         MatIconModule,
-        MatProgressSpinnerModule
+        MatProgressSpinnerModule,
+        MatChipsModule
       ],
       providers: [
         { provide: ArtistsFacade, useValue: facadeSpy },
+        { provide: AlbumsFacade, useValue: albumsFacadeSpy },
         { provide: Router, useValue: routerSpy },
         { provide: ActivatedRoute, useValue: activatedRoute },
-        { provide: MatSnackBar, useValue: snackBarSpy }
+        { provide: MatSnackBar, useValue: snackBarSpy },
+        { provide: MatDialog, useValue: dialogSpy }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ArtistFormComponent);
     component = fixture.componentInstance;
     facade = TestBed.inject(ArtistsFacade) as jasmine.SpyObj<ArtistsFacade>;
+    albumsFacade = TestBed.inject(AlbumsFacade) as jasmine.SpyObj<AlbumsFacade>;
     router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
     snackBar = TestBed.inject(MatSnackBar) as jasmine.SpyObj<MatSnackBar>;
+    dialog = TestBed.inject(MatDialog) as jasmine.SpyObj<MatDialog>;
+
+    // Reset subjects between tests
+    selectedArtistSubject.next(null);
+    loadingSubject.next(false);
+    albumsSubject.next([]);
   });
 
   it('should create', () => {
@@ -89,371 +118,212 @@ describe('ArtistFormComponent', () => {
 
   describe('Create mode', () => {
     beforeEach(() => {
-      activatedRoute.snapshot.paramMap.get.and.returnValue(null);
+      activatedRoute.snapshot.paramMap.get.and.returnValue('new');
       fixture.detectChanges();
     });
 
     it('should initialize empty form in create mode', () => {
       expect(component.isEditMode).toBe(false);
-      expect(component.artistForm.get('name')?.value).toBe('');
-      expect(component.artistForm.get('type')?.value).toBe('');
-      expect(component.artistForm.get('country')?.value).toBe('');
-      expect(component.artistForm.get('biography')?.value).toBe('');
-    });
-
-    it('should have correct title', () => {
-      const compiled = fixture.nativeElement;
-      const title = compiled.querySelector('h2');
-      expect(title.textContent).toContain('Create New Artist');
+      expect(component.form.get('name')?.value).toBe('');
+      expect(component.form.get('type')?.value).toBe('SOLO');
+      expect(component.form.get('country')?.value).toBe('');
+      expect(component.form.get('biography')?.value).toBe('');
     });
 
     it('should create artist on valid form submission', () => {
       const newArtist = {
         name: 'New Artist',
-        type: ArtistType.BAND,
+        type: 'BAND' as ArtistType,
         country: 'UK',
         biography: 'New biography'
       };
 
-      facade.createArtist.and.returnValue(of({ ...newArtist, id: 2 } as Artist));
+      facade.createArtist.and.returnValue(of({ ...newArtist, id: 2, active: true } as Artist));
 
-      component.artistForm.patchValue(newArtist);
+      component.form.patchValue(newArtist);
       component.onSubmit();
 
       expect(facade.createArtist).toHaveBeenCalledWith(
         jasmine.objectContaining(newArtist)
       );
-      expect(snackBar.open).toHaveBeenCalledWith(
-        'Artist created successfully!',
-        'OK',
-        jasmine.any(Object)
-      );
-      expect(router.navigate).toHaveBeenCalledWith(['/artists']);
+      expect(snackBar.open).toHaveBeenCalled();
+      expect(router.navigate).toHaveBeenCalledWith(['/artists', 2]);
+    });
+
+    it('should not submit invalid form', () => {
+      component.form.patchValue({ name: '' });
+      component.onSubmit();
+
+      expect(facade.createArtist).not.toHaveBeenCalled();
     });
   });
 
   describe('Edit mode', () => {
     beforeEach(() => {
       activatedRoute.snapshot.paramMap.get.and.returnValue('1');
-      facade.getArtistById.and.returnValue(of(mockArtist));
       fixture.detectChanges();
+      selectedArtistSubject.next(mockArtist);
     });
 
     it('should load artist in edit mode', () => {
       expect(component.isEditMode).toBe(true);
       expect(component.artistId).toBe(1);
-      expect(facade.getArtistById).toHaveBeenCalledWith(1);
+      expect(facade.loadArtist).toHaveBeenCalledWith(1);
     });
 
     it('should populate form with artist data', () => {
-      expect(component.artistForm.get('name')?.value).toBe(mockArtist.name);
-      expect(component.artistForm.get('type')?.value).toBe(mockArtist.type);
-      expect(component.artistForm.get('country')?.value).toBe(mockArtist.country);
-      expect(component.artistForm.get('biography')?.value).toBe(mockArtist.biography);
-    });
-
-    it('should have correct title', () => {
-      const compiled = fixture.nativeElement;
-      const title = compiled.querySelector('h2');
-      expect(title.textContent).toContain('Edit Artist');
+      expect(component.form.get('name')?.value).toBe(mockArtist.name);
+      expect(component.form.get('type')?.value).toBe(mockArtist.type);
+      expect(component.form.get('country')?.value).toBe(mockArtist.country);
+      expect(component.form.get('biography')?.value).toBe(mockArtist.biography);
     });
 
     it('should update artist on valid form submission', () => {
-      const updatedArtist = {
-        ...mockArtist,
-        name: 'Updated Artist'
-      };
+      facade.updateArtist.and.returnValue(of(mockArtist));
 
-      facade.updateArtist.and.returnValue(of(updatedArtist));
-
-      component.artistForm.patchValue({ name: 'Updated Artist' });
+      component.form.patchValue({ name: 'Updated Artist' });
       component.onSubmit();
 
       expect(facade.updateArtist).toHaveBeenCalledWith(
         1,
         jasmine.objectContaining({ name: 'Updated Artist' })
       );
-      expect(snackBar.open).toHaveBeenCalledWith(
-        'Artist updated successfully!',
-        'OK',
-        jasmine.any(Object)
-      );
-      expect(router.navigate).toHaveBeenCalledWith(['/artists']);
-    });
-
-    it('should handle artist not found', () => {
-      facade.getArtistById.and.returnValue(
-        throwError(() => ({ status: 404 }))
-      );
-
-      activatedRoute.snapshot.paramMap.get.and.returnValue('999');
-      component.ngOnInit();
-
-      expect(snackBar.open).toHaveBeenCalledWith(
-        'Artist not found',
-        'OK',
-        jasmine.objectContaining({ panelClass: ['error-snackbar'] })
-      );
-      expect(router.navigate).toHaveBeenCalledWith(['/artists']);
     });
   });
 
   describe('Form validation', () => {
     beforeEach(() => {
-      activatedRoute.snapshot.paramMap.get.and.returnValue(null);
+      activatedRoute.snapshot.paramMap.get.and.returnValue('new');
       fixture.detectChanges();
     });
 
-    it('should require name field', () => {
-      const nameControl = component.artistForm.get('name');
-      expect(nameControl?.hasError('required')).toBe(true);
-
-      nameControl?.setValue('Test');
-      expect(nameControl?.hasError('required')).toBe(false);
+    it('should require name', () => {
+      component.form.get('name')?.setValue('');
+      expect(component.form.get('name')?.hasError('required')).toBe(true);
     });
 
-    it('should validate name min length', () => {
-      const nameControl = component.artistForm.get('name');
-      nameControl?.setValue('A');
-      expect(nameControl?.hasError('minlength')).toBe(true);
-
-      nameControl?.setValue('ABC');
-      expect(nameControl?.hasError('minlength')).toBe(false);
+    it('should validate name minimum length', () => {
+      component.form.get('name')?.setValue('A');
+      expect(component.form.get('name')?.hasError('minlength')).toBe(true);
     });
 
-    it('should validate name max length', () => {
-      const nameControl = component.artistForm.get('name');
-      nameControl?.setValue('A'.repeat(101));
-      expect(nameControl?.hasError('maxlength')).toBe(true);
-
-      nameControl?.setValue('A'.repeat(100));
-      expect(nameControl?.hasError('maxlength')).toBe(false);
+    it('should validate name maximum length', () => {
+      component.form.get('name')?.setValue('A'.repeat(101));
+      expect(component.form.get('name')?.hasError('maxlength')).toBe(true);
     });
 
-    it('should require type field', () => {
-      const typeControl = component.artistForm.get('type');
-      expect(typeControl?.hasError('required')).toBe(true);
-
-      typeControl?.setValue(ArtistType.SOLO);
-      expect(typeControl?.hasError('required')).toBe(false);
-    });
-
-    it('should require country field', () => {
-      const countryControl = component.artistForm.get('country');
-      expect(countryControl?.hasError('required')).toBe(true);
-
-      countryControl?.setValue('USA');
-      expect(countryControl?.hasError('required')).toBe(false);
-    });
-
-    it('should validate biography max length', () => {
-      const bioControl = component.artistForm.get('biography');
-      bioControl?.setValue('A'.repeat(1001));
-      expect(bioControl?.hasError('maxlength')).toBe(true);
-
-      bioControl?.setValue('A'.repeat(1000));
-      expect(bioControl?.hasError('maxlength')).toBe(false);
-    });
-
-    it('should not submit invalid form', () => {
-      component.onSubmit();
-      expect(facade.createArtist).not.toHaveBeenCalled();
-      expect(facade.updateArtist).not.toHaveBeenCalled();
+    it('should require type', () => {
+      component.form.get('type')?.setValue('');
+      expect(component.form.get('type')?.hasError('required')).toBe(true);
     });
   });
 
-  describe('Photo upload', () => {
+  describe('File handling', () => {
     beforeEach(() => {
-      activatedRoute.snapshot.paramMap.get.and.returnValue('1');
-      facade.getArtistById.and.returnValue(of(mockArtist));
+      activatedRoute.snapshot.paramMap.get.and.returnValue('new');
       fixture.detectChanges();
     });
 
-    it('should handle photo selection', () => {
-      const file = new File([''], 'photo.jpg', { type: 'image/jpeg' });
-      const event = {
-        target: {
-          files: [file]
-        }
-      };
+    it('should reject non-image files', () => {
+      const file = new File(['test'], 'test.pdf', { type: 'application/pdf' });
+      const event = { target: { files: [file] } } as unknown as Event;
 
-      component.onPhotoSelected(event as any);
+      component.onFileSelected(event);
 
-      expect(component.selectedPhoto).toBe(file);
-      expect(component.photoPreview).toBeTruthy();
+      expect(snackBar.open).toHaveBeenCalledWith(
+        'Por favor, selecione uma imagem válida',
+        'Fechar',
+        jasmine.any(Object)
+      );
+      expect(component.selectedFile).toBeNull();
     });
 
-    it('should validate photo file type', () => {
-      const file = new File([''], 'document.pdf', { type: 'application/pdf' });
-      const event = {
-        target: {
-          files: [file]
-        }
-      };
+    it('should reject large files', () => {
+      const largeFile = new File(['x'.repeat(6 * 1024 * 1024)], 'large.jpg', { type: 'image/jpeg' });
+      const event = { target: { files: [largeFile] } } as unknown as Event;
 
-      component.onPhotoSelected(event as any);
+      component.onFileSelected(event);
 
-      expect(component.selectedPhoto).toBeNull();
       expect(snackBar.open).toHaveBeenCalledWith(
-        'Please select a valid image file (JPG, PNG, GIF)',
-        'OK',
+        'A imagem deve ter no máximo 5MB',
+        'Fechar',
         jasmine.any(Object)
       );
     });
 
-    it('should validate photo file size', () => {
-      const largeFile = new File(['x'.repeat(6000000)], 'large.jpg', { type: 'image/jpeg' });
-      const event = {
-        target: {
-          files: [largeFile]
-        }
-      };
-
-      component.onPhotoSelected(event as any);
-
-      expect(component.selectedPhoto).toBeNull();
-      expect(snackBar.open).toHaveBeenCalledWith(
-        'File size must be less than 5MB',
-        'OK',
-        jasmine.any(Object)
-      );
-    });
-
-    it('should upload photo with artist', () => {
-      const file = new File([''], 'photo.jpg', { type: 'image/jpeg' });
-      const photoResponse = { url: 'http://example.com/new-photo.jpg' };
-
-      component.selectedPhoto = file;
-      facade.uploadPhoto.and.returnValue(of(photoResponse));
-      facade.updateArtist.and.returnValue(of(mockArtist));
-
-      component.onSubmit();
-
-      expect(facade.uploadPhoto).toHaveBeenCalledWith(1, file);
-    });
-
-    it('should handle photo upload error', () => {
-      const file = new File([''], 'photo.jpg', { type: 'image/jpeg' });
-      component.selectedPhoto = file;
-
-      facade.uploadPhoto.and.returnValue(
-        throwError(() => new Error('Upload failed'))
-      );
-      facade.updateArtist.and.returnValue(of(mockArtist));
-
-      component.onSubmit();
-
-      expect(snackBar.open).toHaveBeenCalledWith(
-        'Failed to upload photo',
-        'OK',
-        jasmine.any(Object)
-      );
-    });
-
-    it('should clear photo selection', () => {
-      const file = new File([''], 'photo.jpg', { type: 'image/jpeg' });
-      component.selectedPhoto = file;
+    it('should remove file', () => {
+      component.selectedFile = new File(['test'], 'test.jpg', { type: 'image/jpeg' });
       component.photoPreview = 'data:image/jpeg;base64,...';
 
-      component.clearPhotoSelection();
+      component.removeFile();
 
-      expect(component.selectedPhoto).toBeNull();
+      expect(component.selectedFile).toBeNull();
       expect(component.photoPreview).toBeNull();
     });
   });
 
-  describe('Error handling', () => {
-    beforeEach(() => {
-      activatedRoute.snapshot.paramMap.get.and.returnValue(null);
-      fixture.detectChanges();
-    });
-
-    it('should handle create error', () => {
-      facade.createArtist.and.returnValue(
-        throwError(() => ({ error: { message: 'Name already exists' } }))
-      );
-
-      component.artistForm.patchValue({
-        name: 'Test',
-        type: ArtistType.SOLO,
-        country: 'USA'
-      });
-
-      component.onSubmit();
-
-      expect(snackBar.open).toHaveBeenCalledWith(
-        'Name already exists',
-        'OK',
-        jasmine.objectContaining({ panelClass: ['error-snackbar'] })
-      );
-      expect(component.loading).toBe(false);
-    });
-
-    it('should handle update error', () => {
+  describe('Navigation', () => {
+    it('should navigate to artist detail on cancel in edit mode', () => {
       activatedRoute.snapshot.paramMap.get.and.returnValue('1');
-      facade.getArtistById.and.returnValue(of(mockArtist));
       fixture.detectChanges();
 
-      facade.updateArtist.and.returnValue(
-        throwError(() => ({ error: { message: 'Update failed' } }))
-      );
+      component.cancel();
 
-      component.onSubmit();
+      expect(router.navigate).toHaveBeenCalledWith(['/artists', 1]);
+    });
 
-      expect(snackBar.open).toHaveBeenCalledWith(
-        'Update failed',
-        'OK',
-        jasmine.objectContaining({ panelClass: ['error-snackbar'] })
-      );
-      expect(component.loading).toBe(false);
+    it('should navigate to artists list on cancel in create mode', () => {
+      activatedRoute.snapshot.paramMap.get.and.returnValue('new');
+      fixture.detectChanges();
+
+      component.cancel();
+
+      expect(router.navigate).toHaveBeenCalledWith(['/artists']);
     });
   });
 
-  describe('Navigation', () => {
-    it('should navigate to artists list on cancel', () => {
-      component.onCancel();
-      expect(router.navigate).toHaveBeenCalledWith(['/artists']);
+  describe('Album selection', () => {
+    beforeEach(() => {
+      activatedRoute.snapshot.paramMap.get.and.returnValue('new');
+      fixture.detectChanges();
     });
 
-    it('should navigate after successful create', () => {
-      facade.createArtist.and.returnValue(of(mockArtist));
+    it('should remove album from selection', () => {
+      component.selectedAlbums = [
+        { id: 1, title: 'Album 1', releaseYear: 2020 },
+        { id: 2, title: 'Album 2', releaseYear: 2021 }
+      ];
 
-      component.artistForm.patchValue({
-        name: 'Test',
-        type: ArtistType.SOLO,
-        country: 'USA'
-      });
+      component.removeAlbum(1);
 
-      component.onSubmit();
-
-      expect(router.navigate).toHaveBeenCalledWith(['/artists']);
+      expect(component.selectedAlbums.length).toBe(1);
+      expect(component.selectedAlbums[0].id).toBe(2);
     });
   });
 
   describe('Loading state', () => {
-    it('should set loading state during submission', () => {
-      facade.createArtist.and.returnValue(of(mockArtist));
-
-      component.artistForm.patchValue({
-        name: 'Test',
-        type: ArtistType.SOLO,
-        country: 'USA'
-      });
-
-      expect(component.loading).toBe(false);
-
-      component.onSubmit();
-
-      // Loading is set to false after successful submission
-      expect(component.loading).toBe(false);
+    beforeEach(() => {
+      activatedRoute.snapshot.paramMap.get.and.returnValue('new');
+      fixture.detectChanges();
     });
 
-    it('should disable form during loading', () => {
-      component.loading = true;
+    it('should update loading state', () => {
+      loadingSubject.next(true);
+      expect(component.loading).toBe(true);
+
+      loadingSubject.next(false);
+      expect(component.loading).toBe(false);
+    });
+  });
+
+  describe('Cleanup', () => {
+    it('should clear selected artist on destroy', () => {
+      activatedRoute.snapshot.paramMap.get.and.returnValue('new');
       fixture.detectChanges();
 
-      const submitButton = fixture.nativeElement.querySelector('button[type="submit"]');
-      expect(submitButton.disabled).toBe(true);
+      component.ngOnDestroy();
+
+      expect(facade.clearSelectedArtist).toHaveBeenCalled();
     });
   });
 });

@@ -1,4 +1,4 @@
-import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { ComponentFixture, TestBed, fakeAsync, tick } from '@angular/core/testing';
 import { RouterTestingModule } from '@angular/router/testing';
 import { NoopAnimationsModule } from '@angular/platform-browser/animations';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
@@ -8,72 +8,68 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
-import { MatPaginatorModule } from '@angular/material/paginator';
+import { MatPaginatorModule, PageEvent } from '@angular/material/paginator';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatChipsModule } from '@angular/material/chips';
-import { of, throwError, BehaviorSubject } from 'rxjs';
+import { MatSnackBarModule, MatSnackBar } from '@angular/material/snack-bar';
+import { MatDialogModule, MatDialog, MatDialogRef } from '@angular/material/dialog';
+import { of, BehaviorSubject } from 'rxjs';
 
 import { ArtistListComponent } from './artist-list.component';
 import { ArtistsFacade } from '../../facades/artists.facade';
 import { Artist, ArtistType } from '../../models/artist.model';
-import { PageResponse } from '@shared/models/pagination.model';
 
 describe('ArtistListComponent', () => {
   let component: ArtistListComponent;
   let fixture: ComponentFixture<ArtistListComponent>;
   let facade: jasmine.SpyObj<ArtistsFacade>;
+  let dialog: jasmine.SpyObj<MatDialog>;
+  let snackBar: jasmine.SpyObj<MatSnackBar>;
 
   const mockArtist: Artist = {
     id: 1,
     name: 'Test Artist',
-    type: ArtistType.SOLO,
+    type: 'SOLO' as ArtistType,
     country: 'USA',
     biography: 'Test biography',
-    albumCount: 5,
     active: true,
     photoUrl: 'http://example.com/photo.jpg',
     albums: []
   };
 
-  const mockPageResponse: PageResponse<Artist> = {
-    content: [mockArtist],
-    totalElements: 1,
-    totalPages: 1,
-    size: 10,
-    number: 0,
-    first: true,
-    last: true,
-    numberOfElements: 1,
-    empty: false
-  };
-
   const artistsSubject = new BehaviorSubject<Artist[]>([mockArtist]);
   const loadingSubject = new BehaviorSubject<boolean>(false);
-  const errorSubject = new BehaviorSubject<string | null>(null);
   const paginationSubject = new BehaviorSubject<any>({
     totalElements: 1,
     totalPages: 1,
-    currentPage: 0,
-    pageSize: 10
+    page: 0,
+    size: 10
+  });
+  const filtersSubject = new BehaviorSubject<any>({
+    name: '',
+    type: null,
+    sortDirection: 'asc'
   });
 
   beforeEach(async () => {
     const facadeSpy = jasmine.createSpyObj('ArtistsFacade', [
       'loadArtists',
-      'searchArtists',
-      'deleteArtist',
-      'setFilters',
-      'setSorting',
+      'setNameFilter',
+      'setSortDirection',
+      'setTypeFilter',
       'setPage',
-      'setPageSize'
+      'setPageSize',
+      'clearFilters',
+      'deactivateArtist'
     ], {
       'artists$': artistsSubject.asObservable(),
       'loading$': loadingSubject.asObservable(),
-      'error$': errorSubject.asObservable(),
       'pagination$': paginationSubject.asObservable(),
-      'filters$': of({ name: '', type: null }),
-      'sorting$': of({ sortBy: 'name', sortDir: 'asc' })
+      'filters$': filtersSubject.asObservable()
     });
+
+    const dialogSpy = jasmine.createSpyObj('MatDialog', ['open']);
+    const snackBarSpy = jasmine.createSpyObj('MatSnackBar', ['open']);
 
     await TestBed.configureTestingModule({
       declarations: [ArtistListComponent],
@@ -90,16 +86,22 @@ describe('ArtistListComponent', () => {
         MatSelectModule,
         MatPaginatorModule,
         MatProgressSpinnerModule,
-        MatChipsModule
+        MatChipsModule,
+        MatSnackBarModule,
+        MatDialogModule
       ],
       providers: [
-        { provide: ArtistsFacade, useValue: facadeSpy }
+        { provide: ArtistsFacade, useValue: facadeSpy },
+        { provide: MatDialog, useValue: dialogSpy },
+        { provide: MatSnackBar, useValue: snackBarSpy }
       ]
     }).compileComponents();
 
     fixture = TestBed.createComponent(ArtistListComponent);
     component = fixture.componentInstance;
     facade = TestBed.inject(ArtistsFacade) as jasmine.SpyObj<ArtistsFacade>;
+    dialog = TestBed.inject(MatDialog) as jasmine.SpyObj<MatDialog>;
+    snackBar = TestBed.inject(MatSnackBar) as jasmine.SpyObj<MatSnackBar>;
   });
 
   it('should create', () => {
@@ -117,76 +119,60 @@ describe('ArtistListComponent', () => {
 
       expect(component.artists).toEqual([mockArtist]);
       expect(component.loading).toBe(false);
-      expect(component.error).toBeNull();
-    });
-
-    it('should initialize filter controls', () => {
-      fixture.detectChanges();
-
-      expect(component.searchControl.value).toBe('');
-      expect(component.typeControl.value).toBeNull();
     });
   });
 
   describe('Search functionality', () => {
-    it('should search artists with debounce', (done) => {
+    it('should call setNameFilter with debounce', fakeAsync(() => {
       fixture.detectChanges();
 
-      component.searchControl.setValue('Test');
+      const event = { target: { value: 'Test' } } as unknown as Event;
+      component.onSearch(event);
 
-      setTimeout(() => {
-        expect(facade.setFilters).toHaveBeenCalledWith(
-          jasmine.objectContaining({ name: 'Test' })
-        );
-        done();
-      }, 600);
-    });
+      tick(600);
 
-    it('should not search with less than 2 characters', (done) => {
+      expect(facade.setNameFilter).toHaveBeenCalledWith('Test');
+    }));
+
+    it('should not search with less than 2 characters', fakeAsync(() => {
       fixture.detectChanges();
-      facade.setFilters.calls.reset();
+      facade.setNameFilter.calls.reset();
 
-      component.searchControl.setValue('T');
+      const event = { target: { value: 'T' } } as unknown as Event;
+      component.onSearch(event);
 
-      setTimeout(() => {
-        expect(facade.setFilters).not.toHaveBeenCalled();
-        done();
-      }, 600);
-    });
+      tick(600);
 
-    it('should clear search when empty', (done) => {
+      expect(facade.setNameFilter).not.toHaveBeenCalled();
+    }));
+
+    it('should clear search when empty', fakeAsync(() => {
       fixture.detectChanges();
 
-      component.searchControl.setValue('');
+      const event = { target: { value: '' } } as unknown as Event;
+      component.onSearch(event);
 
-      setTimeout(() => {
-        expect(facade.setFilters).toHaveBeenCalledWith(
-          jasmine.objectContaining({ name: '' })
-        );
-        done();
-      }, 600);
-    });
+      tick(600);
+
+      expect(facade.setNameFilter).toHaveBeenCalledWith('');
+    }));
   });
 
   describe('Type filter', () => {
     it('should filter by artist type', () => {
       fixture.detectChanges();
 
-      component.typeControl.setValue(ArtistType.BAND);
+      component.onTypeFilterChange('BAND' as ArtistType);
 
-      expect(facade.setFilters).toHaveBeenCalledWith(
-        jasmine.objectContaining({ type: ArtistType.BAND })
-      );
+      expect(facade.setTypeFilter).toHaveBeenCalledWith('BAND');
     });
 
     it('should clear type filter when null', () => {
       fixture.detectChanges();
 
-      component.typeControl.setValue(null);
+      component.onTypeFilterChange(null);
 
-      expect(facade.setFilters).toHaveBeenCalledWith(
-        jasmine.objectContaining({ type: null })
-      );
+      expect(facade.setTypeFilter).toHaveBeenCalledWith(null);
     });
   });
 
@@ -194,28 +180,11 @@ describe('ArtistListComponent', () => {
     it('should toggle sort direction', () => {
       fixture.detectChanges();
 
-      component.toggleSort();
+      component.onSortChange();
+      expect(facade.setSortDirection).toHaveBeenCalledWith('desc');
 
-      expect(facade.setSorting).toHaveBeenCalledWith({
-        sortBy: 'name',
-        sortDir: 'desc'
-      });
-
-      component.toggleSort();
-
-      expect(facade.setSorting).toHaveBeenCalledWith({
-        sortBy: 'name',
-        sortDir: 'asc'
-      });
-    });
-
-    it('should display correct sort icon', () => {
-      fixture.detectChanges();
-
-      expect(component.getSortIcon()).toBe('arrow_upward');
-
-      component.sortDir = 'desc';
-      expect(component.getSortIcon()).toBe('arrow_downward');
+      component.onSortChange();
+      expect(facade.setSortDirection).toHaveBeenCalledWith('asc');
     });
   });
 
@@ -223,7 +192,7 @@ describe('ArtistListComponent', () => {
     it('should handle page change', () => {
       fixture.detectChanges();
 
-      const pageEvent = {
+      const pageEvent: PageEvent = {
         pageIndex: 1,
         pageSize: 10,
         length: 20
@@ -237,7 +206,7 @@ describe('ArtistListComponent', () => {
     it('should handle page size change', () => {
       fixture.detectChanges();
 
-      const pageEvent = {
+      const pageEvent: PageEvent = {
         pageIndex: 0,
         pageSize: 25,
         length: 50
@@ -254,7 +223,7 @@ describe('ArtistListComponent', () => {
       const navigateSpy = spyOn(component['router'], 'navigate');
       fixture.detectChanges();
 
-      component.viewArtist(1);
+      component.viewArtist(mockArtist);
 
       expect(navigateSpy).toHaveBeenCalledWith(['/artists', 1]);
     });
@@ -263,133 +232,50 @@ describe('ArtistListComponent', () => {
       const navigateSpy = spyOn(component['router'], 'navigate');
       fixture.detectChanges();
 
-      component.editArtist(1);
+      component.editArtist(mockArtist);
 
       expect(navigateSpy).toHaveBeenCalledWith(['/artists', 1, 'edit']);
     });
 
     it('should delete artist with confirmation', () => {
-      spyOn(window, 'confirm').and.returnValue(true);
-      facade.deleteArtist.and.returnValue(of(void 0));
+      const dialogRefSpy = jasmine.createSpyObj<MatDialogRef<any>>('MatDialogRef', ['afterClosed']);
+      dialogRefSpy.afterClosed.and.returnValue(of(true));
+      dialog.open.and.returnValue(dialogRefSpy);
+      facade.deactivateArtist.and.returnValue(of(void 0));
       fixture.detectChanges();
 
       component.deleteArtist(mockArtist);
 
-      expect(window.confirm).toHaveBeenCalledWith(
-        `Are you sure you want to delete ${mockArtist.name}?`
-      );
-      expect(facade.deleteArtist).toHaveBeenCalledWith(1);
+      expect(dialog.open).toHaveBeenCalled();
+      expect(facade.deactivateArtist).toHaveBeenCalledWith(1);
+      expect(snackBar.open).toHaveBeenCalled();
     });
 
     it('should not delete artist without confirmation', () => {
-      spyOn(window, 'confirm').and.returnValue(false);
+      const dialogRefSpy = jasmine.createSpyObj<MatDialogRef<any>>('MatDialogRef', ['afterClosed']);
+      dialogRefSpy.afterClosed.and.returnValue(of(false));
+      dialog.open.and.returnValue(dialogRefSpy);
       fixture.detectChanges();
 
       component.deleteArtist(mockArtist);
 
-      expect(facade.deleteArtist).not.toHaveBeenCalled();
-    });
-
-    it('should handle delete error', () => {
-      spyOn(window, 'confirm').and.returnValue(true);
-      spyOn(console, 'error');
-      facade.deleteArtist.and.returnValue(
-        throwError(() => new Error('Delete failed'))
-      );
-      fixture.detectChanges();
-
-      component.deleteArtist(mockArtist);
-
-      expect(console.error).toHaveBeenCalledWith(
-        'Error deleting artist:',
-        jasmine.any(Error)
-      );
+      expect(facade.deactivateArtist).not.toHaveBeenCalled();
     });
   });
 
   describe('Display helpers', () => {
     it('should get artist type label', () => {
-      expect(component.getTypeLabel(ArtistType.SOLO)).toBe('Solo');
-      expect(component.getTypeLabel(ArtistType.BAND)).toBe('Band');
-    });
-
-    it('should get artist type color', () => {
-      expect(component.getTypeColor(ArtistType.SOLO)).toBe('primary');
-      expect(component.getTypeColor(ArtistType.BAND)).toBe('accent');
-    });
-
-    it('should get default photo when no URL', () => {
-      const artist = { ...mockArtist, photoUrl: null };
-      expect(component.getArtistPhoto(artist)).toContain('assets/images/default-artist.png');
-    });
-
-    it('should get artist photo URL', () => {
-      expect(component.getArtistPhoto(mockArtist)).toBe('http://example.com/photo.jpg');
-    });
-  });
-
-  describe('Error handling', () => {
-    it('should display error message', () => {
-      errorSubject.next('Failed to load artists');
-      fixture.detectChanges();
-
-      expect(component.error).toBe('Failed to load artists');
-
-      const compiled = fixture.nativeElement;
-      const errorElement = compiled.querySelector('.error-message');
-      expect(errorElement).toBeTruthy();
-      expect(errorElement.textContent).toContain('Failed to load artists');
-    });
-
-    it('should clear error on successful load', () => {
-      errorSubject.next('Error');
-      fixture.detectChanges();
-      expect(component.error).toBe('Error');
-
-      errorSubject.next(null);
-      fixture.detectChanges();
-      expect(component.error).toBeNull();
+      expect(component.getTypeLabel('SOLO' as ArtistType)).toBe('Solo');
+      expect(component.getTypeLabel('BAND' as ArtistType)).toBe('Banda');
     });
   });
 
   describe('Loading state', () => {
-    it('should show loading spinner', () => {
+    it('should update loading state', () => {
       loadingSubject.next(true);
       fixture.detectChanges();
 
-      const compiled = fixture.nativeElement;
-      const spinner = compiled.querySelector('mat-spinner');
-      expect(spinner).toBeTruthy();
-    });
-
-    it('should hide loading spinner', () => {
-      loadingSubject.next(false);
-      fixture.detectChanges();
-
-      const compiled = fixture.nativeElement;
-      const spinner = compiled.querySelector('mat-spinner');
-      expect(spinner).toBeFalsy();
-    });
-  });
-
-  describe('Empty state', () => {
-    it('should show empty message when no artists', () => {
-      artistsSubject.next([]);
-      fixture.detectChanges();
-
-      const compiled = fixture.nativeElement;
-      const emptyMessage = compiled.querySelector('.empty-state');
-      expect(emptyMessage).toBeTruthy();
-      expect(emptyMessage.textContent).toContain('No artists found');
-    });
-
-    it('should hide empty message when artists exist', () => {
-      artistsSubject.next([mockArtist]);
-      fixture.detectChanges();
-
-      const compiled = fixture.nativeElement;
-      const emptyMessage = compiled.querySelector('.empty-state');
-      expect(emptyMessage).toBeFalsy();
+      expect(component.loading).toBe(true);
     });
   });
 

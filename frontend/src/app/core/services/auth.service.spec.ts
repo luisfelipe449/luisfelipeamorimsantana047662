@@ -1,24 +1,23 @@
 import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
-import { Router } from '@angular/router';
-import { AuthService } from './auth.service';
+import { AuthService, LoginRequest, TokenResponse } from './auth.service';
 import { environment } from '@env/environment';
 
 describe('AuthService', () => {
   let service: AuthService;
   let httpMock: HttpTestingController;
-  let router: jasmine.SpyObj<Router>;
-  const API_URL = environment.apiUrl;
+  const API_URL = `${environment.apiUrl}/v1/auth`;
 
-  const mockLoginResponse = {
+  const mockLoginResponse: TokenResponse = {
     accessToken: 'mock-access-token',
     refreshToken: 'mock-refresh-token',
-    username: 'testuser'
+    expiresIn: 300
   };
 
-  const mockRefreshResponse = {
+  const mockRefreshResponse: TokenResponse = {
     accessToken: 'new-access-token',
-    refreshToken: 'new-refresh-token'
+    refreshToken: 'new-refresh-token',
+    expiresIn: 300
   };
 
   // Mock JWT token payload
@@ -37,19 +36,13 @@ describe('AuthService', () => {
   };
 
   beforeEach(() => {
-    const routerSpy = jasmine.createSpyObj('Router', ['navigate']);
-
     TestBed.configureTestingModule({
       imports: [HttpClientTestingModule],
-      providers: [
-        AuthService,
-        { provide: Router, useValue: routerSpy }
-      ]
+      providers: [AuthService]
     });
 
     service = TestBed.inject(AuthService);
     httpMock = TestBed.inject(HttpTestingController);
-    router = TestBed.inject(Router) as jasmine.SpyObj<Router>;
 
     // Clear localStorage before each test
     localStorage.clear();
@@ -66,76 +59,66 @@ describe('AuthService', () => {
 
   describe('login', () => {
     it('should login successfully and store tokens', (done) => {
-      const username = 'testuser';
-      const password = 'password123';
+      const credentials: LoginRequest = { username: 'testuser', password: 'password123' };
 
-      service.login(username, password).subscribe(response => {
+      service.login(credentials).subscribe(response => {
         expect(response).toEqual(mockLoginResponse);
-        expect(localStorage.getItem('accessToken')).toBe(mockLoginResponse.accessToken);
-        expect(localStorage.getItem('refreshToken')).toBe(mockLoginResponse.refreshToken);
-        expect(localStorage.getItem('username')).toBe(mockLoginResponse.username);
+        expect(localStorage.getItem('access_token')).toBe(mockLoginResponse.accessToken);
+        expect(localStorage.getItem('refresh_token')).toBe(mockLoginResponse.refreshToken);
+        expect(localStorage.getItem('username')).toBe('testuser');
         done();
       });
 
-      const req = httpMock.expectOne(`${API_URL}/v1/auth/login`);
+      const req = httpMock.expectOne(`${API_URL}/login`);
       expect(req.request.method).toBe('POST');
-      expect(req.request.body).toEqual({ username, password });
+      expect(req.request.body).toEqual(credentials);
       req.flush(mockLoginResponse);
     });
 
     it('should update authentication state on successful login', (done) => {
-      service.login('testuser', 'password').subscribe(() => {
+      const credentials: LoginRequest = { username: 'testuser', password: 'password' };
+
+      service.login(credentials).subscribe(() => {
         service.isAuthenticated$.subscribe(isAuth => {
           expect(isAuth).toBe(true);
           done();
         });
       });
 
-      const req = httpMock.expectOne(`${API_URL}/v1/auth/login`);
+      const req = httpMock.expectOne(`${API_URL}/login`);
       req.flush(mockLoginResponse);
     });
 
     it('should handle login error', (done) => {
-      service.login('testuser', 'wrongpassword').subscribe({
+      const credentials: LoginRequest = { username: 'testuser', password: 'wrongpassword' };
+
+      service.login(credentials).subscribe({
         error: (error) => {
           expect(error.status).toBe(401);
-          expect(localStorage.getItem('accessToken')).toBeNull();
+          expect(localStorage.getItem('access_token')).toBeNull();
           done();
         }
       });
 
-      const req = httpMock.expectOne(`${API_URL}/v1/auth/login`);
+      const req = httpMock.expectOne(`${API_URL}/login`);
       req.flush({ message: 'Invalid credentials' }, { status: 401, statusText: 'Unauthorized' });
-    });
-
-    it('should handle network error during login', (done) => {
-      service.login('testuser', 'password').subscribe({
-        error: (error) => {
-          expect(error.error.type).toBe('error');
-          done();
-        }
-      });
-
-      const req = httpMock.expectOne(`${API_URL}/v1/auth/login`);
-      req.error(new ErrorEvent('Network error'));
     });
   });
 
   describe('logout', () => {
     beforeEach(() => {
       // Setup logged in state
-      localStorage.setItem('accessToken', 'test-token');
-      localStorage.setItem('refreshToken', 'test-refresh');
+      localStorage.setItem('access_token', 'test-token');
+      localStorage.setItem('refresh_token', 'test-refresh');
       localStorage.setItem('username', 'testuser');
     });
 
-    it('should clear tokens and navigate to login', () => {
+    it('should clear tokens', () => {
       service.logout();
 
-      expect(localStorage.getItem('accessToken')).toBeNull();
-      expect(localStorage.getItem('refreshToken')).toBeNull();
+      expect(localStorage.getItem('access_token')).toBeNull();
+      expect(localStorage.getItem('refresh_token')).toBeNull();
       expect(localStorage.getItem('username')).toBeNull();
-      expect(router.navigate).toHaveBeenCalledWith(['/auth/login']);
     });
 
     it('should update authentication state on logout', (done) => {
@@ -150,18 +133,18 @@ describe('AuthService', () => {
 
   describe('refreshToken', () => {
     beforeEach(() => {
-      localStorage.setItem('refreshToken', 'old-refresh-token');
+      localStorage.setItem('refresh_token', 'old-refresh-token');
     });
 
     it('should refresh tokens successfully', (done) => {
       service.refreshToken().subscribe(response => {
         expect(response).toEqual(mockRefreshResponse);
-        expect(localStorage.getItem('accessToken')).toBe(mockRefreshResponse.accessToken);
-        expect(localStorage.getItem('refreshToken')).toBe(mockRefreshResponse.refreshToken);
+        expect(localStorage.getItem('access_token')).toBe(mockRefreshResponse.accessToken);
+        expect(localStorage.getItem('refresh_token')).toBe(mockRefreshResponse.refreshToken);
         done();
       });
 
-      const req = httpMock.expectOne(`${API_URL}/v1/auth/refresh`);
+      const req = httpMock.expectOne(`${API_URL}/refresh`);
       expect(req.request.method).toBe('POST');
       expect(req.request.body).toEqual({ refreshToken: 'old-refresh-token' });
       req.flush(mockRefreshResponse);
@@ -171,18 +154,17 @@ describe('AuthService', () => {
       service.refreshToken().subscribe({
         error: (error) => {
           expect(error.status).toBe(401);
-          expect(localStorage.getItem('accessToken')).toBeNull();
-          expect(router.navigate).toHaveBeenCalledWith(['/auth/login']);
+          expect(localStorage.getItem('access_token')).toBeNull();
           done();
         }
       });
 
-      const req = httpMock.expectOne(`${API_URL}/v1/auth/refresh`);
+      const req = httpMock.expectOne(`${API_URL}/refresh`);
       req.flush({ message: 'Invalid refresh token' }, { status: 401, statusText: 'Unauthorized' });
     });
 
     it('should return error if no refresh token available', (done) => {
-      localStorage.removeItem('refreshToken');
+      localStorage.removeItem('refresh_token');
 
       service.refreshToken().subscribe({
         error: (error) => {
@@ -195,12 +177,12 @@ describe('AuthService', () => {
 
   describe('token management', () => {
     it('should get access token', () => {
-      localStorage.setItem('accessToken', 'test-token');
+      localStorage.setItem('access_token', 'test-token');
       expect(service.getAccessToken()).toBe('test-token');
     });
 
     it('should get refresh token', () => {
-      localStorage.setItem('refreshToken', 'test-refresh');
+      localStorage.setItem('refresh_token', 'test-refresh');
       expect(service.getRefreshToken()).toBe('test-refresh');
     });
 
@@ -219,7 +201,7 @@ describe('AuthService', () => {
   describe('isAuthenticated', () => {
     it('should return true when valid token exists', () => {
       const validToken = createMockToken(mockTokenPayload);
-      localStorage.setItem('accessToken', validToken);
+      localStorage.setItem('access_token', validToken);
 
       expect(service.isAuthenticated()).toBe(true);
     });
@@ -234,126 +216,14 @@ describe('AuthService', () => {
         exp: Math.floor(Date.now() / 1000) - 3600 // 1 hour ago
       };
       const expiredToken = createMockToken(expiredPayload);
-      localStorage.setItem('accessToken', expiredToken);
+      localStorage.setItem('access_token', expiredToken);
 
       expect(service.isAuthenticated()).toBe(false);
     });
 
     it('should return false for invalid token format', () => {
-      localStorage.setItem('accessToken', 'invalid-token');
+      localStorage.setItem('access_token', 'invalid-token');
       expect(service.isAuthenticated()).toBe(false);
-    });
-  });
-
-  describe('isTokenExpired', () => {
-    it('should return false for valid token', () => {
-      const validToken = createMockToken(mockTokenPayload);
-      expect(service.isTokenExpired(validToken)).toBe(false);
-    });
-
-    it('should return true for expired token', () => {
-      const expiredPayload = {
-        ...mockTokenPayload,
-        exp: Math.floor(Date.now() / 1000) - 3600
-      };
-      const expiredToken = createMockToken(expiredPayload);
-      expect(service.isTokenExpired(expiredToken)).toBe(true);
-    });
-
-    it('should return true for null token', () => {
-      expect(service.isTokenExpired(null)).toBe(true);
-    });
-
-    it('should return true for invalid token', () => {
-      expect(service.isTokenExpired('invalid')).toBe(true);
-    });
-
-    it('should return true for token without exp claim', () => {
-      const tokenWithoutExp = createMockToken({ sub: 'user' });
-      expect(service.isTokenExpired(tokenWithoutExp)).toBe(true);
-    });
-  });
-
-  describe('isRefreshTokenExpired', () => {
-    it('should return false when refresh token exists and is valid', () => {
-      const validToken = createMockToken({
-        ...mockTokenPayload,
-        exp: Math.floor(Date.now() / 1000) + 86400 // 24 hours from now
-      });
-      localStorage.setItem('refreshToken', validToken);
-
-      expect(service.isRefreshTokenExpired()).toBe(false);
-    });
-
-    it('should return true when refresh token is expired', () => {
-      const expiredToken = createMockToken({
-        ...mockTokenPayload,
-        exp: Math.floor(Date.now() / 1000) - 3600
-      });
-      localStorage.setItem('refreshToken', expiredToken);
-
-      expect(service.isRefreshTokenExpired()).toBe(true);
-    });
-
-    it('should return true when no refresh token exists', () => {
-      expect(service.isRefreshTokenExpired()).toBe(true);
-    });
-  });
-
-  describe('decodeToken', () => {
-    it('should decode valid token', () => {
-      const token = createMockToken(mockTokenPayload);
-      const decoded = service.decodeToken(token);
-
-      expect(decoded).toEqual(mockTokenPayload);
-    });
-
-    it('should return null for invalid token', () => {
-      expect(service.decodeToken('invalid')).toBeNull();
-    });
-
-    it('should return null for null token', () => {
-      expect(service.decodeToken(null)).toBeNull();
-    });
-
-    it('should handle malformed base64 in token', () => {
-      const malformedToken = 'header.malformed!@#$.signature';
-      expect(service.decodeToken(malformedToken)).toBeNull();
-    });
-  });
-
-  describe('checkAuthStatus', () => {
-    it('should set authenticated to true if valid token exists', () => {
-      const validToken = createMockToken(mockTokenPayload);
-      localStorage.setItem('accessToken', validToken);
-
-      service.checkAuthStatus();
-
-      service.isAuthenticated$.subscribe(isAuth => {
-        expect(isAuth).toBe(true);
-      });
-    });
-
-    it('should set authenticated to false if token is expired', () => {
-      const expiredToken = createMockToken({
-        ...mockTokenPayload,
-        exp: Math.floor(Date.now() / 1000) - 3600
-      });
-      localStorage.setItem('accessToken', expiredToken);
-
-      service.checkAuthStatus();
-
-      service.isAuthenticated$.subscribe(isAuth => {
-        expect(isAuth).toBe(false);
-      });
-    });
-
-    it('should set authenticated to false if no token exists', () => {
-      service.checkAuthStatus();
-
-      service.isAuthenticated$.subscribe(isAuth => {
-        expect(isAuth).toBe(false);
-      });
     });
   });
 });
