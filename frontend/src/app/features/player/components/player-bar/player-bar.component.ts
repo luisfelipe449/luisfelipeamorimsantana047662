@@ -1,5 +1,5 @@
 import { Component, OnInit, OnDestroy, HostListener } from '@angular/core';
-import { Observable, Subscription } from 'rxjs';
+import { Observable, Subscription, firstValueFrom } from 'rxjs';
 import { PlayerFacade } from '../../facades/player.facade';
 import { PlayerState, RepeatMode } from '../../models/player.model';
 import { TrackDTO } from '@features/albums/models/track.model';
@@ -79,7 +79,7 @@ export class PlayerBarComponent implements OnInit, OnDestroy {
   }
 
   async togglePlayPause(): Promise<void> {
-    const state = await this.playerState$.toPromise();
+    const state = await firstValueFrom(this.playerState$);
     if (state?.isPlaying) {
       this.playerFacade.pause();
     } else {
@@ -114,7 +114,7 @@ export class PlayerBarComponent implements OnInit, OnDestroy {
     const rect = progressBar.getBoundingClientRect();
     const percent = Math.max(0, Math.min(1, (event.clientX - rect.left) / rect.width));
 
-    const state = await this.playerState$.toPromise();
+    const state = await firstValueFrom(this.playerState$);
     if (state && state.duration) {
       const time = percent * state.duration;
       this.playerFacade.seek(time);
