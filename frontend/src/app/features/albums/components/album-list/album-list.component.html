@@ -166,14 +166,15 @@
           </p>
 
           <!-- Genre and Stats -->
-          <div class="text-gray-600 text-sm mb-4 flex-1 space-y-1">
-            <p *ngIf="album.genre" class="inline-flex items-center gap-1 m-0">
-              <mat-icon class="!text-base !w-4 !h-4 text-gray-400">music_note</mat-icon>
-              {{ album.genre }}
-            </p>
-            <p *ngIf="album.trackCount" class="inline-flex items-center gap-1 m-0 ml-2">
-              {{ album.trackCount }} faixas
-            </p>
+          <div class="text-gray-600 text-sm mb-4 flex-1">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span *ngIf="album.genre" class="inline-flex items-center gap-1">
+                <mat-icon class="!text-base !w-4 !h-4 text-gray-400">music_note</mat-icon>
+                <span>{{ album.genre }}</span>
+              </span>
+              <span *ngIf="album.genre && album.trackCount" class="text-gray-300">•</span>
+              <span *ngIf="album.trackCount">{{ album.trackCount }} faixas</span>
+            </div>
           </div>
 
           <!-- Statistics -->
