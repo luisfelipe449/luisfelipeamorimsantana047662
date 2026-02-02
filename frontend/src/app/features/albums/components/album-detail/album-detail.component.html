@@ -77,7 +77,7 @@
         <!-- Play Button -->
         <button mat-fab color="primary" class="!bg-green-500 hover:!bg-green-400 !shadow-lg"
                 (click)="playAlbum()"
-                [disabled]="!album.tracks || album.tracks.length === 0">
+                [disabled]="!hasAnyPlayableTracks()">
           <mat-icon>play_arrow</mat-icon>
         </button>
         <span class="text-gray-700 font-medium max-sm:hidden">Reproduzir</span>
@@ -111,14 +111,19 @@
         <!-- Track List -->
         <div *ngIf="album.tracks?.length" class="divide-y divide-gray-50">
           <div *ngFor="let track of album.tracks; let i = index"
-               class="grid grid-cols-[40px_40px_1fr_80px] gap-4 px-6 py-3 hover:bg-gray-50 transition-colors group cursor-pointer"
-               (click)="playTrack(track, i)">
+               class="grid grid-cols-[40px_40px_1fr_80px] gap-4 px-6 py-3 hover:bg-gray-50 transition-colors group"
+               [class.cursor-pointer]="hasAudio(track)"
+               [class.opacity-50]="!hasAudio(track)"
+               (click)="hasAudio(track) && playTrack(track, i)">
             <!-- Play Button -->
             <button mat-icon-button
-                    class="!w-8 !h-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                    class="track-play-btn transition-opacity"
+                    [class.opacity-0]="hasAudio(track)"
+                    [class.group-hover:opacity-100]="hasAudio(track)"
+                    [disabled]="!hasAudio(track)"
                     (click)="playTrack(track, i); $event.stopPropagation()">
-              <mat-icon class="!text-xl !w-5 !h-5" [class.text-green-500]="isTrackPlaying(track)">
-                {{ isTrackPlaying(track) ? 'pause_circle' : 'play_circle' }}
+              <mat-icon [class.text-green-500]="isTrackPlaying(track)" [class.text-gray-400]="!hasAudio(track)">
+                {{ !hasAudio(track) ? 'music_off' : (isTrackPlaying(track) ? 'pause_circle' : 'play_circle') }}
               </mat-icon>
             </button>
             <span class="text-center text-gray-400 group-hover:text-gray-600">{{ track.trackNumber }}</span>
