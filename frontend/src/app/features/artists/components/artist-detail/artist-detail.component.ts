@@ -86,9 +86,9 @@ export class ArtistDetailComponent implements OnInit, OnDestroy {
 
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       data: {
-        title: 'Desativar Artista',
-        message: `Tem certeza que deseja desativar "${this.artist.name}"?`,
-        confirmText: 'Desativar',
+        title: 'Excluir Artista',
+        message: `Tem certeza que deseja excluir "${this.artist.name}"?`,
+        confirmText: 'Excluir',
         cancelText: 'Cancelar'
       }
     });
@@ -97,14 +97,14 @@ export class ArtistDetailComponent implements OnInit, OnDestroy {
       if (result && this.artist) {
         this.facade.deactivateArtist(this.artist.id).subscribe({
           next: () => {
-            this.snackBar.open('Artista desativado com sucesso!', 'Fechar', {
+            this.snackBar.open('Artista excluído com sucesso!', 'Fechar', {
               duration: 3000,
               panelClass: ['success-snackbar']
             });
             this.router.navigate(['/artists']);
           },
           error: () => {
-            this.snackBar.open('Erro ao desativar artista', 'Fechar', {
+            this.snackBar.open('Erro ao excluir artista', 'Fechar', {
               duration: 3000,
               panelClass: ['error-snackbar']
             });

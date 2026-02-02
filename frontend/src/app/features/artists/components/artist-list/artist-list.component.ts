@@ -140,9 +140,9 @@ export class ArtistListComponent implements OnInit, OnDestroy {
     const dialogRef = this.dialog.open(ConfirmDialogComponent, {
       width: '400px',
       data: {
-        title: 'Desativar Artista',
-        message: `Tem certeza que deseja desativar "${artist.name}"? O artista não aparecerá mais nas listagens, mas seus dados serão mantidos.`,
-        confirmText: 'Desativar',
+        title: 'Excluir Artista',
+        message: `Tem certeza que deseja excluir "${artist.name}"?`,
+        confirmText: 'Excluir',
         cancelText: 'Cancelar',
         confirmColor: 'warn'
       }
@@ -152,13 +152,13 @@ export class ArtistListComponent implements OnInit, OnDestroy {
       if (confirmed) {
         this.facade.deactivateArtist(artist.id).subscribe({
           next: () => {
-            this.snackBar.open(`"${artist.name}" foi desativado com sucesso`, 'Fechar', {
+            this.snackBar.open(`"${artist.name}" foi excluído com sucesso`, 'Fechar', {
               duration: 3000,
               panelClass: ['success-snackbar']
             });
           },
           error: () => {
-            this.snackBar.open('Erro ao desativar artista', 'Fechar', {
+            this.snackBar.open('Erro ao excluir artista', 'Fechar', {
               duration: 5000,
               panelClass: ['error-snackbar']
             });
