@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import com.pss.fullstack.model.Track;
+
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -36,8 +38,9 @@ public class AlbumDTO {
                 .releaseYear(album.getReleaseYear())
                 .description(album.getDescription())
                 .genre(album.getGenre())
-                .trackCount(album.getTrackCount())
-                .totalDuration(album.getTotalDuration())
+                .trackCount(album.getTracks() != null ? album.getTracks().size() : 0)
+                .totalDuration(album.getTracks() != null ?
+                        album.getTracks().stream().mapToInt(Track::getDuration).sum() : 0)
                 .artists(album.getArtists().stream()
                         .map(ArtistSimpleDTO::fromEntity)
                         .collect(Collectors.toList()))
