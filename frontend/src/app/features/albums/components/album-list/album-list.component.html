@@ -40,20 +40,20 @@
                 (click)="onSortChange()"
                 matTooltip="Ordenar {{ sortDirection === 'asc' ? 'Z-A' : 'A-Z' }}">
           <mat-icon class="!mr-0">sort_by_alpha</mat-icon>
-          <mat-icon class="!text-sm !w-4 !h-4 !ml-0">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+          <mat-icon class="icon-xs !ml-0">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
         </button>
 
         <!-- View Mode Toggle -->
         <div class="flex border border-gray-200 rounded-lg overflow-hidden">
           <button mat-icon-button
-                  class="!rounded-none !w-10 !h-10"
+                  class="!rounded-none btn-icon-md"
                   [class.bg-gray-100]="viewMode === 'list'"
                   (click)="setViewMode('list')"
                   matTooltip="Visualização em lista">
             <mat-icon>view_list</mat-icon>
           </button>
           <button mat-icon-button
-                  class="!rounded-none !w-10 !h-10"
+                  class="!rounded-none btn-icon-md"
                   [class.bg-gray-100]="viewMode === 'grid'"
                   (click)="setViewMode('grid')"
                   matTooltip="Visualização em grade">
@@ -73,7 +73,7 @@
     <div class="divide-y divide-gray-100" *ngIf="!loading && albums.length > 0 && viewMode === 'list'">
       <!-- Sort Indicator -->
       <div class="px-6 py-2 bg-gray-50 border-b text-sm text-gray-600 flex items-center gap-2">
-        <mat-icon class="!text-sm !w-4 !h-4">sort</mat-icon>
+        <mat-icon class="icon-xs">sort</mat-icon>
         <span>Ordenado por título: {{ sortDirection === 'asc' ? 'A → Z' : 'Z → A' }}</span>
       </div>
 
@@ -104,12 +104,12 @@
             <span *ngIf="album.genre">{{ album.genre }}</span>
             <span *ngIf="album.trackCount" class="text-gray-300">•</span>
             <span *ngIf="album.trackCount" class="inline-flex items-center gap-0.5">
-              <mat-icon class="!text-sm !w-4 !h-4 !leading-none">music_note</mat-icon>
+              <mat-icon class="icon-xs">music_note</mat-icon>
               {{ album.trackCount }} faixas
             </span>
             <span *ngIf="album.totalDuration" class="text-gray-300">•</span>
             <span *ngIf="album.totalDuration" class="inline-flex items-center gap-0.5">
-              <mat-icon class="!text-sm !w-4 !h-4 !leading-none">schedule</mat-icon>
+              <mat-icon class="icon-xs">schedule</mat-icon>
               {{ formatDuration(album.totalDuration) }}
             </span>
           </div>
@@ -136,7 +136,7 @@
 
           <!-- Badge in top right corner -->
           <div *ngIf="album.releaseYear" class="absolute top-3 right-3 px-3 py-1 rounded-full bg-white/90 text-sm font-medium inline-flex items-center gap-1 text-primary">
-            <mat-icon class="!text-base !w-4 !h-4 !leading-none">calendar_today</mat-icon>
+            <mat-icon class="icon-xs">calendar_today</mat-icon>
             <span>{{ album.releaseYear }}</span>
           </div>
         </div>
@@ -150,7 +150,7 @@
                  class="w-full h-full object-cover">
             <div *ngIf="!album.coverUrl"
                  class="w-full h-full flex items-center justify-center bg-gradient-to-br from-gray-100 to-gray-200">
-              <mat-icon class="!text-3xl !w-8 !h-8 text-gray-400">album</mat-icon>
+              <mat-icon class="icon-lg text-gray-400">album</mat-icon>
             </div>
           </div>
         </div>
@@ -161,7 +161,7 @@
 
           <!-- Artists -->
           <p class="flex items-center gap-1 text-sm text-gray-500 mb-3">
-            <mat-icon class="!text-base !w-4 !h-4">person</mat-icon>
+            <mat-icon class="icon-xs">person</mat-icon>
             <span class="line-clamp-1">{{ getArtistNames(album) }}</span>
           </p>
 
@@ -169,7 +169,7 @@
           <div class="text-gray-600 text-sm mb-4 flex-1">
             <div class="flex items-center gap-2 flex-wrap">
               <span *ngIf="album.genre" class="inline-flex items-center gap-1">
-                <mat-icon class="!text-base !w-4 !h-4 text-gray-400">music_note</mat-icon>
+                <mat-icon class="icon-xs text-gray-400">music_note</mat-icon>
                 <span>{{ album.genre }}</span>
               </span>
               <span *ngIf="album.genre && album.trackCount" class="text-gray-300">•</span>
@@ -179,8 +179,8 @@
 
           <!-- Statistics -->
           <div class="flex items-center gap-1 text-sm text-primary">
-            <mat-icon class="!text-lg !w-5 !h-5">people</mat-icon>
-            <span class="font-semibold">{{ album.artists?.length || 0 }}</span>
+            <mat-icon class="icon-sm">people</mat-icon>
+            <span class="font-semibold">{{ album.artists.length || 0 }}</span>
             <span class="text-gray-500">artista(s)</span>
           </div>
         </div>
@@ -204,7 +204,7 @@
 
     <!-- Empty State -->
     <div class="p-12 text-center" *ngIf="!loading && albums.length === 0">
-      <mat-icon class="!text-5xl !w-12 !h-12 text-gray-300 mb-3">album</mat-icon>
+      <mat-icon class="icon-2xl text-gray-300 mb-3">album</mat-icon>
       <h3 class="text-lg font-medium text-gray-900 mb-1">
         {{ searchTerm ? 'Nenhum álbum encontrado' : 'Nenhum álbum cadastrado' }}
       </h3>

@@ -5,7 +5,7 @@
     <div class="track-info">
       <div class="track-details" *ngIf="state.currentTrack">
         <div class="track-cover">
-          <mat-icon *ngIf="!state.currentTrack.coverUrl" class="!w-12 !h-12 !text-5xl">album</mat-icon>
+          <mat-icon *ngIf="!state.currentTrack.coverUrl" class="icon-2xl">album</mat-icon>
           <img *ngIf="state.currentTrack.coverUrl"
                [src]="state.currentTrack.coverUrl"
                [alt]="state.currentTrack.title"
@@ -36,7 +36,7 @@
                 (click)="playerFacade.toggleShuffle()"
                 [disabled]="!state.currentTrack"
                 matTooltip="Toggle shuffle">
-          <mat-icon class="!w-5 !h-5 !text-xl">shuffle</mat-icon>
+          <mat-icon class="icon-sm">shuffle</mat-icon>
         </button>
 
         <!-- Previous -->
@@ -45,7 +45,7 @@
                 (click)="playerFacade.previous()"
                 [disabled]="!state.currentTrack"
                 matTooltip="Previous (P)">
-          <mat-icon class="!w-8 !h-8 !text-3xl">skip_previous</mat-icon>
+          <mat-icon class="icon-lg">skip_previous</mat-icon>
         </button>
 
         <!-- Play/Pause -->
@@ -54,7 +54,7 @@
                 (click)="togglePlayPause()"
                 [disabled]="!state.currentTrack && state.playlist.length === 0"
                 [matTooltip]="state.isPlaying ? 'Pause (Space)' : 'Play (Space)'">
-          <mat-icon class="!w-8 !h-8 !text-3xl" *ngIf="!state.isLoading">
+          <mat-icon class="icon-lg" *ngIf="!state.isLoading">
             {{ state.isPlaying ? 'pause' : 'play_arrow' }}
           </mat-icon>
           <mat-spinner *ngIf="state.isLoading" diameter="24" strokeWidth="2"></mat-spinner>
@@ -66,7 +66,7 @@
                 (click)="playerFacade.next()"
                 [disabled]="!state.currentTrack"
                 matTooltip="Next (N)">
-          <mat-icon class="!w-8 !h-8 !text-3xl">skip_next</mat-icon>
+          <mat-icon class="icon-lg">skip_next</mat-icon>
         </button>
 
         <!-- Repeat -->
@@ -77,7 +77,7 @@
                 (click)="playerFacade.toggleRepeat()"
                 [disabled]="!state.currentTrack"
                 matTooltip="Toggle repeat">
-          <mat-icon class="!w-5 !h-5 !text-xl">{{ getRepeatIcon(state.repeatMode) }}</mat-icon>
+          <mat-icon class="icon-sm">{{ getRepeatIcon(state.repeatMode) }}</mat-icon>
         </button>
       </div>
 
@@ -112,7 +112,7 @@
               (click)="showQueue = !showQueue"
               [disabled]="state.playlist.length === 0"
               matTooltip="Queue">
-        <mat-icon class="!w-6 !h-6 !text-2xl">queue_music</mat-icon>
+        <mat-icon class="icon-md">queue_music</mat-icon>
       </button>
 
       <!-- Volume -->
@@ -123,7 +123,7 @@
                 class="control-btn"
                 (click)="playerFacade.toggleMute()"
                 matTooltip="Mute (M)">
-          <mat-icon class="!w-6 !h-6 !text-2xl">{{ getVolumeIcon(state) }}</mat-icon>
+          <mat-icon class="icon-md">{{ getVolumeIcon(state) }}</mat-icon>
         </button>
 
         <div class="volume-slider" [class.show]="showVolumeSlider">
@@ -142,17 +142,17 @@
               class="close-btn"
               (click)="closePlayer()"
               matTooltip="Fechar player">
-        <mat-icon class="!w-6 !h-6 !text-2xl">close</mat-icon>
+        <mat-icon class="icon-md">close</mat-icon>
       </button>
     </div>
   </div>
 
   <!-- Error Message -->
   <div class="error-message" *ngIf="state.error">
-    <mat-icon class="!w-5 !h-5 !text-xl">error</mat-icon>
+    <mat-icon class="icon-sm">error</mat-icon>
     <span>{{ state.error }}</span>
     <button mat-icon-button (click)="playerFacade.clearPlaylist()">
-      <mat-icon class="!w-5 !h-5 !text-xl">close</mat-icon>
+      <mat-icon class="icon-sm">close</mat-icon>
     </button>
   </div>
 </div>

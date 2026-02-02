@@ -172,7 +172,7 @@
                          [src]="album.coverUrl"
                          [alt]="album.title"
                          class="w-full h-full object-cover">
-                    <mat-icon *ngIf="!album.coverUrl" class="text-gray-400 !text-sm !w-6 !h-6 flex items-center justify-center">album</mat-icon>
+                    <mat-icon *ngIf="!album.coverUrl" class="text-gray-400 icon-sm flex items-center justify-center">album</mat-icon>
                   </div>
                   <span>{{ album.title }}</span>
                   <span class="text-gray-400 text-xs" *ngIf="album.releaseYear">({{ album.releaseYear }})</span>
@@ -185,7 +185,7 @@
 
             <!-- Empty State -->
             <div class="text-center py-6 text-gray-400" *ngIf="selectedAlbums.length === 0">
-              <mat-icon class="!text-3xl !w-8 !h-8 mb-2">album</mat-icon>
+              <mat-icon class="icon-lg mb-2">album</mat-icon>
               <p class="text-sm m-0">Nenhum álbum selecionado</p>
               <p class="text-xs m-0">Clique em "Selecionar álbuns" para vincular</p>
             </div>

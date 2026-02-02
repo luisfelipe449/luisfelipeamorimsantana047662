@@ -49,7 +49,7 @@
                 (click)="onSortChange()"
                 matTooltip="Ordenar {{ sortDirection === 'asc' ? 'Z-A' : 'A-Z' }}">
           <mat-icon class="!mr-0">sort_by_alpha</mat-icon>
-          <mat-icon class="!text-sm !w-4 !h-4 !ml-0">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
+          <mat-icon class="icon-xs !ml-0">{{ sortDirection === 'asc' ? 'arrow_upward' : 'arrow_downward' }}</mat-icon>
         </button>
       </div>
     </div>
@@ -80,7 +80,7 @@
           <div class="absolute top-3 right-3 px-3 py-1 rounded-full bg-white/90 text-sm font-medium inline-flex items-center gap-1"
                [class.text-accent]="artist.type === 'BAND'"
                [class.text-primary]="artist.type === 'SOLO'">
-            <mat-icon class="!text-base !w-4 !h-4 !leading-none">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+            <mat-icon class="icon-xs">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
             <span>{{ getTypeLabel(artist.type) }}</span>
           </div>
         </div>
@@ -95,7 +95,7 @@
             <div *ngIf="!artist.photoUrl"
                  class="w-full h-full flex items-center justify-center"
                  [class]="artist.type === 'BAND' ? 'bg-gradient-to-br from-accent to-accent-700' : 'bg-gradient-to-br from-primary to-primary-700'">
-              <mat-icon class="!text-3xl !w-8 !h-8 text-white">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
+              <mat-icon class="icon-lg text-white">{{ artist.type === 'BAND' ? 'groups' : 'person' }}</mat-icon>
             </div>
           </div>
         </div>
@@ -106,7 +106,7 @@
 
           <!-- Country -->
           <p *ngIf="artist.country" class="flex items-center gap-1 text-sm text-gray-500 mb-3">
-            <mat-icon class="!text-base !w-4 !h-4">place</mat-icon>
+            <mat-icon class="icon-xs">place</mat-icon>
             {{ artist.country }}
           </p>
 
@@ -117,7 +117,7 @@
 
           <!-- Statistics -->
           <div class="flex items-center gap-1 text-sm text-primary">
-            <mat-icon class="!text-lg !w-5 !h-5">album</mat-icon>
+            <mat-icon class="icon-sm">album</mat-icon>
             <span class="font-semibold">{{ artist.albums?.length || 0 }}</span>
             <span class="text-gray-500">álbum(ns)</span>
           </div>
@@ -148,7 +148,7 @@
 
     <!-- Empty State -->
     <div class="p-12 text-center" *ngIf="!loading && artists.length === 0">
-      <mat-icon class="!text-5xl !w-12 !h-12 text-gray-300 mb-3">people</mat-icon>
+      <mat-icon class="icon-2xl text-gray-300 mb-3">people</mat-icon>
       <h3 class="text-lg font-medium text-gray-900 mb-1">
         {{ searchTerm || typeFilter ? 'Nenhum artista encontrado' : 'Nenhum artista cadastrado' }}
       </h3>
