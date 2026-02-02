@@ -25,11 +25,13 @@ import { MatDividerModule } from '@angular/material/divider';
 import { MatListModule } from '@angular/material/list';
 import { MatBadgeModule } from '@angular/material/badge';
 import { MatRippleModule } from '@angular/material/core';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 
 // Shared Components
 import { ConfirmDialogComponent } from './components/confirm-dialog/confirm-dialog.component';
 import { EmptyStateComponent } from './components/empty-state/empty-state.component';
 import { PageHeaderComponent } from './components/page-header/page-header.component';
+import { AlbumSelectorDialogComponent } from './components/album-selector-dialog/album-selector-dialog.component';
 
 const MATERIAL_MODULES = [
   MatToolbarModule,
@@ -52,13 +54,15 @@ const MATERIAL_MODULES = [
   MatDividerModule,
   MatListModule,
   MatBadgeModule,
-  MatRippleModule
+  MatRippleModule,
+  MatCheckboxModule
 ];
 
 const SHARED_COMPONENTS = [
   ConfirmDialogComponent,
   EmptyStateComponent,
-  PageHeaderComponent
+  PageHeaderComponent,
+  AlbumSelectorDialogComponent
 ];
 
 @NgModule({
