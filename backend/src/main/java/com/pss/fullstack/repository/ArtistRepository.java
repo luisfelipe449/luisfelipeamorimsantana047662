@@ -14,21 +14,14 @@ import java.util.List;
 @Repository
 public interface ArtistRepository extends JpaRepository<Artist, Long> {
 
-    Page<Artist> findByNameContainingIgnoreCase(String name, Pageable pageable);
+    Page<Artist> findByNameContainingIgnoreCaseAndActiveTrue(String name, Pageable pageable);
 
-    Page<Artist> findByType(ArtistType type, Pageable pageable);
+    Page<Artist> findByTypeAndActiveTrue(ArtistType type, Pageable pageable);
 
-    Page<Artist> findByNameContainingIgnoreCaseAndType(String name, ArtistType type, Pageable pageable);
+    Page<Artist> findByNameContainingIgnoreCaseAndTypeAndActiveTrue(String name, ArtistType type, Pageable pageable);
 
-    @Query("SELECT a FROM Artist a WHERE " +
-            "(:name IS NULL OR LOWER(a.name) LIKE LOWER(CONCAT('%', :name, '%'))) AND " +
-            "(:type IS NULL OR a.type = :type) AND " +
-            "a.active = true")
-    Page<Artist> findByFilters(
-            @Param("name") String name,
-            @Param("type") ArtistType type,
-            Pageable pageable
-    );
+    // Removed complex JPQL query due to PostgreSQL bytea/LOWER function incompatibility
+    // Using specific finder methods instead in the service layer
 
     Page<Artist> findByActiveTrue(Pageable pageable);
 

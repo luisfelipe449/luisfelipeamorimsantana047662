@@ -50,7 +50,18 @@ public class ArtistService {
                 : Sort.by(sortBy).ascending();
 
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Artist> artistPage = artistRepository.findByFilters(name, type, pageable);
+        Page<Artist> artistPage;
+
+        // Use specific methods to avoid SQL function issues with null parameters
+        if (name != null && type != null) {
+            artistPage = artistRepository.findByNameContainingIgnoreCaseAndTypeAndActiveTrue(name, type, pageable);
+        } else if (name != null) {
+            artistPage = artistRepository.findByNameContainingIgnoreCaseAndActiveTrue(name, pageable);
+        } else if (type != null) {
+            artistPage = artistRepository.findByTypeAndActiveTrue(type, pageable);
+        } else {
+            artistPage = artistRepository.findByActiveTrue(pageable);
+        }
 
         List<ArtistDTO> artists = artistPage.getContent().stream()
                 .map(this::toDTO)
