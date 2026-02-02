@@ -67,6 +67,7 @@ export class ArtistListComponent implements OnInit, OnDestroy {
     this.facade.filters$
       .pipe(takeUntil(this.destroy$))
       .subscribe(filters => {
+        this.searchTerm = filters.name || '';
         this.sortDirection = filters.sortDirection;
         this.typeFilter = filters.type;
       });

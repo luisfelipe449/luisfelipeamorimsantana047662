@@ -62,6 +62,7 @@ export class AlbumListComponent implements OnInit, OnDestroy {
     this.facade.filters$
       .pipe(takeUntil(this.destroy$))
       .subscribe(filters => {
+        this.searchTerm = filters.title || '';
         this.sortDirection = filters.sortDirection;
       });
   }
