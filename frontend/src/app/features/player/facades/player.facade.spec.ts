@@ -1,13 +1,15 @@
 import { TestBed } from '@angular/core/testing';
 import { PlayerFacade } from './player.facade';
 import { AudioService } from '../services/audio.service';
+import { TrackAudioService } from '@features/albums/services/track-audio.service';
 import { PlayerState, RepeatMode } from '../models/player.model';
 import { TrackDTO } from '@features/albums/models/track.model';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
 describe('PlayerFacade', () => {
   let facade: PlayerFacade;
   let audioService: jasmine.SpyObj<AudioService>;
+  let trackAudioService: jasmine.SpyObj<TrackAudioService>;
   let timeUpdateSubject: Subject<number>;
   let endedSubject: Subject<void>;
   let errorSubject: Subject<string>;
@@ -58,15 +60,20 @@ describe('PlayerFacade', () => {
     audioServiceSpy.load.and.returnValue(of(void 0));
     audioServiceSpy.play.and.returnValue(Promise.resolve());
 
+    const trackAudioServiceSpy = jasmine.createSpyObj('TrackAudioService', ['getStreamUrl']);
+    trackAudioServiceSpy.getStreamUrl.and.returnValue(throwError(() => new Error('No audio')));
+
     TestBed.configureTestingModule({
       providers: [
         PlayerFacade,
-        { provide: AudioService, useValue: audioServiceSpy }
+        { provide: AudioService, useValue: audioServiceSpy },
+        { provide: TrackAudioService, useValue: trackAudioServiceSpy }
       ]
     });
 
     facade = TestBed.inject(PlayerFacade);
     audioService = TestBed.inject(AudioService) as jasmine.SpyObj<AudioService>;
+    trackAudioService = TestBed.inject(TrackAudioService) as jasmine.SpyObj<TrackAudioService>;
   });
 
   afterEach(() => {
@@ -119,7 +126,7 @@ describe('PlayerFacade', () => {
       await facade.playTrack(trackWithoutUrl);
 
       const state = await facade.state.toPromise();
-      expect(state?.error).toBe('No stream URL available for this track');
+      expect(state?.error).toBe('Esta faixa não possui áudio disponível');
       expect(audioService.play).not.toHaveBeenCalled();
     });
 
