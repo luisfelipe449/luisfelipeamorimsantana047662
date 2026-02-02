@@ -128,6 +128,53 @@ docker-compose ps
 - Access Key: `minioadmin`
 - Secret Key: `minioadmin`
 
+## Desenvolvimento Local com Hot Reload
+
+Para desenvolvimento com hot reload, utilize uma estratégia híbrida: Docker apenas para dependências (PostgreSQL e MinIO), enquanto backend e frontend rodam localmente.
+
+### Pré-requisitos
+- Java 17 instalado localmente
+- Node.js 18+ e npm instalados
+- Docker e Docker Compose para as dependências
+
+### Scripts de Desenvolvimento
+
+1. **Iniciar dependências** (PostgreSQL + MinIO):
+```bash
+./start-dev.sh
+```
+
+2. **Backend com hot reload** (em outro terminal):
+```bash
+cd backend
+./mvnw spring-boot:run -Dspring-boot.run.profiles=dev
+```
+
+3. **Frontend com hot reload** (em outro terminal):
+```bash
+cd frontend
+npm install  # primeira vez apenas
+npm start
+```
+
+4. **Parar dependências** quando terminar:
+```bash
+./stop-dev.sh
+```
+
+### URLs de Desenvolvimento
+- **Frontend**: http://localhost:4200
+- **Backend API**: http://localhost:8080/api/v1
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
+- **MinIO Console**: http://localhost:9001
+
+### Vantagens desta Abordagem
+- ✅ Hot reload instantâneo no backend e frontend
+- ✅ Sem rebuild de containers a cada mudança
+- ✅ Desenvolvimento mais rápido e produtivo
+- ✅ Dependências isoladas em containers
+- ✅ Logs em tempo real no terminal
+
 ## Funcionalidades Implementadas
 
 ### Backend (API REST)

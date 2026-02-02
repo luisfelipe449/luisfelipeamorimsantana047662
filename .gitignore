@@ -41,8 +41,3 @@ frontend/coverage/
 
 # Docker
 docker-compose.override.yml
-
-# Local development scripts (environment-specific)
-configure-java17.sh
-JAVA17_SETUP.md
-backend/run-dev.sh
