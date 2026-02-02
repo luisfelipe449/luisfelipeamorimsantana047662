@@ -143,6 +143,53 @@
               </mat-error>
             </mat-form-field>
           </div>
+
+          <mat-divider class="my-6"></mat-divider>
+
+          <!-- Albums Section -->
+          <div class="py-2">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="flex items-center gap-2 text-sm font-semibold text-gray-900 m-0">
+                <mat-icon class="text-xl text-primary">album</mat-icon>
+                Álbuns
+              </h3>
+              <button mat-stroked-button
+                      type="button"
+                      color="primary"
+                      (click)="openAlbumSelector()">
+                <mat-icon>add</mat-icon>
+                Selecionar álbuns
+              </button>
+            </div>
+
+            <!-- Selected Albums List -->
+            <div class="flex flex-wrap gap-2" *ngIf="selectedAlbums.length > 0">
+              <mat-chip-row *ngFor="let album of selectedAlbums"
+                            (removed)="removeAlbum(album.id)">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded overflow-hidden bg-gray-100 flex-shrink-0">
+                    <img *ngIf="album.coverUrl"
+                         [src]="album.coverUrl"
+                         [alt]="album.title"
+                         class="w-full h-full object-cover">
+                    <mat-icon *ngIf="!album.coverUrl" class="text-gray-400 !text-sm !w-6 !h-6 flex items-center justify-center">album</mat-icon>
+                  </div>
+                  <span>{{ album.title }}</span>
+                  <span class="text-gray-400 text-xs" *ngIf="album.releaseYear">({{ album.releaseYear }})</span>
+                </div>
+                <button matChipRemove>
+                  <mat-icon>cancel</mat-icon>
+                </button>
+              </mat-chip-row>
+            </div>
+
+            <!-- Empty State -->
+            <div class="text-center py-6 text-gray-400" *ngIf="selectedAlbums.length === 0">
+              <mat-icon class="!text-3xl !w-8 !h-8 mb-2">album</mat-icon>
+              <p class="text-sm m-0">Nenhum álbum selecionado</p>
+              <p class="text-xs m-0">Clique em "Selecionar álbuns" para vincular</p>
+            </div>
+          </div>
         </div>
       </div>
 

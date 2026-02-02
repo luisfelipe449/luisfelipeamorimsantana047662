@@ -2,9 +2,12 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Subject, takeUntil } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
+import { Subject, takeUntil, take } from 'rxjs';
 import { ArtistsFacade } from '../../facades/artists.facade';
-import { Artist, ArtistType } from '../../models/artist.model';
+import { AlbumsFacade } from '../../../albums/facades/albums.facade';
+import { Artist, ArtistType, AlbumSummary } from '../../models/artist.model';
+import { AlbumSelectorDialogComponent, AlbumOption } from '../../../../shared/components/album-selector-dialog/album-selector-dialog.component';
 
 @Component({
   selector: 'app-artist-form',
@@ -22,6 +25,9 @@ export class ArtistFormComponent implements OnInit, OnDestroy {
   selectedFile: File | null = null;
   photoPreview: string | null = null;
 
+  // Album selection
+  selectedAlbums: AlbumSummary[] = [];
+
   artistTypes: { value: ArtistType; label: string }[] = [
     { value: 'SOLO', label: 'Cantor Solo' },
     { value: 'BAND', label: 'Banda' }
@@ -34,7 +40,9 @@ export class ArtistFormComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private facade: ArtistsFacade,
-    private snackBar: MatSnackBar
+    private albumsFacade: AlbumsFacade,
+    private snackBar: MatSnackBar,
+    private dialog: MatDialog
   ) {}
 
   ngOnInit(): void {
@@ -89,6 +97,7 @@ export class ArtistFormComponent implements OnInit, OnDestroy {
       biography: artist.biography || ''
     });
     this.photoPreview = artist.photoUrl || null;
+    this.selectedAlbums = artist.albums ? [...artist.albums] : [];
   }
 
   onFileSelected(event: Event): void {
@@ -151,6 +160,51 @@ export class ArtistFormComponent implements OnInit, OnDestroy {
     this.photoPreview = null;
   }
 
+  openAlbumSelector(): void {
+    // Load all albums
+    this.albumsFacade.loadAlbums({ size: 100 });
+
+    this.albumsFacade.albums$.pipe(take(2)).subscribe(albums => {
+      if (albums.length === 0) return;
+
+      const availableAlbums: AlbumOption[] = albums.map(album => ({
+        id: album.id,
+        title: album.title,
+        releaseYear: album.releaseYear,
+        coverUrl: album.coverUrl
+      }));
+
+      const selectedAlbumIds = this.selectedAlbums.map(a => a.id);
+
+      const dialogRef = this.dialog.open(AlbumSelectorDialogComponent, {
+        data: {
+          selectedAlbumIds,
+          availableAlbums,
+          title: 'Selecionar Álbuns'
+        },
+        width: '500px'
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result !== null) {
+          // Update selected albums from the result
+          this.selectedAlbums = albums
+            .filter(album => result.includes(album.id))
+            .map(album => ({
+              id: album.id,
+              title: album.title,
+              releaseYear: album.releaseYear,
+              coverUrl: album.coverUrl
+            }));
+        }
+      });
+    });
+  }
+
+  removeAlbum(albumId: number): void {
+    this.selectedAlbums = this.selectedAlbums.filter(a => a.id !== albumId);
+  }
+
   onSubmit(): void {
     if (this.form.invalid) {
       this.form.markAllAsTouched();
@@ -167,7 +221,12 @@ export class ArtistFormComponent implements OnInit, OnDestroy {
   }
 
   private createArtist(formValue: any): void {
-    this.facade.createArtist(formValue).subscribe({
+    const request = {
+      ...formValue,
+      albumIds: this.selectedAlbums.map(a => a.id)
+    };
+
+    this.facade.createArtist(request).subscribe({
       next: (artist) => {
         if (this.selectedFile) {
           this.uploadPhoto(artist.id);
@@ -180,7 +239,12 @@ export class ArtistFormComponent implements OnInit, OnDestroy {
   }
 
   private updateArtist(formValue: any): void {
-    this.facade.updateArtist(this.artistId!, formValue).subscribe({
+    const request = {
+      ...formValue,
+      albumIds: this.selectedAlbums.map(a => a.id)
+    };
+
+    this.facade.updateArtist(this.artistId!, request).subscribe({
       next: () => {
         if (this.selectedFile) {
           this.uploadPhoto(this.artistId!);
