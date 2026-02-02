@@ -305,6 +305,22 @@ export class PlayerFacade implements PlayerEvents {
     });
   }
 
+  close(): void {
+    this.audioService.pause();
+    this.audioService.stop();
+    this.originalPlaylist = [];
+    this.updateState({
+      currentTrack: null,
+      playlist: [],
+      currentIndex: -1,
+      isPlaying: false,
+      currentTime: 0,
+      duration: 0,
+      isLoading: false,
+      error: null
+    });
+  }
+
   private updateMediaSession(track: TrackDTO): void {
     this.audioService.setMediaSessionMetadata(
       track.title,

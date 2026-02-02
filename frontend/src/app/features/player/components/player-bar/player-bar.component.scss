@@ -267,6 +267,17 @@
   }
 }
 
+.close-btn {
+  color: rgba(255, 255, 255, 0.5);
+  transition: all 0.2s ease;
+  margin-left: 8px;
+
+  &:hover {
+    color: rgba(255, 255, 255, 0.9);
+    background: rgba(255, 255, 255, 0.1);
+  }
+}
+
 .volume-control {
   display: flex;
   align-items: center;

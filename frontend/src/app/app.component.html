@@ -105,9 +105,14 @@
   </div>
 </header>
 
-<main class="min-h-[calc(100vh-64px-90px)] bg-gray-50 max-md:min-h-[calc(100vh-56px-90px)] pb-[90px]">
+<main class="bg-gray-50"
+      [class.min-h-[calc(100vh-64px-90px)]]="hasActivePlayer$ | async"
+      [class.min-h-[calc(100vh-64px)]]="!(hasActivePlayer$ | async)"
+      [class.max-md:min-h-[calc(100vh-56px-90px)]]="hasActivePlayer$ | async"
+      [class.max-md:min-h-[calc(100vh-56px)]]="!(hasActivePlayer$ | async)"
+      [class.pb-[90px]]="hasActivePlayer$ | async">
   <router-outlet></router-outlet>
 </main>
 
 <!-- Music Player Bar -->
-<app-player-bar></app-player-bar>
+<app-player-bar *ngIf="hasActivePlayer$ | async"></app-player-bar>

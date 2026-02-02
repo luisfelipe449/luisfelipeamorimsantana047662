@@ -99,6 +99,12 @@ export class AudioService {
     this.audio.pause();
   }
 
+  stop(): void {
+    this.audio.pause();
+    this.audio.currentTime = 0;
+    this.audio.src = '';
+  }
+
   seek(time: number): void {
     if (isFinite(time) && time >= 0 && time <= this.audio.duration) {
       this.audio.currentTime = time;

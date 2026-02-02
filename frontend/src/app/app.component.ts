@@ -1,10 +1,12 @@
 import { Component, OnInit, OnDestroy } from '@angular/core';
 import { Router, NavigationEnd } from '@angular/router';
-import { Subscription, filter } from 'rxjs';
+import { Subscription, filter, Observable } from 'rxjs';
+import { map } from 'rxjs/operators';
 import { AuthService } from './core/services/auth.service';
 import { WebSocketService } from './core/services/websocket.service';
 import { HealthCheckService, HealthStatus } from './core/services/health-check.service';
 import { MatSnackBar } from '@angular/material/snack-bar';
+import { PlayerFacade } from './features/player/facades/player.facade';
 
 @Component({
   selector: 'app-root',
@@ -17,6 +19,7 @@ export class AppComponent implements OnInit, OnDestroy {
   username = '';
   showNavbar = true;
   healthStatus: HealthStatus | null = null;
+  hasActivePlayer$: Observable<boolean>;
   private subscriptions = new Subscription();
 
   constructor(
@@ -24,8 +27,13 @@ export class AppComponent implements OnInit, OnDestroy {
     private wsService: WebSocketService,
     public healthCheckService: HealthCheckService,
     private router: Router,
-    private snackBar: MatSnackBar
-  ) {}
+    private snackBar: MatSnackBar,
+    private playerFacade: PlayerFacade
+  ) {
+    this.hasActivePlayer$ = this.playerFacade.state.pipe(
+      map(state => state.currentTrack !== null)
+    );
+  }
 
   ngOnInit(): void {
     // Start health check monitoring

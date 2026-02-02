@@ -195,4 +195,8 @@ export class PlayerBarComponent implements OnInit, OnDestroy {
         return 'repeat';
     }
   }
+
+  closePlayer(): void {
+    this.playerFacade.close();
+  }
 }
