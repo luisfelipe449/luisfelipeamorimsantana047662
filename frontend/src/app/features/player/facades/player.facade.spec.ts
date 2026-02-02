@@ -101,7 +101,7 @@ describe('PlayerFacade', () => {
     it('should play a single track', async () => {
       await facade.playTrack(mockTrack);
 
-      expect(audioService.load).toHaveBeenCalledWith(mockTrack.streamUrl);
+      expect(audioService.load).toHaveBeenCalledWith(mockTrack.streamUrl!);
       expect(audioService.play).toHaveBeenCalled();
       expect(audioService.setMediaSessionMetadata).toHaveBeenCalled();
     });
@@ -146,14 +146,14 @@ describe('PlayerFacade', () => {
     it('should play album from beginning', async () => {
       await facade.playAlbum(mockPlaylist);
 
-      expect(audioService.load).toHaveBeenCalledWith(mockPlaylist[0].streamUrl);
+      expect(audioService.load).toHaveBeenCalledWith(mockPlaylist[0].streamUrl!);
       expect(audioService.play).toHaveBeenCalled();
     });
 
     it('should play album from specific index', async () => {
       await facade.playAlbum(mockPlaylist, 1);
 
-      expect(audioService.load).toHaveBeenCalledWith(mockPlaylist[1].streamUrl);
+      expect(audioService.load).toHaveBeenCalledWith(mockPlaylist[1].streamUrl!);
     });
 
     it('should handle empty playlist', async () => {

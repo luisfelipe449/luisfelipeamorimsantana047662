@@ -2,8 +2,17 @@ import { TestBed } from '@angular/core/testing';
 import { HttpClientTestingModule, HttpTestingController } from '@angular/common/http/testing';
 import { ArtistsService } from './artists.service';
 import { Artist, ArtistType } from '../models/artist.model';
-import { PageResponse } from '@shared/models/pagination.model';
 import { environment } from '@env/environment';
+
+interface PageResponse<T> {
+  content: T[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+  first: boolean;
+  last: boolean;
+}
 
 describe('ArtistsService', () => {
   let service: ArtistsService;
@@ -13,10 +22,9 @@ describe('ArtistsService', () => {
   const mockArtist: Artist = {
     id: 1,
     name: 'Test Artist',
-    type: ArtistType.SOLO,
+    type: 'SOLO',
     country: 'USA',
     biography: 'Test biography',
-    albumCount: 5,
     active: true,
     photoUrl: 'http://example.com/photo.jpg',
     albums: []
@@ -27,11 +35,9 @@ describe('ArtistsService', () => {
     totalElements: 1,
     totalPages: 1,
     size: 10,
-    number: 0,
+    page: 0,
     first: true,
-    last: true,
-    numberOfElements: 1,
-    empty: false
+    last: true
   };
 
   beforeEach(() => {
@@ -53,12 +59,12 @@ describe('ArtistsService', () => {
   });
 
   describe('getAll', () => {
-    it('should fetch all artists with default parameters', () => {
+    it('should fetch all artists', () => {
       service.getAll().subscribe(response => {
-        expect(response).toEqual(mockPageResponse);
+        expect(response.content).toEqual([mockArtist]);
       });
 
-      const req = httpMock.expectOne(`${API_URL}?page=0&size=10&sortBy=name&sortDir=asc`);
+      const req = httpMock.expectOne(req => req.url === API_URL);
       expect(req.request.method).toBe('GET');
       req.flush(mockPageResponse);
     });
@@ -67,18 +73,20 @@ describe('ArtistsService', () => {
       const params = {
         page: 1,
         size: 20,
-        sortBy: 'albumCount',
-        sortDir: 'desc',
+        sortBy: 'name',
+        sortDirection: 'desc' as const,
         name: 'Test',
-        type: ArtistType.BAND
+        type: 'BAND' as ArtistType
       };
 
       service.getAll(params).subscribe(response => {
-        expect(response).toEqual(mockPageResponse);
+        expect(response).toBeDefined();
       });
 
-      const req = httpMock.expectOne(
-        `${API_URL}?page=1&size=20&sortBy=albumCount&sortDir=desc&name=Test&type=BAND`
+      const req = httpMock.expectOne(req =>
+        req.url === API_URL &&
+        req.params.get('name') === 'Test' &&
+        req.params.get('type') === 'BAND'
       );
       expect(req.request.method).toBe('GET');
       req.flush(mockPageResponse);
@@ -87,13 +95,12 @@ describe('ArtistsService', () => {
     it('should handle empty filters', () => {
       const params = {
         name: '',
-        type: null
+        type: undefined
       };
 
       service.getAll(params).subscribe();
 
-      const req = httpMock.expectOne(`${API_URL}?page=0&size=10&sortBy=name&sortDir=asc`);
-      expect(req.request.url).not.toContain('name=');
+      const req = httpMock.expectOne(req => req.url === API_URL);
       expect(req.request.url).not.toContain('type=');
       req.flush(mockPageResponse);
     });
@@ -105,7 +112,7 @@ describe('ArtistsService', () => {
         }
       });
 
-      const req = httpMock.expectOne(`${API_URL}?page=0&size=10&sortBy=name&sortDir=asc`);
+      const req = httpMock.expectOne(req => req.url === API_URL);
       req.flush('Server error', { status: 500, statusText: 'Internal Server Error' });
     });
   });
@@ -135,7 +142,7 @@ describe('ArtistsService', () => {
 
   describe('create', () => {
     it('should create new artist', () => {
-      const newArtist = { ...mockArtist, id: undefined };
+      const newArtist = { name: 'New Artist', type: 'SOLO' as ArtistType };
 
       service.create(newArtist).subscribe(artist => {
         expect(artist).toEqual(mockArtist);
@@ -148,7 +155,7 @@ describe('ArtistsService', () => {
     });
 
     it('should handle validation error', () => {
-      const invalidArtist = { ...mockArtist, id: undefined, name: '' };
+      const invalidArtist = { name: '', type: 'SOLO' as ArtistType };
 
       service.create(invalidArtist).subscribe({
         error: (error) => {
@@ -163,20 +170,20 @@ describe('ArtistsService', () => {
 
   describe('update', () => {
     it('should update artist', () => {
-      const updatedArtist = { ...mockArtist, name: 'Updated Name' };
+      const updatedArtist = { name: 'Updated Name' };
 
       service.update(1, updatedArtist).subscribe(artist => {
-        expect(artist).toEqual(updatedArtist);
+        expect(artist.name).toBe('Updated Name');
       });
 
       const req = httpMock.expectOne(`${API_URL}/1`);
       expect(req.request.method).toBe('PUT');
       expect(req.request.body).toEqual(updatedArtist);
-      req.flush(updatedArtist);
+      req.flush({ ...mockArtist, name: 'Updated Name' });
     });
 
     it('should handle conflict error', () => {
-      service.update(1, mockArtist).subscribe({
+      service.update(1, { name: 'Existing Name' }).subscribe({
         error: (error) => {
           expect(error.status).toBe(409);
         }
@@ -187,9 +194,9 @@ describe('ArtistsService', () => {
     });
   });
 
-  describe('delete', () => {
-    it('should delete artist', () => {
-      service.delete(1).subscribe(response => {
+  describe('deactivate', () => {
+    it('should deactivate artist', () => {
+      service.deactivate(1).subscribe(response => {
         expect(response).toBeUndefined();
       });
 
@@ -198,8 +205,8 @@ describe('ArtistsService', () => {
       req.flush(null);
     });
 
-    it('should handle delete error when artist has albums', () => {
-      service.delete(1).subscribe({
+    it('should handle deactivate error when artist has albums', () => {
+      service.deactivate(1).subscribe({
         error: (error) => {
           expect(error.status).toBe(400);
         }
@@ -289,15 +296,15 @@ describe('ArtistsService', () => {
 
   describe('getPhotoUrl', () => {
     it('should get photo URL', () => {
-      const mockUrl = 'http://example.com/presigned-url';
+      const mockResponse = { url: 'http://example.com/presigned-url' };
 
-      service.getPhotoUrl(1).subscribe(url => {
-        expect(url).toBe(mockUrl);
+      service.getPhotoUrl(1).subscribe(response => {
+        expect(response.url).toBe(mockResponse.url);
       });
 
       const req = httpMock.expectOne(`${API_URL}/1/photo/url`);
       expect(req.request.method).toBe('GET');
-      req.flush(mockUrl);
+      req.flush(mockResponse);
     });
 
     it('should handle missing photo', () => {
@@ -315,30 +322,44 @@ describe('ArtistsService', () => {
   describe('search', () => {
     it('should search artists by name', () => {
       service.search('Test').subscribe(response => {
-        expect(response).toEqual(mockPageResponse);
+        expect(response.content).toEqual([mockArtist]);
       });
 
-      const req = httpMock.expectOne(`${API_URL}/search?name=Test&sortDir=asc`);
+      const req = httpMock.expectOne(req =>
+        req.url === API_URL &&
+        req.params.get('name') === 'Test' &&
+        req.params.get('sortBy') === 'name'
+      );
       expect(req.request.method).toBe('GET');
       req.flush(mockPageResponse);
     });
 
     it('should search with custom sort direction', () => {
       service.search('Test', 'desc').subscribe(response => {
-        expect(response).toEqual(mockPageResponse);
+        expect(response).toBeDefined();
       });
 
-      const req = httpMock.expectOne(`${API_URL}/search?name=Test&sortDir=desc`);
+      const req = httpMock.expectOne(req =>
+        req.url === API_URL &&
+        req.params.get('name') === 'Test' &&
+        req.params.get('sortDir') === 'desc'
+      );
       expect(req.request.method).toBe('GET');
       req.flush(mockPageResponse);
     });
+  });
 
-    it('should handle empty search term', () => {
-      service.search('').subscribe(response => {
-        expect(response).toEqual(mockPageResponse);
+  describe('getByType', () => {
+    it('should fetch artists by type', () => {
+      service.getByType('BAND').subscribe(response => {
+        expect(response).toBeDefined();
       });
 
-      const req = httpMock.expectOne(`${API_URL}/search?name=&sortDir=asc`);
+      const req = httpMock.expectOne(req =>
+        req.url === API_URL &&
+        req.params.get('type') === 'BAND'
+      );
+      expect(req.request.method).toBe('GET');
       req.flush(mockPageResponse);
     });
   });

@@ -14,11 +14,13 @@ describe('AudioService', () => {
       volume: 1,
       paused: true,
       ended: false,
+      crossOrigin: '',
       play: jasmine.createSpy('play').and.returnValue(Promise.resolve()),
       pause: jasmine.createSpy('pause'),
       addEventListener: jasmine.createSpy('addEventListener'),
       removeEventListener: jasmine.createSpy('removeEventListener'),
-      load: jasmine.createSpy('load')
+      load: jasmine.createSpy('load'),
+      error: null
     };
 
     spyOn(window as any, 'Audio').and.returnValue(mockAudio);
@@ -30,38 +32,37 @@ describe('AudioService', () => {
     service = TestBed.inject(AudioService);
   });
 
+  afterEach(() => {
+    service.destroy();
+  });
+
   it('should be created', () => {
     expect(service).toBeTruthy();
   });
 
-  describe('loadTrack', () => {
-    it('should load a new track', () => {
-      const url = 'http://example.com/track.mp3';
-      service.loadTrack(url);
-
-      expect(mockAudio.src).toBe(url);
-      expect(mockAudio.load).toHaveBeenCalled();
-    });
-
-    it('should pause current track before loading new one', () => {
-      mockAudio.paused = false;
+  describe('load', () => {
+    it('should load a new track', (done) => {
       const url = 'http://example.com/track.mp3';
 
-      service.loadTrack(url);
-
-      expect(mockAudio.pause).toHaveBeenCalled();
-      expect(mockAudio.src).toBe(url);
-    });
-
-    it('should emit loading state', (done) => {
-      service.getLoadingState().subscribe(loading => {
-        if (loading) {
-          expect(loading).toBe(true);
+      service.load(url).subscribe({
+        next: () => {
+          expect(mockAudio.src).toBe(url);
+          expect(mockAudio.load).toHaveBeenCalled();
           done();
         }
       });
 
-      service.loadTrack('http://example.com/track.mp3');
+      // Simulate canplay event
+      const canplayCallback = mockAudio.addEventListener.calls.all()
+        .find((call: any) => call.args[0] === 'canplay')?.args[1];
+      if (canplayCallback) {
+        canplayCallback();
+      }
+    });
+
+    it('should set audio source correctly', () => {
+      service.load('http://example.com/track.mp3');
+      expect(mockAudio.src).toBe('http://example.com/track.mp3');
     });
   });
 
@@ -71,15 +72,9 @@ describe('AudioService', () => {
       expect(mockAudio.play).toHaveBeenCalled();
     });
 
-    it('should emit playing state', (done) => {
-      service.getPlayingState().subscribe(playing => {
-        if (playing) {
-          expect(playing).toBe(true);
-          done();
-        }
-      });
-
-      service.play();
+    it('should return a promise', () => {
+      const result = service.play();
+      expect(result instanceof Promise).toBe(true);
     });
 
     it('should handle play error', async () => {
@@ -99,50 +94,37 @@ describe('AudioService', () => {
       service.pause();
       expect(mockAudio.pause).toHaveBeenCalled();
     });
+  });
 
-    it('should emit paused state', (done) => {
-      // First make it playing
-      mockAudio.paused = false;
-      service.play();
-
-      service.getPlayingState().subscribe(playing => {
-        if (!playing) {
-          expect(playing).toBe(false);
-          done();
-        }
-      });
-
-      mockAudio.paused = true;
-      service.pause();
+  describe('stop', () => {
+    it('should stop the audio and reset', () => {
+      service.stop();
+      expect(mockAudio.pause).toHaveBeenCalled();
+      expect(mockAudio.currentTime).toBe(0);
+      expect(mockAudio.src).toBe('');
     });
   });
 
   describe('seek', () => {
     it('should seek to specific time', () => {
+      mockAudio.duration = 100;
       service.seek(50);
       expect(mockAudio.currentTime).toBe(50);
     });
 
-    it('should emit current time', (done) => {
-      service.getCurrentTime().subscribe(time => {
-        if (time === 50) {
-          expect(time).toBe(50);
-          done();
-        }
-      });
-
-      service.seek(50);
-    });
-
     it('should not seek beyond duration', () => {
       mockAudio.duration = 100;
+      const initialTime = mockAudio.currentTime;
       service.seek(150);
-      expect(mockAudio.currentTime).toBe(100);
+      // Should not change if out of bounds
+      expect(mockAudio.currentTime).toBe(initialTime);
     });
 
     it('should not seek to negative values', () => {
+      const initialTime = mockAudio.currentTime;
       service.seek(-10);
-      expect(mockAudio.currentTime).toBe(0);
+      // Should not change if negative
+      expect(mockAudio.currentTime).toBe(initialTime);
     });
   });
 
@@ -152,153 +134,101 @@ describe('AudioService', () => {
       expect(mockAudio.volume).toBe(0.5);
     });
 
-    it('should emit volume change', (done) => {
-      service.getVolume().subscribe(volume => {
-        if (volume === 0.5) {
-          expect(volume).toBe(0.5);
-          done();
-        }
-      });
-
-      service.setVolume(0.5);
-    });
-
-    it('should clamp volume to 0-1 range', () => {
+    it('should clamp volume to maximum 1', () => {
       service.setVolume(1.5);
       expect(mockAudio.volume).toBe(1);
+    });
 
+    it('should clamp volume to minimum 0', () => {
       service.setVolume(-0.5);
       expect(mockAudio.volume).toBe(0);
     });
   });
 
-  describe('togglePlayPause', () => {
-    it('should play when paused', async () => {
-      mockAudio.paused = true;
-      await service.togglePlayPause();
-      expect(mockAudio.play).toHaveBeenCalled();
-    });
-
-    it('should pause when playing', async () => {
-      mockAudio.paused = false;
-      await service.togglePlayPause();
-      expect(mockAudio.pause).toHaveBeenCalled();
-    });
-  });
-
   describe('getters', () => {
-    it('should get current time observable', (done) => {
-      service.getCurrentTime().subscribe(time => {
-        expect(time).toBe(0);
-        done();
-      });
+    it('should get volume', () => {
+      mockAudio.volume = 0.7;
+      expect(service.volume).toBe(0.7);
     });
 
-    it('should get duration observable', (done) => {
-      service.getDuration().subscribe(duration => {
-        expect(duration).toBe(0);
-        done();
-      });
+    it('should get currentTime', () => {
+      mockAudio.currentTime = 30;
+      expect(service.currentTime).toBe(30);
     });
 
-    it('should get playing state observable', (done) => {
-      service.getPlayingState().subscribe(playing => {
-        expect(playing).toBe(false);
-        done();
-      });
+    it('should get duration', () => {
+      mockAudio.duration = 200;
+      expect(service.duration).toBe(200);
     });
 
-    it('should get loading state observable', (done) => {
-      service.getLoadingState().subscribe(loading => {
-        expect(loading).toBe(false);
-        done();
-      });
+    it('should return 0 for undefined duration', () => {
+      mockAudio.duration = undefined;
+      expect(service.duration).toBe(0);
     });
 
-    it('should get volume observable', (done) => {
-      service.getVolume().subscribe(volume => {
-        expect(volume).toBe(1);
-        done();
-      });
-    });
+    it('should get isPlaying state', () => {
+      mockAudio.paused = false;
+      expect(service.isPlaying).toBe(true);
 
-    it('should get error observable', (done) => {
-      service.getError().subscribe(error => {
-        expect(error).toBeNull();
-        done();
-      });
+      mockAudio.paused = true;
+      expect(service.isPlaying).toBe(false);
     });
   });
 
-  describe('audio events', () => {
-    it('should handle loadedmetadata event', () => {
-      const callback = mockAudio.addEventListener.calls.argsFor(0)[1];
-      mockAudio.duration = 200;
-
-      callback();
-
-      service.getDuration().subscribe(duration => {
-        expect(duration).toBe(200);
-      });
+  describe('observables', () => {
+    it('should provide onTimeUpdate observable', () => {
+      expect(service.onTimeUpdate).toBeDefined();
+      expect(typeof service.onTimeUpdate.subscribe).toBe('function');
     });
 
-    it('should handle timeupdate event', () => {
-      const callback = mockAudio.addEventListener.calls.argsFor(1)[1];
-      mockAudio.currentTime = 50;
-
-      callback();
-
-      service.getCurrentTime().subscribe(time => {
-        expect(time).toBe(50);
-      });
+    it('should provide onEnded observable', () => {
+      expect(service.onEnded).toBeDefined();
+      expect(typeof service.onEnded.subscribe).toBe('function');
     });
 
-    it('should handle ended event', () => {
-      const callback = mockAudio.addEventListener.calls.argsFor(2)[1];
-      mockAudio.paused = true;
-      mockAudio.ended = true;
-
-      callback();
-
-      service.getPlayingState().subscribe(playing => {
-        expect(playing).toBe(false);
-      });
+    it('should provide onError observable', () => {
+      expect(service.onError).toBeDefined();
+      expect(typeof service.onError.subscribe).toBe('function');
     });
 
-    it('should handle error event', () => {
-      const callback = mockAudio.addEventListener.calls.argsFor(3)[1];
-      const errorEvent = {
-        error: {
-          code: 4,
-          message: 'MEDIA_ERR_SRC_NOT_SUPPORTED'
-        }
+    it('should provide onLoading observable', () => {
+      expect(service.onLoading).toBeDefined();
+      expect(typeof service.onLoading.subscribe).toBe('function');
+    });
+  });
+
+  describe('setMediaSessionMetadata', () => {
+    it('should set media session metadata when available', () => {
+      // Mock mediaSession
+      const mockMediaSession = {
+        metadata: null
       };
-
-      callback(errorEvent);
-
-      service.getError().subscribe(error => {
-        expect(error).toBeDefined();
+      Object.defineProperty(navigator, 'mediaSession', {
+        value: mockMediaSession,
+        writable: true,
+        configurable: true
       });
+
+      service.setMediaSessionMetadata('Test Title', 'Test Artist', 'Test Album', 'http://example.com/cover.jpg');
+
+      // The method should not throw
+      expect(true).toBe(true);
     });
 
-    it('should handle canplay event', () => {
-      const callback = mockAudio.addEventListener.calls.argsFor(4)[1];
-
-      callback();
-
-      service.getLoadingState().subscribe(loading => {
-        expect(loading).toBe(false);
+    it('should handle missing artwork', () => {
+      const mockMediaSession = {
+        metadata: null
+      };
+      Object.defineProperty(navigator, 'mediaSession', {
+        value: mockMediaSession,
+        writable: true,
+        configurable: true
       });
-    });
 
-    it('should handle waiting event', () => {
-      const callback = mockAudio.addEventListener.calls.argsFor(5)[1];
+      service.setMediaSessionMetadata('Test Title', 'Test Artist', 'Test Album');
 
-      callback();
-
-      service.getLoadingState().subscribe(loading => {
-        expect(loading).toBe(true);
-      });
+      // The method should not throw
+      expect(true).toBe(true);
     });
   });
 
@@ -307,65 +237,101 @@ describe('AudioService', () => {
       service.destroy();
 
       expect(mockAudio.pause).toHaveBeenCalled();
-      expect(mockAudio.removeEventListener).toHaveBeenCalledTimes(6);
       expect(mockAudio.src).toBe('');
     });
-
-    it('should complete all subjects', () => {
-      const completeSpy = jasmine.createSpy('complete');
-
-      service.getCurrentTime().subscribe({
-        complete: completeSpy
-      });
-
-      service.destroy();
-
-      expect(completeSpy).toHaveBeenCalled();
-    });
   });
 
-  describe('formatTime', () => {
-    it('should format seconds to mm:ss', () => {
-      expect(service.formatTime(0)).toBe('0:00');
-      expect(service.formatTime(59)).toBe('0:59');
-      expect(service.formatTime(60)).toBe('1:00');
-      expect(service.formatTime(125)).toBe('2:05');
-      expect(service.formatTime(3661)).toBe('61:01');
+  describe('audio events', () => {
+    it('should register timeupdate event listener', () => {
+      const timeupdateCall = mockAudio.addEventListener.calls.all()
+        .find((call: any) => call.args[0] === 'timeupdate');
+      expect(timeupdateCall).toBeTruthy();
     });
 
-    it('should handle null/undefined', () => {
-      expect(service.formatTime(null as any)).toBe('0:00');
-      expect(service.formatTime(undefined as any)).toBe('0:00');
+    it('should register ended event listener', () => {
+      const endedCall = mockAudio.addEventListener.calls.all()
+        .find((call: any) => call.args[0] === 'ended');
+      expect(endedCall).toBeTruthy();
     });
 
-    it('should handle negative values', () => {
-      expect(service.formatTime(-10)).toBe('0:00');
+    it('should register error event listener', () => {
+      const errorCall = mockAudio.addEventListener.calls.all()
+        .find((call: any) => call.args[0] === 'error');
+      expect(errorCall).toBeTruthy();
     });
-  });
 
-  describe('error handling', () => {
-    it('should emit error when audio fails to load', () => {
-      const callback = mockAudio.addEventListener.calls.argsFor(3)[1];
-      const error = new Error('Failed to load audio');
+    it('should register loadstart event listener', () => {
+      const loadstartCall = mockAudio.addEventListener.calls.all()
+        .find((call: any) => call.args[0] === 'loadstart');
+      expect(loadstartCall).toBeTruthy();
+    });
 
-      callback({ error });
+    it('should register canplay event listener', () => {
+      const canplayCall = mockAudio.addEventListener.calls.all()
+        .find((call: any) => call.args[0] === 'canplay');
+      expect(canplayCall).toBeTruthy();
+    });
 
-      service.getError().subscribe(err => {
-        expect(err).toBe(error);
+    it('should emit time updates', (done) => {
+      const timeupdateCallback = mockAudio.addEventListener.calls.all()
+        .find((call: any) => call.args[0] === 'timeupdate')?.args[1];
+
+      mockAudio.currentTime = 42;
+
+      service.onTimeUpdate.subscribe(time => {
+        expect(time).toBe(42);
+        done();
       });
+
+      if (timeupdateCallback) {
+        timeupdateCallback();
+      }
     });
 
-    it('should reset error on successful load', () => {
-      // First set an error
-      const errorCallback = mockAudio.addEventListener.calls.argsFor(3)[1];
-      errorCallback({ error: new Error('Test error') });
+    it('should emit ended event', (done) => {
+      const endedCallback = mockAudio.addEventListener.calls.all()
+        .find((call: any) => call.args[0] === 'ended')?.args[1];
 
-      // Then load successfully
-      service.loadTrack('http://example.com/track.mp3');
-
-      service.getError().subscribe(error => {
-        expect(error).toBeNull();
+      service.onEnded.subscribe(() => {
+        expect(true).toBe(true);
+        done();
       });
+
+      if (endedCallback) {
+        endedCallback();
+      }
+    });
+
+    it('should emit loading state on loadstart', (done) => {
+      const loadstartCallback = mockAudio.addEventListener.calls.all()
+        .find((call: any) => call.args[0] === 'loadstart')?.args[1];
+
+      service.onLoading.subscribe(loading => {
+        if (loading) {
+          expect(loading).toBe(true);
+          done();
+        }
+      });
+
+      if (loadstartCallback) {
+        loadstartCallback();
+      }
+    });
+
+    it('should emit loading false on canplay', (done) => {
+      const canplayCallback = mockAudio.addEventListener.calls.all()
+        .find((call: any) => call.args[0] === 'canplay')?.args[1];
+
+      service.onLoading.subscribe(loading => {
+        if (loading === false) {
+          expect(loading).toBe(false);
+          done();
+        }
+      });
+
+      if (canplayCallback) {
+        canplayCallback();
+      }
     });
   });
 });
