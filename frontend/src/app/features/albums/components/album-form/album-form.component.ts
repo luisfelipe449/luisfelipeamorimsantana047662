@@ -520,6 +520,7 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
     return this.tracks
       .filter(t => t.title.trim())
       .map((t, index) => ({
+        id: t.id,  // Incluir ID para preservar metadados de áudio
         title: t.title.trim(),
         trackNumber: index + 1,
         duration: t.duration

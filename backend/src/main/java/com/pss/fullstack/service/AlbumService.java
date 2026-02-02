@@ -19,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -194,15 +195,33 @@ public class AlbumService {
             album.setArtists(artists);
         }
 
-        // Process tracks if provided (replace all tracks)
+        // Process tracks if provided
         if (dto.getTracks() != null) {
+            // Mapear tracks existentes por ID para preservar metadados de áudio
+            Map<Long, Track> existingTracks = album.getTracks().stream()
+                    .filter(t -> t.getId() != null)
+                    .collect(Collectors.toMap(Track::getId, t -> t));
+
+            // Limpar e forçar flush para evitar constraint violation (UNIQUE album_id, track_number)
             album.getTracks().clear();
+            albumRepository.flush();
+
             for (TrackInputDTO trackDto : dto.getTracks()) {
-                Track track = Track.builder()
-                        .title(trackDto.getTitle())
-                        .trackNumber(trackDto.getTrackNumber())
-                        .duration(trackDto.getDuration())
-                        .build();
+                Track track;
+                if (trackDto.getId() != null && existingTracks.containsKey(trackDto.getId())) {
+                    // Atualiza track existente, preservando metadados de áudio
+                    track = existingTracks.get(trackDto.getId());
+                    track.setTitle(trackDto.getTitle());
+                    track.setTrackNumber(trackDto.getTrackNumber());
+                    track.setDuration(trackDto.getDuration());
+                } else {
+                    // Cria nova track
+                    track = Track.builder()
+                            .title(trackDto.getTitle())
+                            .trackNumber(trackDto.getTrackNumber())
+                            .duration(trackDto.getDuration())
+                            .build();
+                }
                 album.addTrack(track);
             }
             album.updateTrackMetadata();

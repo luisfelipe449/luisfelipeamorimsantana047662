@@ -14,6 +14,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class TrackInputDTO {
 
+    private Long id;  // null para novas faixas, preenchido para existentes
+
     @NotBlank(message = "Track title is required")
     private String title;
 
