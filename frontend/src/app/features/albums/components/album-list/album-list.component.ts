@@ -15,7 +15,7 @@ export class AlbumListComponent implements OnInit, OnDestroy {
   loading = false;
   searchTerm = '';
   sortDirection: 'asc' | 'desc' = 'asc';
-  viewMode: 'list' | 'grid' = 'list';
+  viewMode: 'list' | 'grid' = 'grid';
 
   // Pagination
   totalElements = 0;
