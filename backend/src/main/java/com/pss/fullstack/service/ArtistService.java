@@ -2,8 +2,10 @@ package com.pss.fullstack.service;
 
 import com.pss.fullstack.dto.*;
 import com.pss.fullstack.exception.ResourceNotFoundException;
+import com.pss.fullstack.model.Album;
 import com.pss.fullstack.model.Artist;
 import com.pss.fullstack.model.ArtistType;
+import com.pss.fullstack.repository.AlbumRepository;
 import com.pss.fullstack.repository.ArtistRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -15,7 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -24,6 +28,7 @@ import java.util.stream.Collectors;
 public class ArtistService {
 
     private final ArtistRepository artistRepository;
+    private final AlbumRepository albumRepository;
     private final StorageService storageService;
     private final UrlGeneratorService urlGeneratorService;
 
@@ -84,6 +89,15 @@ public class ArtistService {
         Artist artist = dto.toEntity();
         artist = artistRepository.save(artist);
 
+        // Link albums if provided
+        if (dto.getAlbumIds() != null && !dto.getAlbumIds().isEmpty()) {
+            List<Album> albums = albumRepository.findAllById(dto.getAlbumIds());
+            for (Album album : albums) {
+                artist.addAlbum(album);
+            }
+            artist = artistRepository.save(artist);
+        }
+
         log.info("Artist created with id: {}", artist.getId());
         return toDTO(artist);
     }
@@ -109,6 +123,33 @@ public class ArtistService {
         }
         if (dto.getActive() != null) {
             artist.setActive(dto.getActive());
+        }
+
+        // Update album links if provided
+        if (dto.getAlbumIds() != null) {
+            // Get current album IDs
+            Set<Long> currentAlbumIds = artist.getAlbums().stream()
+                    .map(Album::getId)
+                    .collect(Collectors.toSet());
+            Set<Long> newAlbumIds = new HashSet<>(dto.getAlbumIds());
+
+            // Remove albums that are no longer in the list
+            Set<Long> toRemove = new HashSet<>(currentAlbumIds);
+            toRemove.removeAll(newAlbumIds);
+            for (Long albumId : toRemove) {
+                Album album = albumRepository.findById(albumId).orElse(null);
+                if (album != null) {
+                    artist.removeAlbum(album);
+                }
+            }
+
+            // Add new albums
+            Set<Long> toAdd = new HashSet<>(newAlbumIds);
+            toAdd.removeAll(currentAlbumIds);
+            List<Album> albumsToAdd = albumRepository.findAllById(toAdd);
+            for (Album album : albumsToAdd) {
+                artist.addAlbum(album);
+            }
         }
 
         artist = artistRepository.save(artist);

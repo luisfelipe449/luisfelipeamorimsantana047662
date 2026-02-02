@@ -10,6 +10,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -28,6 +30,8 @@ public class ArtistCreateDTO {
 
     @Size(max = 1000, message = "Biography must be at most 1000 characters")
     private String biography;
+
+    private List<Long> albumIds;
 
     public Artist toEntity() {
         return Artist.builder()
