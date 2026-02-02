@@ -48,12 +48,12 @@ export class AppComponent implements OnInit, OnDestroy {
         // Show notification when status changes
         if (previousStatus && previousStatus.isHealthy !== status.isHealthy) {
           if (status.isHealthy) {
-            this.snackBar.open('Connection to server restored', 'OK', {
+            this.snackBar.open('Conexão com o servidor restaurada', 'OK', {
               duration: 3000,
               panelClass: ['success-snackbar']
             });
           } else {
-            this.snackBar.open('Connection to server lost. Some features may be unavailable.', 'Retry', {
+            this.snackBar.open('Conexão com o servidor perdida. Alguns recursos podem estar indisponíveis.', 'Reconectar', {
               duration: 0,  // Keep open until dismissed
               panelClass: ['error-snackbar']
             }).onAction().subscribe(() => {
