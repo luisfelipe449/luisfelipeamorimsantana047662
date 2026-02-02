@@ -45,8 +45,8 @@ export class AppComponent implements OnInit, OnDestroy {
         const previousStatus = this.healthStatus;
         this.healthStatus = status;
 
-        // Show notification when status changes
-        if (previousStatus && previousStatus.isHealthy !== status.isHealthy) {
+        // Show notification when status changes (only after a real previous check)
+        if (previousStatus && previousStatus.lastCheck && previousStatus.isHealthy !== status.isHealthy) {
           if (status.isHealthy) {
             this.snackBar.open('Conexão com o servidor restaurada', 'OK', {
               duration: 3000,
