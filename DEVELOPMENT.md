@@ -4,10 +4,35 @@ Este guia explica como rodar o projeto em modo de desenvolvimento local com hot 
 
 ## Pré-requisitos
 
-- Java 17+
+- **Java 17** (obrigatório para o backend)
 - Node.js 18+
 - Docker e Docker Compose
 - Maven (ou use o wrapper `./mvnw`)
+
+### Instalação do Java 17
+
+#### Windows
+- Download do [Oracle JDK 17](https://www.oracle.com/java/technologies/downloads/#java17) ou [OpenJDK 17](https://adoptium.net/temurin/releases/?version=17)
+- Configurar JAVA_HOME nas variáveis de ambiente
+
+#### macOS
+```bash
+# Via Homebrew
+brew install openjdk@17
+
+# Configurar JAVA_HOME no ~/.zshrc ou ~/.bashrc
+export JAVA_HOME=/opt/homebrew/opt/openjdk@17
+export PATH=$JAVA_HOME/bin:$PATH
+```
+
+#### Linux
+```bash
+# Ubuntu/Debian
+sudo apt-get install openjdk-17-jdk
+
+# Fedora/RHEL
+sudo dnf install java-17-openjdk-devel
+```
 
 ## Início Rápido
 
