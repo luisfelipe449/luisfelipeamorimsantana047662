@@ -8,6 +8,8 @@ import { ArtistFormComponent } from './components/artist-form/artist-form.compon
 
 import { ArtistsFacade } from './facades/artists.facade';
 import { ArtistsService } from './services/artists.service';
+import { AlbumsFacade } from '../albums/facades/albums.facade';
+import { AlbumsService } from '../albums/services/albums.service';
 
 @NgModule({
   declarations: [
@@ -21,7 +23,9 @@ import { ArtistsService } from './services/artists.service';
   ],
   providers: [
     ArtistsService,
-    ArtistsFacade
+    ArtistsFacade,
+    AlbumsService,
+    AlbumsFacade
   ]
 })
 export class ArtistsModule { }

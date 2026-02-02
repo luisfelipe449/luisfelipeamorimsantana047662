@@ -113,10 +113,16 @@
             <p class="text-sm text-gray-500 m-0">{{ artist.albums?.length || 0 }} álbuns cadastrados</p>
           </div>
         </div>
-        <button mat-raised-button color="primary" (click)="createAlbum()">
-          <mat-icon>add</mat-icon>
-          Novo álbum
-        </button>
+        <div class="flex gap-2">
+          <button mat-stroked-button color="primary" (click)="linkAlbums()">
+            <mat-icon>link</mat-icon>
+            Vincular álbum
+          </button>
+          <button mat-raised-button color="primary" (click)="createAlbum()">
+            <mat-icon>add</mat-icon>
+            Novo álbum
+          </button>
+        </div>
       </div>
 
       <!-- Lista de álbuns -->

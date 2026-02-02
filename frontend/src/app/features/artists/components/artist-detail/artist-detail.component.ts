@@ -4,8 +4,10 @@ import { MatSnackBar } from '@angular/material/snack-bar';
 import { MatDialog } from '@angular/material/dialog';
 import { Subject, takeUntil } from 'rxjs';
 import { ArtistsFacade } from '../../facades/artists.facade';
+import { AlbumsFacade } from '../../../albums/facades/albums.facade';
 import { Artist } from '../../models/artist.model';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { AlbumSelectorDialogComponent, AlbumOption } from '../../../../shared/components/album-selector-dialog/album-selector-dialog.component';
 
 @Component({
   selector: 'app-artist-detail',
@@ -23,6 +25,7 @@ export class ArtistDetailComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private facade: ArtistsFacade,
+    private albumsFacade: AlbumsFacade,
     private snackBar: MatSnackBar,
     private dialog: MatDialog
   ) {}
@@ -79,6 +82,56 @@ export class ArtistDetailComponent implements OnInit, OnDestroy {
 
   getTypeLabel(type: string): string {
     return type === 'SOLO' ? 'Cantor Solo' : 'Banda';
+  }
+
+  linkAlbums(): void {
+    if (!this.artist) return;
+
+    // Load all albums to show in dialog
+    this.albumsFacade.loadAlbums({ size: 100 });
+
+    // Wait for albums to load
+    this.albumsFacade.albums$.pipe(takeUntil(this.destroy$)).subscribe(albums => {
+      if (albums.length === 0) return;
+
+      const availableAlbums: AlbumOption[] = albums.map(album => ({
+        id: album.id,
+        title: album.title,
+        releaseYear: album.releaseYear,
+        coverUrl: album.coverUrl
+      }));
+
+      const selectedAlbumIds = this.artist?.albums?.map(a => a.id) || [];
+
+      const dialogRef = this.dialog.open(AlbumSelectorDialogComponent, {
+        data: {
+          selectedAlbumIds,
+          availableAlbums,
+          title: 'Vincular Álbuns'
+        },
+        width: '500px'
+      });
+
+      dialogRef.afterClosed().subscribe(result => {
+        if (result !== null && this.artist) {
+          this.facade.updateArtist(this.artist.id, { albumIds: result }).subscribe({
+            next: () => {
+              this.snackBar.open('Álbuns vinculados com sucesso!', 'Fechar', {
+                duration: 3000,
+                panelClass: ['success-snackbar']
+              });
+              this.facade.loadArtist(this.artist!.id);
+            },
+            error: () => {
+              this.snackBar.open('Erro ao vincular álbuns', 'Fechar', {
+                duration: 3000,
+                panelClass: ['error-snackbar']
+              });
+            }
+          });
+        }
+      });
+    });
   }
 
   deleteArtist(): void {

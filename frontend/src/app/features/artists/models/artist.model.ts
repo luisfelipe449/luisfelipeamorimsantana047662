@@ -31,6 +31,7 @@ export interface CreateArtistRequest {
   type: ArtistType;
   country?: string;
   biography?: string;
+  albumIds?: number[];
 }
 
 export interface UpdateArtistRequest {
@@ -39,6 +40,7 @@ export interface UpdateArtistRequest {
   country?: string;
   biography?: string;
   active?: boolean;
+  albumIds?: number[];
 }
 
 export interface ArtistSearchParams {
