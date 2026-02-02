@@ -1,9 +1,10 @@
 import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, Subscription } from 'rxjs';
+import { BehaviorSubject, Observable, Subscription, firstValueFrom } from 'rxjs';
 import { distinctUntilChanged, map } from 'rxjs/operators';
 import { PlayerState, RepeatMode, PlayerEvents } from '../models/player.model';
 import { AudioService } from '../services/audio.service';
 import { TrackDTO } from '@features/albums/models/track.model';
+import { TrackAudioService } from '@features/albums/services/track-audio.service';
 
 @Injectable({
   providedIn: 'root'
@@ -28,7 +29,10 @@ export class PlayerFacade implements PlayerEvents {
   private subscriptions = new Subscription();
   private originalPlaylist: TrackDTO[] = [];
 
-  constructor(private audioService: AudioService) {
+  constructor(
+    private audioService: AudioService,
+    private trackAudioService: TrackAudioService
+  ) {
     this.setupAudioListeners();
     this.loadVolumeFromStorage();
   }
@@ -103,8 +107,20 @@ export class PlayerFacade implements PlayerEvents {
 
   async playTrack(track: TrackDTO, playlist?: TrackDTO[]): Promise<void> {
     try {
+      // Buscar URL de streaming se não existir mas tiver ID (áudio cadastrado)
+      if (!track.streamUrl && track.id) {
+        try {
+          const response = await firstValueFrom(this.trackAudioService.getStreamUrl(track.id));
+          if (response?.streamUrl) {
+            track.streamUrl = response.streamUrl;
+          }
+        } catch {
+          // Track pode não ter áudio associado
+        }
+      }
+
       if (!track.streamUrl) {
-        this.updateState({ error: 'No stream URL available for this track' });
+        this.updateState({ error: 'Esta faixa não possui áudio disponível' });
         return;
       }
 

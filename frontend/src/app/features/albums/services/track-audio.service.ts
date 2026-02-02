@@ -20,7 +20,9 @@ export interface StreamUrlResponse {
   expiresIn: string;
 }
 
-@Injectable()
+@Injectable({
+  providedIn: 'root'
+})
 export class TrackAudioService {
   private readonly BASE_URL = `${environment.apiUrl}/v1/tracks`;
 

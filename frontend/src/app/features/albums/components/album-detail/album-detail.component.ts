@@ -106,31 +106,51 @@ export class AlbumDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    const tracks: TrackDTO[] = this.album.tracks.map(track => ({
+    // Filtrar apenas faixas com áudio disponível
+    const playableTracks = this.album.tracks.filter(t => this.hasAudio(t));
+    if (playableTracks.length === 0) {
+      return;
+    }
+
+    const tracks: TrackDTO[] = playableTracks.map(track => ({
       ...track,
       albumTitle: this.album!.title,
       artistName: this.getArtistNames(),
-      coverUrl: this.album!.coverUrls?.[0],
-      streamUrl: undefined
+      coverUrl: this.album!.coverUrls?.[0]
     }));
 
     await this.playerFacade.playAlbum(tracks, 0);
   }
 
   async playTrack(track: any, index: number): Promise<void> {
-    if (!this.album || !this.album.tracks) {
+    if (!this.album || !this.album.tracks || !this.hasAudio(track)) {
       return;
     }
 
-    const tracks: TrackDTO[] = this.album.tracks.map(t => ({
+    // Filtrar apenas faixas com áudio disponível para a playlist
+    const playableTracks = this.album.tracks.filter(t => this.hasAudio(t));
+    const playableIndex = playableTracks.findIndex(t => t.id === track.id);
+
+    if (playableIndex === -1) {
+      return;
+    }
+
+    const tracks: TrackDTO[] = playableTracks.map(t => ({
       ...t,
       albumTitle: this.album!.title,
       artistName: this.getArtistNames(),
-      coverUrl: this.album!.coverUrls?.[0],
-      streamUrl: undefined
+      coverUrl: this.album!.coverUrls?.[0]
     }));
 
-    await this.playerFacade.playAlbum(tracks, index);
+    await this.playerFacade.playAlbum(tracks, playableIndex);
+  }
+
+  hasAnyPlayableTracks(): boolean {
+    return this.album?.tracks?.some(t => this.hasAudio(t)) ?? false;
+  }
+
+  hasAudio(track: any): boolean {
+    return !!track.audioKey;
   }
 
   isTrackPlaying(track: any): boolean {
