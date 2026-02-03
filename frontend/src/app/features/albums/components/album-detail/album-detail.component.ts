@@ -8,7 +8,7 @@ import { TrackDTO } from '../../models/track.model';
 import { MatDialog } from '@angular/material/dialog';
 import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { getErrorMessage } from '@core/utils/error.utils';
+import { getErrorMessage } from '@core/utils/error-handler.util';
 
 @Component({
   selector: 'app-album-detail',
