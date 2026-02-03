@@ -22,8 +22,10 @@
           </h3>
 
           <!-- Cover Preview -->
-          <div class="relative rounded-xl overflow-hidden shadow-md aspect-square" *ngIf="coverPreview">
-            <img [src]="coverPreview" alt="Preview da capa" class="w-full h-full object-cover block">
+          <div class="relative aspect-square" *ngIf="coverPreview">
+            <div class="rounded-xl overflow-hidden shadow-md w-full h-full">
+              <img [src]="coverPreview" alt="Preview da capa" class="w-full h-full object-cover block">
+            </div>
             <button mat-mini-fab
                     color="warn"
                     type="button"

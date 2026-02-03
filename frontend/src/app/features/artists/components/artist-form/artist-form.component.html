@@ -22,8 +22,10 @@
           </h3>
 
           <!-- Photo Preview -->
-          <div class="relative rounded-full overflow-hidden shadow-md aspect-square" *ngIf="photoPreview">
-            <img [src]="photoPreview" alt="Preview da foto" class="w-full h-full object-cover block">
+          <div class="relative aspect-square" *ngIf="photoPreview">
+            <div class="rounded-full overflow-hidden shadow-md w-full h-full">
+              <img [src]="photoPreview" alt="Preview da foto" class="w-full h-full object-cover block">
+            </div>
             <button mat-mini-fab
                     color="warn"
                     type="button"
