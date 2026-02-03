@@ -7,6 +7,7 @@ import { AlbumsFacade } from '../../facades/albums.facade';
 import { Album } from '../../models/album.model';
 import { ApiService } from '../../../../core/services/api.service';
 import { TrackAudioService } from '../../services/track-audio.service';
+import { getErrorMessage } from '../../../../core/utils/error-handler.util';
 
 interface ArtistOption {
   id: number;
@@ -47,6 +48,7 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
   tracks: TrackFormItem[] = [];
   selectedFile: File | null = null;
   coverPreview: string | null = null;
+  coverRemoved = false;  // Flag para indicar que a capa deve ser removida
 
   private destroy$ = new Subject<void>();
   private audioElements: Map<number, HTMLAudioElement> = new Map();
@@ -97,8 +99,8 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
       next: (response) => {
         this.artists = response.content.map((a: any) => ({ id: a.id, name: a.name }));
       },
-      error: () => {
-        this.snackBar.open('Erro ao carregar artistas', 'Fechar', {
+      error: (error) => {
+        this.snackBar.open(getErrorMessage(error, 'Erro ao carregar artistas'), 'Fechar', {
           duration: 5000,
           panelClass: ['error-snackbar']
         });
@@ -212,8 +214,14 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
   }
 
   removeFile(): void {
+    const hadCover = this.coverPreview !== null;
     this.selectedFile = null;
     this.coverPreview = null;
+
+    // Se está editando um álbum existente com capa, marcar para remoção
+    if (this.isEditMode && hadCover) {
+      this.coverRemoved = true;
+    }
   }
 
   getArtistName(artistId: number): string {
@@ -331,8 +339,8 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
         track.pendingAudioFile = file;
         this.snackBar.open('Audio sera enviado ao salvar o album', 'OK', { duration: 3000 });
       }
-    } catch {
-      this.snackBar.open('Erro ao processar arquivo de audio', 'Fechar', {
+    } catch (error) {
+      this.snackBar.open(getErrorMessage(error, 'Erro ao processar arquivo de audio'), 'Fechar', {
         duration: 3000,
         panelClass: ['error-snackbar']
       });
@@ -386,10 +394,10 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
           });
         }
       },
-      error: () => {
+      error: (error) => {
         track.isUploading = false;
         track.uploadProgress = 0;
-        this.snackBar.open('Erro ao enviar audio', 'Fechar', {
+        this.snackBar.open(getErrorMessage(error, 'Erro ao enviar audio'), 'Fechar', {
           duration: 5000,
           panelClass: ['error-snackbar']
         });
@@ -428,8 +436,8 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
           panelClass: ['success-snackbar']
         });
       },
-      error: () => {
-        this.snackBar.open('Erro ao remover audio', 'Fechar', {
+      error: (error) => {
+        this.snackBar.open(getErrorMessage(error, 'Erro ao remover audio'), 'Fechar', {
           duration: 5000,
           panelClass: ['error-snackbar']
         });
@@ -489,8 +497,8 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
           audio!.play();
           track.isPlaying = true;
         },
-        error: () => {
-          this.snackBar.open('Erro ao obter URL de streaming', 'Fechar', {
+        error: (error) => {
+          this.snackBar.open(getErrorMessage(error, 'Erro ao obter URL de streaming'), 'Fechar', {
             duration: 3000,
             panelClass: ['error-snackbar']
           });
@@ -565,7 +573,7 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
           this.onSuccess('Album criado com sucesso!', album.id);
         }
       },
-      error: () => this.onError('Erro ao criar album')
+      error: (error) => this.onError(getErrorMessage(error, 'Erro ao criar album'))
     });
   }
 
@@ -599,7 +607,7 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
         formTrack.pendingAudioFile = undefined;
       } catch (error) {
         this.snackBar.open(
-          `Erro ao enviar áudio da faixa ${index + 1}. Tente novamente.`,
+          getErrorMessage(error, `Erro ao enviar áudio da faixa ${index + 1}. Tente novamente.`),
           'Fechar',
           { duration: 5000, panelClass: ['error-snackbar'] }
         );
@@ -614,12 +622,17 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
     this.facade.updateAlbum(this.albumId!, formValue).subscribe({
       next: () => {
         if (this.selectedFile) {
+          // Upload nova capa
           this.uploadCover(this.albumId!);
+        } else if (this.coverRemoved) {
+          // Remover capa existente
+          this.removeCoverFromServer(this.albumId!);
         } else {
+          // Apenas atualizar dados sem modificar capa
           this.onSuccess('Album atualizado com sucesso!', this.albumId!);
         }
       },
-      error: () => this.onError('Erro ao atualizar album')
+      error: (error) => this.onError(getErrorMessage(error, 'Erro ao atualizar album'))
     });
   }
 
@@ -635,14 +648,24 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
           albumId
         );
       },
-      error: () => {
+      error: (error) => {
         this.uploading = false;
-        this.snackBar.open('Album salvo, mas erro ao enviar capa', 'Fechar', {
+        this.snackBar.open(getErrorMessage(error, 'Album salvo, mas erro ao enviar capa'), 'Fechar', {
           duration: 5000,
           panelClass: ['error-snackbar']
         });
         this.router.navigate(['/albums', albumId]);
       }
+    });
+  }
+
+  private removeCoverFromServer(albumId: number): void {
+    this.facade.removeCover(albumId).subscribe({
+      next: () => {
+        this.coverRemoved = false;
+        this.onSuccess('Album atualizado com sucesso!', albumId);
+      },
+      error: (error) => this.onError(getErrorMessage(error, 'Erro ao remover capa'))
     });
   }
 

@@ -168,6 +168,16 @@ public class AlbumController {
         return ResponseEntity.ok(playlist);
     }
 
+    @DeleteMapping("/{id}/covers")
+    @Operation(summary = "Remove all album cover images")
+    public ResponseEntity<Void> removeCover(
+            @Parameter(description = "Album ID")
+            @PathVariable Long id
+    ) {
+        albumService.removeCoverKeys(id);
+        return ResponseEntity.noContent().build();
+    }
+
     @DeleteMapping("/{id}")
     @Operation(summary = "Deactivate an album (soft delete)")
     public ResponseEntity<Void> deactivate(

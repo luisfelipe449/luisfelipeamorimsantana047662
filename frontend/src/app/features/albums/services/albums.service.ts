@@ -34,6 +34,10 @@ export class AlbumsService {
     return this.api.uploadFile(`${this.PATH}/${id}/covers`, file);
   }
 
+  removeCover(id: number): Observable<void> {
+    return this.api.delete<void>(`${this.PATH}/${id}/covers`);
+  }
+
   getCoverUrl(id: number): Observable<{ url: string; expiresAt: string }> {
     return this.api.get<{ url: string; expiresAt: string }>(`${this.PATH}/${id}/covers/url`);
   }

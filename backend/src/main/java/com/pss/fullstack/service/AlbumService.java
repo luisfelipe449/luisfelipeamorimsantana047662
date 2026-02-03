@@ -269,6 +269,34 @@ public class AlbumService {
         return album.getCoverKeys();
     }
 
+    @Transactional
+    public void removeCoverKeys(Long id) {
+        log.info("Removing all covers from album: {}", id);
+
+        Album album = albumRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Album", id));
+
+        // Delete covers from MinIO
+        if (!album.getCoverKeys().isEmpty()) {
+            for (String coverKey : album.getCoverKeys()) {
+                try {
+                    storageService.deleteFile(coverKey);
+                    log.info("Deleted cover from storage: {}", coverKey);
+                } catch (Exception e) {
+                    log.warn("Could not delete cover {}: {}", coverKey, e.getMessage());
+                }
+            }
+
+            // Clear cover keys from database
+            album.getCoverKeys().clear();
+            albumRepository.save(album);
+
+            log.info("All covers removed from album {}", id);
+        } else {
+            log.info("No covers to remove for album {}", id);
+        }
+    }
+
     @Transactional(readOnly = true)
     public PlaylistDTO getAlbumPlaylist(Long id) {
         Album album = albumRepository.findById(id)

@@ -140,6 +140,14 @@ export class AlbumsFacade {
     );
   }
 
+  removeCover(id: number): Observable<void> {
+    this.loading$.next(true);
+    return this.albumsService.removeCover(id).pipe(
+      tap(() => this.loadAlbum(id)),  // Recarrega álbum após remover capa
+      finalize(() => this.loading$.next(false))
+    );
+  }
+
   setTitleFilter(title: string): void {
     const current = this.filters$.value;
     this.filters$.next({ ...current, title });
