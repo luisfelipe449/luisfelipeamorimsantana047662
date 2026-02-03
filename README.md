@@ -4,10 +4,9 @@ Projeto Full Stack desenvolvido como parte do **Processo Seletivo Simplificado n
 
 ## Dados do Candidato
 
-- **Nome**: [NOME COMPLETO DO CANDIDATO]
+- **Nome**: LUIS FELIPE AMORIM SANT'ANA
 - **Vaga**: Analista de TI - Engenheiro da Computacao (Senior)
 - **Projeto**: Full Stack (Java + Angular)
-- **Pontuacao Maxima**: 60 pontos
 
 ## Tecnologias Utilizadas
 
@@ -89,8 +88,8 @@ pss-fullstack-mt/
 
 1. Clone o repositorio:
 ```bash
-git clone [URL_DO_REPOSITORIO]
-cd pss-fullstack-mt
+git clone https://github.com/luisfelipe449/luisfelipeamorimsantana047662/
+cd luisfelipeamorimsantana047662
 ```
 
 2. Inicie todos os servicos:
@@ -543,8 +542,6 @@ docker-compose down -v
 
 ## Autor
 
+Luis Felipe Amorim Sant'Ana
+
 Projeto desenvolvido para o **Processo Seletivo Simplificado n 001/2026/SEPLAG** - Estado de Mato Grosso.
-
----
-
-*Este README foi criado seguindo as diretrizes do edital para documentacao tecnica do projeto.*
