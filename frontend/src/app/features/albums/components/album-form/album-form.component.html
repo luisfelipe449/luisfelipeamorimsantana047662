@@ -22,12 +22,12 @@
           </h3>
 
           <!-- Cover Preview -->
-          <div class="relative rounded-xl overflow-hidden shadow-md" *ngIf="coverPreview">
-            <img [src]="coverPreview" alt="Preview da capa" class="w-full aspect-square object-cover block">
+          <div class="relative rounded-xl overflow-hidden shadow-md aspect-square" *ngIf="coverPreview">
+            <img [src]="coverPreview" alt="Preview da capa" class="w-full h-full object-cover block">
             <button mat-mini-fab
                     color="warn"
                     type="button"
-                    class="absolute top-2 right-2 scale-85"
+                    class="absolute top-2 right-2 scale-75 z-10"
                     (click)="removeFile()"
                     matTooltip="Remover capa">
               <mat-icon>close</mat-icon>
