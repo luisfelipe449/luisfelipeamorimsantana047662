@@ -4,6 +4,10 @@ import { PageEvent } from '@angular/material/paginator';
 import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { AlbumsFacade } from '../../facades/albums.facade';
 import { Album } from '../../models/album.model';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { getErrorMessage } from '@core/utils/error.utils';
 
 @Component({
   selector: 'app-album-list',
@@ -28,7 +32,9 @@ export class AlbumListComponent implements OnInit, OnDestroy {
 
   constructor(
     private facade: AlbumsFacade,
-    private router: Router
+    private router: Router,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -108,6 +114,38 @@ export class AlbumListComponent implements OnInit, OnDestroy {
 
   editAlbum(album: Album): void {
     this.router.navigate(['/albums', album.id, 'edit']);
+  }
+
+  deleteAlbum(album: Album): void {
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Excluir Álbum',
+        message: `Tem certeza que deseja excluir "${album.title}"?`,
+        confirmText: 'Excluir',
+        cancelText: 'Cancelar',
+        confirmColor: 'warn'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed) {
+        this.facade.deleteAlbum(album.id).subscribe({
+          next: () => {
+            this.snackBar.open(`"${album.title}" foi excluído com sucesso`, 'Fechar', {
+              duration: 3000,
+              panelClass: ['success-snackbar']
+            });
+          },
+          error: (error) => {
+            this.snackBar.open(getErrorMessage(error, 'Erro ao excluir álbum'), 'Fechar', {
+              duration: 5000,
+              panelClass: ['error-snackbar']
+            });
+          }
+        });
+      }
+    });
   }
 
   createAlbum(): void {

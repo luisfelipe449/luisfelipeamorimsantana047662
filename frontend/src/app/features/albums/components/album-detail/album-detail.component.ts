@@ -5,6 +5,10 @@ import { AlbumsFacade } from '../../facades/albums.facade';
 import { Album } from '../../models/album.model';
 import { PlayerFacade } from '@features/player/facades/player.facade';
 import { TrackDTO } from '../../models/track.model';
+import { MatDialog } from '@angular/material/dialog';
+import { ConfirmDialogComponent } from '@shared/components/confirm-dialog/confirm-dialog.component';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { getErrorMessage } from '@core/utils/error.utils';
 
 @Component({
   selector: 'app-album-detail',
@@ -22,7 +26,9 @@ export class AlbumDetailComponent implements OnInit, OnDestroy {
     private route: ActivatedRoute,
     private router: Router,
     private facade: AlbumsFacade,
-    private playerFacade: PlayerFacade
+    private playerFacade: PlayerFacade,
+    private dialog: MatDialog,
+    private snackBar: MatSnackBar
   ) {}
 
   ngOnInit(): void {
@@ -95,10 +101,37 @@ export class AlbumDetailComponent implements OnInit, OnDestroy {
 
   deleteAlbum(): void {
     if (!this.album) return;
-    if (confirm(`Deseja excluir o álbum "${this.album.title}"?`)) {
-      this.facade.deleteAlbum(this.album.id);
-      this.router.navigate(['/albums']);
-    }
+
+    const dialogRef = this.dialog.open(ConfirmDialogComponent, {
+      width: '400px',
+      data: {
+        title: 'Excluir Álbum',
+        message: `Tem certeza que deseja excluir "${this.album.title}"?`,
+        confirmText: 'Excluir',
+        cancelText: 'Cancelar',
+        confirmColor: 'warn'
+      }
+    });
+
+    dialogRef.afterClosed().subscribe(confirmed => {
+      if (confirmed && this.album) {
+        this.facade.deleteAlbum(this.album.id).subscribe({
+          next: () => {
+            this.snackBar.open('Álbum excluído com sucesso!', 'Fechar', {
+              duration: 3000,
+              panelClass: ['success-snackbar']
+            });
+            this.router.navigate(['/albums']);
+          },
+          error: (error) => {
+            this.snackBar.open(getErrorMessage(error, 'Erro ao excluir álbum'), 'Fechar', {
+              duration: 5000,
+              panelClass: ['error-snackbar']
+            });
+          }
+        });
+      }
+    });
   }
 
   async playAlbum(): Promise<void> {

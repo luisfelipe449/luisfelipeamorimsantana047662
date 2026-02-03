@@ -115,8 +115,20 @@
           </div>
         </div>
 
-        <!-- Arrow -->
-        <mat-icon class="text-gray-400 shrink-0">chevron_right</mat-icon>
+        <!-- Actions -->
+        <div class="flex items-center gap-1 shrink-0">
+          <button mat-icon-button
+                  (click)="editAlbum(album); $event.stopPropagation()"
+                  matTooltip="Editar">
+            <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button
+                  color="warn"
+                  (click)="deleteAlbum(album); $event.stopPropagation()"
+                  matTooltip="Excluir">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </div>
       </div>
     </div>
 
@@ -197,6 +209,12 @@
                   (click)="editAlbum(album); $event.stopPropagation()"
                   matTooltip="Editar">
             <mat-icon>edit</mat-icon>
+          </button>
+          <button mat-icon-button
+                  color="warn"
+                  (click)="deleteAlbum(album); $event.stopPropagation()"
+                  matTooltip="Excluir">
+            <mat-icon>delete</mat-icon>
           </button>
         </div>
       </mat-card>
