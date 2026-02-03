@@ -3,6 +3,7 @@ import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
 import { AuthService } from '../../../../core/services/auth.service';
+import { getErrorMessage } from '../../../../core/utils/error-handler.util';
 
 @Component({
   selector: 'app-login',
@@ -53,7 +54,7 @@ export class LoginComponent implements OnInit {
         this.isLoading = false;
         const message = error.status === 401
           ? 'Credenciais invalidas'
-          : 'Erro ao realizar login. Tente novamente.';
+          : getErrorMessage(error, 'Erro ao realizar login. Tente novamente.');
         this.snackBar.open(message, 'Fechar', {
           duration: 5000,
           panelClass: ['error-snackbar']

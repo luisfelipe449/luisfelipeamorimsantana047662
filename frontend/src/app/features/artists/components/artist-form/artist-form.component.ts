@@ -8,6 +8,7 @@ import { ArtistsFacade } from '../../facades/artists.facade';
 import { AlbumsFacade } from '../../../albums/facades/albums.facade';
 import { Artist, ArtistType, AlbumSummary } from '../../models/artist.model';
 import { AlbumSelectorDialogComponent, AlbumOption } from '../../../../shared/components/album-selector-dialog/album-selector-dialog.component';
+import { getErrorMessage } from '../../../../core/utils/error-handler.util';
 
 @Component({
   selector: 'app-artist-form',
@@ -234,7 +235,7 @@ export class ArtistFormComponent implements OnInit, OnDestroy {
           this.onSuccess('Artista criado com sucesso!', artist.id);
         }
       },
-      error: () => this.onError('Erro ao criar artista')
+      error: (error) => this.onError(getErrorMessage(error, 'Erro ao criar artista'))
     });
   }
 
@@ -252,7 +253,7 @@ export class ArtistFormComponent implements OnInit, OnDestroy {
           this.onSuccess('Artista atualizado com sucesso!', this.artistId!);
         }
       },
-      error: () => this.onError('Erro ao atualizar artista')
+      error: (error) => this.onError(getErrorMessage(error, 'Erro ao atualizar artista'))
     });
   }
 
@@ -268,9 +269,9 @@ export class ArtistFormComponent implements OnInit, OnDestroy {
           artistId
         );
       },
-      error: () => {
+      error: (error) => {
         this.uploading = false;
-        this.snackBar.open('Artista salvo, mas erro ao enviar foto', 'Fechar', {
+        this.snackBar.open(getErrorMessage(error, 'Artista salvo, mas erro ao enviar foto'), 'Fechar', {
           duration: 5000,
           panelClass: ['error-snackbar']
         });

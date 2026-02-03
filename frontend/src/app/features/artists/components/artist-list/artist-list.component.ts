@@ -7,6 +7,7 @@ import { Subject, debounceTime, distinctUntilChanged, takeUntil } from 'rxjs';
 import { ArtistsFacade } from '../../facades/artists.facade';
 import { Artist, ArtistType } from '../../models/artist.model';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { getErrorMessage } from '../../../../core/utils/error-handler.util';
 
 @Component({
   selector: 'app-artist-list',
@@ -158,8 +159,8 @@ export class ArtistListComponent implements OnInit, OnDestroy {
               panelClass: ['success-snackbar']
             });
           },
-          error: () => {
-            this.snackBar.open('Erro ao excluir artista', 'Fechar', {
+          error: (error) => {
+            this.snackBar.open(getErrorMessage(error, 'Erro ao excluir artista'), 'Fechar', {
               duration: 5000,
               panelClass: ['error-snackbar']
             });

@@ -1,5 +1,5 @@
 <!-- Health Status Banner -->
-<div *ngIf="healthStatus && !healthStatus.isHealthy"
+<div *ngIf="healthStatus && !healthStatus.isHealthy && healthStatus.lastCheck"
      class="bg-red-500 text-white px-4 py-2 text-center text-sm font-medium sticky top-0 z-[60] flex items-center justify-center gap-2">
   <mat-icon class="icon-sm">warning</mat-icon>
   <span>{{ healthStatus.error || 'Connection to server lost' }}</span>
@@ -12,8 +12,8 @@
 </div>
 
 <header class="bg-white border-b border-gray-200 sticky z-50 shadow-sm"
-        [class.top-0]="!healthStatus || healthStatus.isHealthy"
-        [class.top-10]="healthStatus && !healthStatus.isHealthy"
+        [class.top-0]="!healthStatus || healthStatus.isHealthy || !healthStatus.lastCheck"
+        [class.top-10]="healthStatus && !healthStatus.isHealthy && healthStatus.lastCheck"
         *ngIf="showNavbar">
   <div class="flex items-center w-full max-w-7xl mx-auto px-6 h-16 md:h-16 max-md:px-4 max-md:h-14">
     <!-- Logo/Brand -->

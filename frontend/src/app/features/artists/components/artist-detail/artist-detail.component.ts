@@ -8,6 +8,7 @@ import { AlbumsFacade } from '../../../albums/facades/albums.facade';
 import { Artist } from '../../models/artist.model';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { AlbumSelectorDialogComponent, AlbumOption } from '../../../../shared/components/album-selector-dialog/album-selector-dialog.component';
+import { getErrorMessage } from '../../../../core/utils/error-handler.util';
 
 @Component({
   selector: 'app-artist-detail',
@@ -122,8 +123,8 @@ export class ArtistDetailComponent implements OnInit, OnDestroy {
               });
               this.facade.loadArtist(this.artist!.id);
             },
-            error: () => {
-              this.snackBar.open('Erro ao vincular álbuns', 'Fechar', {
+            error: (error) => {
+              this.snackBar.open(getErrorMessage(error, 'Erro ao vincular álbuns'), 'Fechar', {
                 duration: 3000,
                 panelClass: ['error-snackbar']
               });
@@ -156,8 +157,8 @@ export class ArtistDetailComponent implements OnInit, OnDestroy {
             });
             this.router.navigate(['/artists']);
           },
-          error: () => {
-            this.snackBar.open('Erro ao excluir artista', 'Fechar', {
+          error: (error) => {
+            this.snackBar.open(getErrorMessage(error, 'Erro ao excluir artista'), 'Fechar', {
               duration: 3000,
               panelClass: ['error-snackbar']
             });

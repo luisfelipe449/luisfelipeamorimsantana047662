@@ -454,6 +454,45 @@ Enquanto backend/frontend rodam localmente para:
 
 **Decisão**: A consistência e respeito ao rate limit são mais importantes que a velocidade de upload. O usuário prefere saber exatamente o que está acontecendo e receber erros claros do que ter uploads mais rápidos mas potencialmente falhos.
 
+### 13. Health Check no Frontend (Monitoramento Proativo)
+
+**Requisito**: O edital exige "Health Checks" como requisito Sênior para o frontend.
+
+**Implementação**: Serviço de monitoramento periódico (`HealthCheckService`) que verifica a saúde do backend a cada 60 segundos.
+
+**Estratégia de Rate Limit**: O endpoint `/actuator/health` está **excluído do rate limiting** no backend, garantindo que o monitoramento não consuma o limite de 10 req/min do usuário:
+
+```java
+private boolean isPublicEndpoint(String path) {
+    return path.startsWith("/api/actuator") || // Health check excluído
+           // ...outros endpoints públicos
+}
+```
+
+**Mecanismo de Resiliência**:
+- Timeout de 5 segundos por requisição
+- Até 3 retries com backoff exponencial (1s, 2s, 4s)
+- Estado reativo via `BehaviorSubject` (requisito Sênior)
+
+**Feedback ao Usuário**:
+- Banner vermelho sticky quando backend indisponível
+- Snackbar com botão "Reconectar" para retry manual
+- Indicador de retry em andamento ("Retry 2/3")
+- Notificação de sucesso quando conexão restaurada
+
+**Benefícios**:
+- ✅ Usuário sabe imediatamente quando há problemas de conexão
+- ✅ Não afeta o rate limit (endpoint excluído)
+- ✅ Demonstra uso de BehaviorSubject para estado reativo
+- ✅ Retry automático com feedback visual
+
+**Alternativas Consideradas**:
+| Abordagem | Prós | Contras |
+|-----------|------|---------|
+| Polling periódico (escolhida) | Detecção proativa, UX clara | Overhead constante |
+| Health check passivo (interceptor) | Zero overhead | Só detecta após falha real |
+| Sem health check | Simplicidade | Não atende requisito Sênior |
+
 ## Trade-offs e Priorizacoes
 
 1. **Simplicidade vs Features**: Priorizei uma implementacao limpa e funcional das features obrigatorias sobre adicionar funcionalidades extras.
