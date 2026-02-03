@@ -37,6 +37,10 @@ public class Album extends BaseEntity {
     @Builder.Default
     private Integer totalDuration = 0;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean active = true;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
             name = "artist_albums",

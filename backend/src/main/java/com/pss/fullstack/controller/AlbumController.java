@@ -168,4 +168,14 @@ public class AlbumController {
         return ResponseEntity.ok(playlist);
     }
 
+    @DeleteMapping("/{id}")
+    @Operation(summary = "Deactivate an album (soft delete)")
+    public ResponseEntity<Void> deactivate(
+            @Parameter(description = "Album ID")
+            @PathVariable Long id
+    ) {
+        albumService.deactivate(id);
+        return ResponseEntity.noContent().build();
+    }
+
 }

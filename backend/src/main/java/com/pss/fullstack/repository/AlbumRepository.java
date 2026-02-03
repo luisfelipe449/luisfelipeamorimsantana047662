@@ -15,22 +15,27 @@ public interface AlbumRepository extends JpaRepository<Album, Long> {
 
     Page<Album> findByTitleContainingIgnoreCase(String title, Pageable pageable);
 
-    @Query("SELECT a FROM Album a JOIN a.artists ar WHERE ar.id = :artistId")
+    Page<Album> findByActiveTrue(Pageable pageable);
+
+    Page<Album> findByTitleContainingIgnoreCaseAndActiveTrue(String title, Pageable pageable);
+
+    @Query("SELECT a FROM Album a JOIN a.artists ar WHERE ar.id = :artistId AND a.active = true")
     Page<Album> findByArtistId(@Param("artistId") Long artistId, Pageable pageable);
 
-    @Query("SELECT a FROM Album a JOIN a.artists ar WHERE ar.id = :artistId")
+    @Query("SELECT a FROM Album a JOIN a.artists ar WHERE ar.id = :artistId AND a.active = true")
     List<Album> findAllByArtistId(@Param("artistId") Long artistId);
 
     @Query("SELECT a FROM Album a WHERE " +
             "(:title IS NULL OR LOWER(a.title) LIKE LOWER(CONCAT('%', :title, '%'))) AND " +
-            "(:year IS NULL OR a.releaseYear = :year)")
+            "(:year IS NULL OR a.releaseYear = :year) AND " +
+            "a.active = true")
     Page<Album> findByFilters(
             @Param("title") String title,
             @Param("year") Integer year,
             Pageable pageable
     );
 
-    @Query("SELECT COUNT(a) FROM Album a JOIN a.artists ar WHERE ar.id = :artistId")
+    @Query("SELECT COUNT(a) FROM Album a JOIN a.artists ar WHERE ar.id = :artistId AND a.active = true")
     long countByArtistId(@Param("artistId") Long artistId);
 
 }

@@ -42,7 +42,7 @@ public class AlbumService {
                 : Sort.by(sortBy).ascending();
 
         Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Album> albumPage = albumRepository.findAll(pageable);
+        Page<Album> albumPage = albumRepository.findByActiveTrue(pageable);
 
         List<AlbumDTO> albums = albumPage.getContent().stream()
                 .map(album -> {
@@ -310,6 +310,19 @@ public class AlbumService {
         playlistBuilder.tracks(tracksWithUrls);
 
         return playlistBuilder.build();
+    }
+
+    @Transactional
+    public void deactivate(Long id) {
+        log.info("Deactivating album: {}", id);
+
+        Album album = albumRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Album", id));
+
+        album.setActive(false);
+        albumRepository.save(album);
+
+        log.info("Album deactivated: {}", id);
     }
 
 }
