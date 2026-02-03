@@ -2,7 +2,7 @@ import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, firstValueFrom, filter, tap, take } from 'rxjs';
 import { AlbumsFacade } from '../../facades/albums.facade';
 import { Album } from '../../models/album.model';
 import { ApiService } from '../../../../core/services/api.service';
@@ -570,40 +570,44 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
   }
 
   private async uploadPendingAudioFiles(savedTracks: any[]): Promise<void> {
-    const pendingUploads: Promise<void>[] = [];
+    const tracksWithAudio = this.tracks
+      .map((track, index) => ({ track, index }))
+      .filter(({ track }) => track.pendingAudioFile && track.title.trim());
 
-    for (let i = 0; i < this.tracks.length; i++) {
-      const formTrack = this.tracks[i];
-      if (formTrack.pendingAudioFile && formTrack.title.trim()) {
-        const savedTrack = savedTracks.find(t => t.trackNumber === i + 1);
-        if (savedTrack?.id) {
-          formTrack.id = savedTrack.id;
-          const file = formTrack.pendingAudioFile;
-          pendingUploads.push(
-            new Promise<void>((resolve) => {
-              this.trackAudioService.uploadAudio(savedTrack.id, file).subscribe({
-                next: (progress) => {
-                  formTrack.uploadProgress = progress.progress;
-                  if (progress.completed) {
-                    formTrack.pendingAudioFile = undefined;
-                    resolve();
-                  }
-                },
-                error: () => {
-                  this.snackBar.open(`Erro ao enviar audio da faixa ${i + 1}`, 'Fechar', {
-                    duration: 3000,
-                    panelClass: ['error-snackbar']
-                  });
-                  resolve();
-                }
-              });
-            })
-          );
-        }
+    for (let i = 0; i < tracksWithAudio.length; i++) {
+      const { track: formTrack, index } = tracksWithAudio[i];
+      const savedTrack = savedTracks.find(t => t.trackNumber === index + 1);
+
+      if (!savedTrack?.id) continue;
+
+      formTrack.id = savedTrack.id;
+
+      this.snackBar.open(
+        `Enviando áudio ${i + 1} de ${tracksWithAudio.length}...`,
+        undefined,
+        { duration: 0 }
+      );
+
+      try {
+        await firstValueFrom(
+          this.trackAudioService.uploadAudio(savedTrack.id, formTrack.pendingAudioFile!).pipe(
+            tap(progress => formTrack.uploadProgress = progress.progress),
+            filter(progress => progress.completed),
+            take(1)
+          )
+        );
+        formTrack.pendingAudioFile = undefined;
+      } catch (error) {
+        this.snackBar.open(
+          `Erro ao enviar áudio da faixa ${index + 1}. Tente novamente.`,
+          'Fechar',
+          { duration: 5000, panelClass: ['error-snackbar'] }
+        );
+        throw error;
       }
     }
 
-    await Promise.all(pendingUploads);
+    this.snackBar.dismiss();
   }
 
   private updateAlbum(formValue: any): void {

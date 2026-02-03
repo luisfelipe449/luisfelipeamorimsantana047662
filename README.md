@@ -431,6 +431,29 @@ Enquanto backend/frontend rodam localmente para:
 
 **Configuração Nginx**: Ajustado o arquivo `nginx.conf` para usar `location ^~ /api` com prioridade sobre regras de cache de assets estáticos, garantindo que requisições de imagens pela API sejam corretamente proxiadas para o backend
 
+### 12. Upload de Áudio Sequencial (não paralelo)
+
+**Problema**: O upload paralelo de múltiplos arquivos de áudio via `Promise.all()` apresentava riscos:
+1. **Violação do Rate Limit**: 5+ uploads simultâneos excedem o limite de 10 req/min
+2. **Erros Silenciosos**: Falhas eram engolidas pelo `Promise.all()`, usuário não percebia
+3. **Carga no Servidor**: Pico de I/O com múltiplas conexões simultâneas
+
+**Solução Implementada**: Upload sequencial com feedback progressivo:
+- Arquivos de áudio são enviados um por vez, em ordem
+- Snackbar mostra progresso ("Enviando áudio 1 de 3...")
+- Erros interrompem o processo imediatamente com mensagem clara
+- Nunca viola o rate limit, independente do número de faixas
+
+**Trade-offs**:
+| Aspecto | Síncrono | Paralelo |
+|---------|----------|----------|
+| Rate Limit | ✅ Nunca viola | ❌ Viola com 5+ faixas |
+| Consistência | ✅ Erro claro | ❌ Erros silenciosos |
+| Velocidade | ❌ Mais lento | ✅ Mais rápido |
+| Complexidade | ✅ Simples | ❌ Promise.all complexo |
+
+**Decisão**: A consistência e respeito ao rate limit são mais importantes que a velocidade de upload. O usuário prefere saber exatamente o que está acontecendo e receber erros claros do que ter uploads mais rápidos mas potencialmente falhos.
+
 ## Trade-offs e Priorizacoes
 
 1. **Simplicidade vs Features**: Priorizei uma implementacao limpa e funcional das features obrigatorias sobre adicionar funcionalidades extras.
