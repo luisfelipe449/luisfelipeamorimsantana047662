@@ -46,9 +46,13 @@ Projeto Full Stack desenvolvido como parte do **Processo Seletivo Simplificado n
 ## Estrutura do Projeto
 
 ```
-pss-fullstack-mt/
+luisfelipeamorimsantana047662/
 ├── docker-compose.yml          # Orquestracao de todos os servicos
+├── docker-compose.dev.yml      # Configuracao para desenvolvimento local
 ├── README.md                   # Documentacao do projeto
+├── start-dev.sh                # Script para iniciar dependencias de desenvolvimento
+├── stop-dev.sh                 # Script para parar dependencias de desenvolvimento
+├── .gitignore                  # Arquivos ignorados pelo Git
 ├── backend/
 │   ├── Dockerfile              # Build do backend
 │   ├── pom.xml                 # Dependencias Maven
