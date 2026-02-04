@@ -25,7 +25,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -39,6 +39,15 @@ class AlbumServiceTest {
 
     @Mock
     private NotificationService notificationService;
+
+    @Mock
+    private AudioService audioService;
+
+    @Mock
+    private StorageService storageService;
+
+    @Mock
+    private UrlGeneratorService urlGeneratorService;
 
     @InjectMocks
     private AlbumService albumService;
@@ -66,7 +75,8 @@ class AlbumServiceTest {
     @Test
     void shouldFindAllAlbums() {
         Page<Album> albumPage = new PageImpl<>(List.of(testAlbum));
-        when(albumRepository.findAll(any(Pageable.class))).thenReturn(albumPage);
+        when(albumRepository.findByActiveTrue(any(Pageable.class))).thenReturn(albumPage);
+        lenient().when(urlGeneratorService.generateAlbumCoverUrl(anyString())).thenReturn("http://test/cover.jpg");
 
         PageResponse<AlbumDTO> result = albumService.findAll(0, 10, "title", "asc");
 
@@ -78,6 +88,7 @@ class AlbumServiceTest {
     @Test
     void shouldFindAlbumById() {
         when(albumRepository.findById(1L)).thenReturn(Optional.of(testAlbum));
+        lenient().when(urlGeneratorService.generateAlbumCoverUrl(anyString())).thenReturn("http://test/cover.jpg");
 
         AlbumDTO result = albumService.findById(1L);
 
@@ -110,6 +121,7 @@ class AlbumServiceTest {
 
         when(artistRepository.findById(1L)).thenReturn(Optional.of(testArtist));
         when(albumRepository.save(any(Album.class))).thenReturn(savedAlbum);
+        lenient().when(urlGeneratorService.generateAlbumCoverUrl(anyString())).thenReturn("http://test/cover.jpg");
 
         AlbumDTO result = albumService.create(createDTO);
 

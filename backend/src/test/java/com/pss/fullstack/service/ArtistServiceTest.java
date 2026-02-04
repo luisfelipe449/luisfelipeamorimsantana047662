@@ -7,6 +7,7 @@ import com.pss.fullstack.dto.PageResponse;
 import com.pss.fullstack.exception.ResourceNotFoundException;
 import com.pss.fullstack.model.Artist;
 import com.pss.fullstack.model.ArtistType;
+import com.pss.fullstack.repository.AlbumRepository;
 import com.pss.fullstack.repository.ArtistRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -31,6 +32,15 @@ class ArtistServiceTest {
     @Mock
     private ArtistRepository artistRepository;
 
+    @Mock
+    private AlbumRepository albumRepository;
+
+    @Mock
+    private StorageService storageService;
+
+    @Mock
+    private UrlGeneratorService urlGeneratorService;
+
     @InjectMocks
     private ArtistService artistService;
 
@@ -49,7 +59,7 @@ class ArtistServiceTest {
     @Test
     void shouldFindAllArtists() {
         Page<Artist> artistPage = new PageImpl<>(List.of(testArtist));
-        when(artistRepository.findAll(any(Pageable.class))).thenReturn(artistPage);
+        when(artistRepository.findByActiveTrue(any(Pageable.class))).thenReturn(artistPage);
 
         PageResponse<ArtistDTO> result = artistService.findAll(0, 10, "name", "asc");
 
