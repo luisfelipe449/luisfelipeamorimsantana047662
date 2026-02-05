@@ -24,7 +24,7 @@ public class AlbumNotification {
                 .albumId(albumId)
                 .title(title)
                 .artistName(artistName)
-                .message(String.format("New album '%s' by %s has been added!", title, artistName))
+                .message(String.format("Novo álbum '%s' de %s foi adicionado!", title, artistName))
                 .timestamp(LocalDateTime.now())
                 .build();
     }
