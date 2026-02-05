@@ -165,8 +165,8 @@ public class TrackSeeder implements ApplicationRunner {
 
     @Override
     public void run(ApplicationArguments args) {
-        if (tracksAlreadyExist()) {
-            log.info("Track seed: Tracks already exist, skipping seeding...");
+        if (tracksAlreadyHaveAudio()) {
+            log.info("Track seed: Tracks already have audio files, skipping seeding...");
             return;
         }
 
@@ -176,8 +176,9 @@ public class TrackSeeder implements ApplicationRunner {
         log.info("Track seeding completed!");
     }
 
-    private boolean tracksAlreadyExist() {
-        return trackRepository.count() > 0;
+    private boolean tracksAlreadyHaveAudio() {
+        return trackRepository.findAll().stream()
+                .anyMatch(track -> track.getAudioKey() != null && !track.getAudioKey().isEmpty());
     }
 
     private void ensureAudioBucketExists() {
@@ -205,50 +206,57 @@ public class TrackSeeder implements ApplicationRunner {
         List<Album> albums = albumRepository.findAll();
 
         for (Album album : albums) {
-            List<TrackInfo> trackInfos = ALBUM_TRACKS.get(album.getTitle());
-            if (trackInfos == null) {
-                log.warn("No track definitions found for album: {}", album.getTitle());
+            // Get existing tracks from migration
+            List<Track> existingTracks = trackRepository.findByAlbumIdOrderByTrackNumberAsc(album.getId());
+
+            if (existingTracks.isEmpty()) {
+                log.warn("No tracks found for album: {}", album.getTitle());
                 continue;
             }
 
-            int trackNumber = 1;
-            int totalDuration = 0;
-            for (TrackInfo trackInfo : trackInfos) {
-                try {
-                    // Create track entity
-                    Track track = Track.builder()
-                            .title(trackInfo.title)
-                            .trackNumber(trackNumber)
-                            .duration(trackInfo.duration)
-                            .album(album)
-                            .audioFormat("WAV")
-                            .build();
+            // Get frequency mapping for this album
+            List<TrackInfo> trackInfos = ALBUM_TRACKS.get(album.getTitle());
+            Map<String, Double> frequencyMap = new HashMap<>();
+            if (trackInfos != null) {
+                for (TrackInfo info : trackInfos) {
+                    frequencyMap.put(info.title.toLowerCase(), info.frequency);
+                }
+            }
 
-                    track = trackRepository.save(track);
+            for (Track track : existingTracks) {
+                // Skip if already has audio
+                if (track.getAudioKey() != null && !track.getAudioKey().isEmpty()) {
+                    continue;
+                }
+
+                try {
+                    // Get frequency for this track or use default based on track number
+                    double frequency = frequencyMap.getOrDefault(
+                            track.getTitle().toLowerCase(),
+                            262.0 + (track.getTrackNumber() * 30.0) // Default: C4 + offset
+                    );
+
+                    // Use track's existing duration (from migration) or default
+                    int duration = track.getDuration() > 0 ? Math.min(track.getDuration() / 10, 20) : 15;
+                    if (duration < 8) duration = 8;
 
                     // Generate and upload audio file
-                    byte[] audioData = generateSineWaveAudio(trackInfo.frequency, trackInfo.duration);
+                    byte[] audioData = generateSineWaveAudio(frequency, duration);
                     String audioKey = uploadAudioFile(album.getId(), track.getId(), audioData);
 
                     // Update track with audio info
                     track.setAudioKey(audioKey);
+                    track.setAudioFormat("WAV");
                     track.setFileSize((long) audioData.length);
-                    track.setBitrate(calculateBitrate(audioData.length, trackInfo.duration));
+                    track.setBitrate(calculateBitrate(audioData.length, duration));
                     trackRepository.save(track);
 
-                    totalDuration += trackInfo.duration;
-                    log.info("Seeded track: {} - {} (key: {})", album.getTitle(), trackInfo.title, audioKey);
-                    trackNumber++;
+                    log.info("Seeded audio for track: {} - {} (key: {})", album.getTitle(), track.getTitle(), audioKey);
 
                 } catch (Exception e) {
-                    log.warn("Error seeding track {} for album {}: {}", trackInfo.title, album.getTitle(), e.getMessage());
+                    log.warn("Error seeding audio for track {} in album {}: {}", track.getTitle(), album.getTitle(), e.getMessage());
                 }
             }
-
-            // Update album track count manually (avoid lazy loading issue)
-            album.setTrackCount(trackNumber - 1);
-            album.setTotalDuration(totalDuration);
-            albumRepository.save(album);
         }
     }
 
