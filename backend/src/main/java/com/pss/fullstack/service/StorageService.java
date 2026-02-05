@@ -37,6 +37,9 @@ public class StorageService {
     @Value("${minio.bucket-name}")
     private String bucketName;
 
+    @Value("${minio.artist-photo-bucket:artist-photos}")
+    private String artistPhotoBucket;
+
     @Value("${minio.presigned-url-expiration}")
     private int presignedUrlExpiration;
 
@@ -267,23 +270,77 @@ public class StorageService {
     }
 
     /**
-     * Ensure the bucket exists, create if not
+     * Upload bytes to a specific bucket and return the object key
+     */
+    public String uploadBytesToBucket(byte[] content, String contentType, String bucket) {
+        try {
+            ensureBucketExists(bucket);
+
+            String extension = getExtensionFromContentType(contentType);
+            String objectKey = UUID.randomUUID().toString() + extension;
+
+            try (InputStream inputStream = new java.io.ByteArrayInputStream(content)) {
+                minioClient.putObject(
+                        PutObjectArgs.builder()
+                                .bucket(bucket)
+                                .object(objectKey)
+                                .stream(inputStream, content.length, -1)
+                                .contentType(contentType)
+                                .build()
+                );
+            }
+
+            log.info("File uploaded successfully to bucket {}: {}", bucket, objectKey);
+            return objectKey;
+
+        } catch (Exception e) {
+            log.error("Error uploading file to bucket {}: {}", bucket, e.getMessage());
+            throw new BusinessException("Failed to upload file: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Get the artist photo bucket name
+     */
+    public String getArtistPhotoBucket() {
+        return artistPhotoBucket;
+    }
+
+    private String getExtensionFromContentType(String contentType) {
+        if (contentType == null) return ".jpg";
+        return switch (contentType.toLowerCase()) {
+            case "image/png" -> ".png";
+            case "image/gif" -> ".gif";
+            case "image/webp" -> ".webp";
+            default -> ".jpg";
+        };
+    }
+
+    /**
+     * Ensure the default bucket exists, create if not
      */
     private void ensureBucketExists() {
+        ensureBucketExists(bucketName);
+    }
+
+    /**
+     * Ensure a specific bucket exists, create if not
+     */
+    private void ensureBucketExists(String bucket) {
         try {
             boolean exists = minioClient.bucketExists(
                     BucketExistsArgs.builder()
-                            .bucket(bucketName)
+                            .bucket(bucket)
                             .build()
             );
 
             if (!exists) {
                 minioClient.makeBucket(
                         MakeBucketArgs.builder()
-                                .bucket(bucketName)
+                                .bucket(bucket)
                                 .build()
                 );
-                log.info("Bucket created: {}", bucketName);
+                log.info("Bucket created: {}", bucket);
             }
 
         } catch (Exception e) {

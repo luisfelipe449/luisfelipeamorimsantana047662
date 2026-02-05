@@ -50,6 +50,7 @@ minio:
   access-key: minioadmin
   secret-key: minioadmin
   bucket-name: album-covers
+  artist-photo-bucket: artist-photos
   presigned-url-expiration: 30  # minutes
 
 # Rate Limiting
