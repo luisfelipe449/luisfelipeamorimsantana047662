@@ -1,0 +1,9 @@
+// Register page - minimal styles for Angular Material overrides only
+// Layout handled by Tailwind CSS
+
+// Responsive layout switch to column
+@media (max-width: 992px) {
+  :host ::ng-deep .flex.min-h-screen {
+    @apply flex-col;
+  }
+}

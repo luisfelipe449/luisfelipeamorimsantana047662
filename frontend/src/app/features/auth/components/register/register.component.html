@@ -1,0 +1,164 @@
+<div class="flex min-h-screen bg-gray-50">
+  <!-- Hero Section -->
+  <div class="flex-1 flex flex-col justify-center p-12 bg-gradient-to-br from-primary-900 via-primary to-primary-400 text-white relative overflow-hidden max-lg:p-8 max-lg:min-h-0 max-lg:text-center">
+    <!-- Decorative circles -->
+    <div class="absolute w-96 h-96 -top-24 -left-24 rounded-full bg-white/5 max-lg:hidden"></div>
+    <div class="absolute w-72 h-72 -bottom-12 -right-12 rounded-full bg-white/5 max-lg:hidden"></div>
+
+    <div class="relative z-10 max-w-lg max-lg:max-w-full">
+      <div class="flex items-center justify-center w-20 h-20 bg-white/15 rounded-2xl mb-6 backdrop-blur-sm max-lg:mx-auto max-lg:w-16 max-lg:h-16 max-lg:mb-4">
+        <mat-icon class="text-4xl max-lg:text-3xl">library_music</mat-icon>
+      </div>
+      <h1 class="text-4xl font-bold mb-4 leading-tight max-lg:text-3xl max-sm:text-2xl">Artistas & Álbuns</h1>
+      <p class="text-base leading-relaxed opacity-90 mb-8 max-lg:text-sm max-lg:mb-6">
+        Sistema de gerenciamento de artistas e álbuns musicais.
+        Uma plataforma moderna para organizar sua coleção.
+      </p>
+      <div class="flex flex-col gap-4 max-lg:flex-row max-lg:flex-wrap max-lg:justify-center max-lg:gap-x-6 max-lg:gap-y-4 max-sm:hidden">
+        <div class="flex items-center gap-2 text-sm opacity-90">
+          <mat-icon class="text-xl opacity-80">people</mat-icon>
+          <span>Gestão de Artistas</span>
+        </div>
+        <div class="flex items-center gap-2 text-sm opacity-90">
+          <mat-icon class="text-xl opacity-80">album</mat-icon>
+          <span>Catálogo de Álbuns</span>
+        </div>
+        <div class="flex items-center gap-2 text-sm opacity-90">
+          <mat-icon class="text-xl opacity-80">image</mat-icon>
+          <span>Upload de Capas</span>
+        </div>
+      </div>
+    </div>
+    <div class="absolute bottom-6 left-12 text-xs opacity-60 max-lg:hidden">
+      <span>PSS MT 2026 - SEPLAG</span>
+    </div>
+  </div>
+
+  <!-- Register Form Section -->
+  <div class="flex-1 flex items-center justify-center p-8 bg-white max-lg:flex-none max-lg:p-6">
+    <div class="w-full max-w-md animate-fade-in max-sm:max-w-full">
+      <div class="mb-8 text-center">
+        <h2 class="text-3xl font-semibold text-gray-900 mb-2 max-sm:text-2xl">Criar conta</h2>
+        <p class="text-sm text-gray-500">Preencha os dados abaixo para se cadastrar</p>
+      </div>
+
+      <form [formGroup]="registerForm" (ngSubmit)="onSubmit()" class="flex flex-col gap-2">
+        <mat-form-field appearance="outline">
+          <mat-label>Nome completo</mat-label>
+          <input matInput
+                 formControlName="name"
+                 placeholder="Digite seu nome completo"
+                 autocomplete="name">
+          <mat-icon matPrefix class="text-gray-400">badge</mat-icon>
+          <mat-error *ngIf="registerForm.get('name')?.hasError('required')">
+            Nome é obrigatório
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>E-mail</mat-label>
+          <input matInput
+                 type="email"
+                 formControlName="email"
+                 placeholder="Digite seu e-mail"
+                 autocomplete="email">
+          <mat-icon matPrefix class="text-gray-400">email</mat-icon>
+          <mat-error *ngIf="registerForm.get('email')?.hasError('required')">
+            E-mail é obrigatório
+          </mat-error>
+          <mat-error *ngIf="registerForm.get('email')?.hasError('email')">
+            E-mail inválido
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Usuário</mat-label>
+          <input matInput
+                 formControlName="username"
+                 placeholder="Digite seu usuário"
+                 autocomplete="username">
+          <mat-icon matPrefix class="text-gray-400">person_outline</mat-icon>
+          <mat-error *ngIf="registerForm.get('username')?.hasError('required')">
+            Usuário é obrigatório
+          </mat-error>
+          <mat-error *ngIf="registerForm.get('username')?.hasError('minlength')">
+            Usuário deve ter no mínimo 3 caracteres
+          </mat-error>
+          <mat-error *ngIf="registerForm.get('username')?.hasError('maxlength')">
+            Usuário deve ter no máximo 50 caracteres
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Senha</mat-label>
+          <input matInput
+                 [type]="hidePassword ? 'password' : 'text'"
+                 formControlName="password"
+                 placeholder="Digite sua senha"
+                 autocomplete="new-password">
+          <mat-icon matPrefix class="text-gray-400">lock_outline</mat-icon>
+          <button mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="hidePassword = !hidePassword"
+                  [matTooltip]="hidePassword ? 'Mostrar senha' : 'Ocultar senha'">
+            <mat-icon>{{ hidePassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="registerForm.get('password')?.hasError('required')">
+            Senha é obrigatória
+          </mat-error>
+          <mat-error *ngIf="registerForm.get('password')?.hasError('minlength')">
+            Senha deve ter no mínimo 6 caracteres
+          </mat-error>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline">
+          <mat-label>Confirmar senha</mat-label>
+          <input matInput
+                 [type]="hideConfirmPassword ? 'password' : 'text'"
+                 formControlName="confirmPassword"
+                 placeholder="Confirme sua senha"
+                 autocomplete="new-password">
+          <mat-icon matPrefix class="text-gray-400">lock_outline</mat-icon>
+          <button mat-icon-button
+                  matSuffix
+                  type="button"
+                  (click)="hideConfirmPassword = !hideConfirmPassword"
+                  [matTooltip]="hideConfirmPassword ? 'Mostrar senha' : 'Ocultar senha'">
+            <mat-icon>{{ hideConfirmPassword ? 'visibility_off' : 'visibility' }}</mat-icon>
+          </button>
+          <mat-error *ngIf="registerForm.get('confirmPassword')?.hasError('required')">
+            Confirmação de senha é obrigatória
+          </mat-error>
+          <mat-error *ngIf="registerForm.get('confirmPassword')?.hasError('passwordMismatch')">
+            As senhas não conferem
+          </mat-error>
+        </mat-form-field>
+
+        <button mat-raised-button
+                color="primary"
+                type="submit"
+                class="mt-4 h-13 text-base font-medium rounded-lg"
+                [disabled]="registerForm.invalid || isLoading">
+          <span class="inline-flex items-center justify-center gap-2" *ngIf="!isLoading; else loadingTemplate">
+            <mat-icon>person_add</mat-icon>
+            <span>Cadastrar</span>
+          </span>
+          <ng-template #loadingTemplate>
+            <span class="inline-flex items-center justify-center gap-2">
+              <mat-spinner diameter="20"></mat-spinner>
+              <span>Cadastrando...</span>
+            </span>
+          </ng-template>
+        </button>
+      </form>
+
+      <div class="mt-6 text-center">
+        <p class="text-sm text-gray-600">
+          Já tem uma conta?
+          <a routerLink="/auth/login" class="text-primary font-medium hover:underline">Entrar</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -8,6 +8,13 @@ export interface LoginRequest {
   password: string;
 }
 
+export interface RegisterRequest {
+  username: string;
+  password: string;
+  name: string;
+  email: string;
+}
+
 export interface TokenResponse {
   accessToken: string;
   refreshToken: string;
@@ -31,6 +38,13 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<TokenResponse> {
     return this.http.post<TokenResponse>(`${this.API_URL}/login`, credentials).pipe(
       tap(response => this.handleAuthResponse(response, credentials.username)),
+      catchError(error => throwError(() => error))
+    );
+  }
+
+  register(data: RegisterRequest): Observable<TokenResponse> {
+    return this.http.post<TokenResponse>(`${this.API_URL}/register`, data).pipe(
+      tap(response => this.handleAuthResponse(response, data.username)),
       catchError(error => throwError(() => error))
     );
   }
