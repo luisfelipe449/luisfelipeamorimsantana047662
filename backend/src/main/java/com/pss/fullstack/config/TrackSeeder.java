@@ -212,6 +212,7 @@ public class TrackSeeder implements ApplicationRunner {
             }
 
             int trackNumber = 1;
+            int totalDuration = 0;
             for (TrackInfo trackInfo : trackInfos) {
                 try {
                     // Create track entity
@@ -235,6 +236,7 @@ public class TrackSeeder implements ApplicationRunner {
                     track.setBitrate(calculateBitrate(audioData.length, trackInfo.duration));
                     trackRepository.save(track);
 
+                    totalDuration += trackInfo.duration;
                     log.info("Seeded track: {} - {} (key: {})", album.getTitle(), trackInfo.title, audioKey);
                     trackNumber++;
 
@@ -243,8 +245,9 @@ public class TrackSeeder implements ApplicationRunner {
                 }
             }
 
-            // Update album track count
-            album.updateTrackMetadata();
+            // Update album track count manually (avoid lazy loading issue)
+            album.setTrackCount(trackNumber - 1);
+            album.setTotalDuration(totalDuration);
             albumRepository.save(album);
         }
     }
