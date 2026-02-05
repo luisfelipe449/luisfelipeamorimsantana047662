@@ -50,93 +50,114 @@ public class TrackSeeder implements ApplicationRunner {
     private static Map<String, List<TrackInfo>> createAlbumTracks() {
         Map<String, List<TrackInfo>> tracks = new LinkedHashMap<>();
 
-        // Serj Tankian - Harakiri
+        // Serj Tankian - Harakiri (2012) - Rock alternativo/Metal
         tracks.put("Harakiri", List.of(
-                new TrackInfo("Cornucopia", 15, 440),
-                new TrackInfo("Figure It Out", 12, 494),
-                new TrackInfo("Harakiri", 18, 523)
+                new TrackInfo("Cornucopia", 18, 440),      // A4
+                new TrackInfo("Figure It Out", 15, 494),   // B4
+                new TrackInfo("Weave On", 16, 523),        // C5
+                new TrackInfo("Uneducated Democracy", 17, 392), // G4
+                new TrackInfo("Harakiri", 20, 349)         // F4
         ));
 
-        // Serj Tankian - Black Blooms
+        // Serj Tankian - Black Blooms (2019) - EP colaborativo
         tracks.put("Black Blooms", List.of(
-                new TrackInfo("Black Blooms", 14, 392),
-                new TrackInfo("Rumi", 16, 349)
+                new TrackInfo("Black Blooms", 18, 392),    // G4
+                new TrackInfo("Rumi", 16, 349),            // F4
+                new TrackInfo("Disarming Time", 15, 330)   // E4
         ));
 
-        // Serj Tankian - The Rough Dog
+        // Serj Tankian - The Rough Dog (2018) - Jazz experimental
         tracks.put("The Rough Dog", List.of(
-                new TrackInfo("The Rough Dog", 13, 330),
-                new TrackInfo("Get Out Alive", 15, 370)
+                new TrackInfo("The Rough Dog", 14, 330),   // E4
+                new TrackInfo("Jazz-Iz-Christ", 16, 370),  // F#4
+                new TrackInfo("Lie Lie Lie", 13, 415)      // G#4
         ));
 
-        // Mike Shinoda - The Rising Tied
+        // Fort Minor (Mike Shinoda) - The Rising Tied (2005) - Hip-hop
         tracks.put("The Rising Tied", List.of(
-                new TrackInfo("Introduction", 10, 262),
-                new TrackInfo("Remember the Name", 17, 294),
-                new TrackInfo("Right Now", 14, 330),
-                new TrackInfo("Petrified", 12, 349)
+                new TrackInfo("Introduction", 8, 262),     // C4
+                new TrackInfo("Remember the Name", 18, 294), // D4
+                new TrackInfo("Right Now", 15, 330),       // E4
+                new TrackInfo("Petrified", 14, 349),       // F4
+                new TrackInfo("Feel Like Home", 16, 392),  // G4
+                new TrackInfo("Believe Me", 17, 440)       // A4
         ));
 
-        // Mike Shinoda - Post Traumatic
+        // Mike Shinoda - Post Traumatic (2018) - Pop/Rock alternativo
         tracks.put("Post Traumatic", List.of(
-                new TrackInfo("Place to Start", 11, 392),
-                new TrackInfo("Over Again", 16, 440),
-                new TrackInfo("Watching As I Fall", 14, 494)
+                new TrackInfo("Place to Start", 12, 392),  // G4
+                new TrackInfo("Over Again", 16, 440),      // A4
+                new TrackInfo("Watching As I Fall", 15, 494), // B4
+                new TrackInfo("Nothing Makes Sense Anymore", 14, 523), // C5
+                new TrackInfo("Crossing a Line", 17, 587)  // D5
         ));
 
-        // Mike Shinoda - Post Traumatic EP
+        // Mike Shinoda - Post Traumatic EP (2018)
         tracks.put("Post Traumatic EP", List.of(
-                new TrackInfo("Place to Start", 11, 523),
-                new TrackInfo("Over Again", 15, 587)
+                new TrackInfo("Place to Start", 12, 523),  // C5
+                new TrackInfo("Over Again", 16, 587),      // D5
+                new TrackInfo("Watching As I Fall", 15, 659) // E5
         ));
 
-        // Mike Shinoda - Where'd You Go
+        // Fort Minor - Where'd You Go (2006) - Single
         tracks.put("Where'd You Go", List.of(
-                new TrackInfo("Where'd You Go", 18, 659),
-                new TrackInfo("Where'd You Go (Instrumental)", 18, 698)
+                new TrackInfo("Where'd You Go", 18, 659),  // E5
+                new TrackInfo("Where'd You Go (Instrumental)", 18, 698), // F5
+                new TrackInfo("Where'd You Go (A Cappella)", 18, 784) // G5
         ));
 
-        // Michel Teló - Bem Sertanejo
+        // Michel Teló - Bem Sertanejo (2014) - Sertanejo
         tracks.put("Bem Sertanejo", List.of(
-                new TrackInfo("Ai Se Eu Te Pego", 12, 784),
-                new TrackInfo("Fugidinha", 14, 880),
-                new TrackInfo("Amanhã Sei Lá", 13, 988)
+                new TrackInfo("Ai Se Eu Te Pego", 12, 784),  // G5
+                new TrackInfo("Fugidinha", 14, 880),         // A5
+                new TrackInfo("Bara Bara Bere Bere", 13, 988), // B5
+                new TrackInfo("Humilde Residência", 15, 523), // C5
+                new TrackInfo("Ei Psiu Beijo Me Liga", 14, 587) // D5
         ));
 
-        // Michel Teló - Bem Sertanejo - O Show (Ao Vivo)
+        // Michel Teló - Bem Sertanejo - O Show (Ao Vivo) (2015)
         tracks.put("Bem Sertanejo - O Show (Ao Vivo)", List.of(
-                new TrackInfo("Ai Se Eu Te Pego (Ao Vivo)", 13, 523),
-                new TrackInfo("Bara Bara Bere Bere (Ao Vivo)", 15, 587)
+                new TrackInfo("Ai Se Eu Te Pego (Ao Vivo)", 14, 523), // C5
+                new TrackInfo("Fugidinha (Ao Vivo)", 15, 587),        // D5
+                new TrackInfo("Bara Bara Bere Bere (Ao Vivo)", 13, 659), // E5
+                new TrackInfo("Amanhã Sei Lá (Ao Vivo)", 16, 698)    // F5
         ));
 
-        // Michel Teló - Bem Sertanejo - (1ª Temporada) - EP
+        // Michel Teló - Bem Sertanejo - (1ª Temporada) - EP (2014)
         tracks.put("Bem Sertanejo - (1ª Temporada) - EP", List.of(
-                new TrackInfo("Modão Duído", 14, 659),
-                new TrackInfo("Coração Na Cama", 12, 698)
+                new TrackInfo("Modão Duído (Ao Vivo)", 15, 659), // E5
+                new TrackInfo("Coração Na Cama", 13, 698),       // F5
+                new TrackInfo("Chocolate Quente", 14, 784)       // G5
         ));
 
-        // Guns N' Roses - Use Your Illusion I
+        // Guns N' Roses - Use Your Illusion I (1991) - Hard rock
         tracks.put("Use Your Illusion I", List.of(
-                new TrackInfo("Right Next Door to Hell", 11, 262),
-                new TrackInfo("Dust N' Bones", 16, 294),
-                new TrackInfo("Live and Let Die", 13, 330),
-                new TrackInfo("November Rain", 20, 349)
+                new TrackInfo("Right Next Door to Hell", 12, 262), // C4
+                new TrackInfo("Dust N' Bones", 16, 294),           // D4
+                new TrackInfo("Live and Let Die", 13, 330),        // E4
+                new TrackInfo("Don't Cry (Original)", 17, 349),    // F4
+                new TrackInfo("November Rain", 20, 392),           // G4
+                new TrackInfo("The Garden", 18, 440)               // A4
         ));
 
-        // Guns N' Roses - Use Your Illusion II
+        // Guns N' Roses - Use Your Illusion II (1991) - Hard rock
         tracks.put("Use Your Illusion II", List.of(
-                new TrackInfo("Civil War", 18, 392),
-                new TrackInfo("14 Years", 14, 440),
-                new TrackInfo("Yesterdays", 12, 494),
-                new TrackInfo("Knockin' on Heaven's Door", 17, 523)
+                new TrackInfo("Civil War", 18, 392),               // G4
+                new TrackInfo("14 Years", 15, 440),                // A4
+                new TrackInfo("Yesterdays", 13, 494),              // B4
+                new TrackInfo("Knockin' on Heaven's Door", 17, 523), // C5
+                new TrackInfo("Estranged", 20, 587),               // D5
+                new TrackInfo("You Could Be Mine", 16, 659)        // E5
         ));
 
-        // Guns N' Roses - Greatest Hits
+        // Guns N' Roses - Greatest Hits (2004) - Compilação
         tracks.put("Greatest Hits", List.of(
-                new TrackInfo("Welcome to the Jungle", 15, 587),
-                new TrackInfo("Sweet Child O' Mine", 17, 659),
-                new TrackInfo("Paradise City", 18, 698),
-                new TrackInfo("Patience", 16, 784)
+                new TrackInfo("Welcome to the Jungle", 15, 587),   // D5
+                new TrackInfo("Sweet Child O' Mine", 17, 659),     // E5
+                new TrackInfo("Patience", 16, 698),                // F5
+                new TrackInfo("Paradise City", 18, 784),           // G5
+                new TrackInfo("November Rain", 20, 880),           // A5
+                new TrackInfo("Don't Cry", 17, 988)                // B5
         ));
 
         return tracks;
