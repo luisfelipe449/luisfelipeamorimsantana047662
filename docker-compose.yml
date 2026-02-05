@@ -52,8 +52,10 @@ services:
       mc alias set myminio http://minio:9000 minioadmin minioadmin;
       mc mb myminio/album-covers --ignore-existing;
       mc mb myminio/audio-tracks --ignore-existing;
+      mc mb myminio/artist-photos --ignore-existing;
       mc anonymous set download myminio/album-covers;
       mc anonymous set download myminio/audio-tracks;
+      mc anonymous set download myminio/artist-photos;
       exit 0;
       "
     networks:
