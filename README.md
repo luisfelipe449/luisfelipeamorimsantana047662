@@ -288,6 +288,98 @@ npm start
 |--------|----------|-----------|
 | POST | /api/v1/regionais/sync | Sincronizar regionais |
 | GET | /api/v1/regionais | Listar regionais |
+| GET | /api/v1/regionais/active | Listar regionais ativas |
+
+#### Sincronização de Regionais
+
+O sistema permite sincronizar dados de regionais com uma API externa do governo de Mato Grosso.
+
+##### Como executar a sincronização:
+
+1. **Faça login para obter o token JWT:**
+```bash
+# Linux/Mac
+TOKEN=$(curl -s -X POST http://localhost:8080/api/v1/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "admin", "password": "admin123"}' | jq -r '.accessToken')
+
+# Windows (PowerShell)
+$response = Invoke-RestMethod -Uri "http://localhost:8080/api/v1/auth/login" `
+  -Method POST -ContentType "application/json" `
+  -Body '{"username": "admin", "password": "admin123"}'
+$TOKEN = $response.accessToken
+```
+
+2. **Execute a sincronização:**
+```bash
+# Linux/Mac
+curl -X POST http://localhost:8080/api/v1/regionais/sync \
+  -H "Authorization: Bearer $TOKEN"
+
+# Windows (PowerShell)
+Invoke-RestMethod -Uri "http://localhost:8080/api/v1/regionais/sync" `
+  -Method POST -Headers @{"Authorization"="Bearer $TOKEN"}
+```
+
+3. **Resposta esperada:**
+```json
+{
+  "total": 33,        // Total de regionais na API externa
+  "inserted": 33,     // Quantas foram inseridas (primeira execução)
+  "updated": 0,       // Quantas tiveram o nome alterado
+  "inactivated": 0    // Quantas foram inativadas
+}
+```
+
+##### Listar regionais após sincronização:
+
+```bash
+# Todas as regionais (ativas e inativas)
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/regionais
+
+# Apenas regionais ativas
+curl -H "Authorization: Bearer $TOKEN" http://localhost:8080/api/v1/regionais/active
+```
+
+##### Lógica de sincronização:
+
+A sincronização compara os dados da API externa com o banco local e realiza as seguintes ações:
+
+- **Nova regional**: Se existe na API externa mas não localmente → inserida com `ativo=true`
+- **Regional alterada**: Se o nome mudou → registro atualizado com novo nome
+- **Regional removida**: Se não existe mais na API externa → marcada como `ativo=false` (soft delete)
+- **Sem mudanças**: Se nome e ID são iguais → nenhuma ação
+
+##### Como funciona internamente:
+
+1. **Busca dados da API externa**: GET para https://integrador-argus-api.geia.vip/v1/regionais
+2. **Busca regionais locais**: Consulta todas as regionais do banco de dados
+3. **Processa sincronização**:
+   - Cria um mapa das regionais da API por ID
+   - Para cada regional local, verifica se existe na API:
+     - Se não existe → marca como inativa
+     - Se existe mas o nome mudou → atualiza o nome
+   - Para cada regional da API que não existe localmente → insere nova
+4. **Retorna relatório**: Contadores de inserções, atualizações e inativações
+
+##### Observações importantes:
+
+- **Sincronização manual**: Não há sincronização automática, deve ser executada sob demanda
+- **Requer autenticação**: Endpoint protegido, necessita token JWT válido
+- **Transacional**: Operação atômica - em caso de erro, nenhuma mudança é aplicada
+- **Preserva histórico**: Usa soft delete com flag `ativo` ao invés de deletar registros
+- **ID externo**: O campo `id` vem da API externa (não é auto-incremento)
+- **Idempotente**: Executar múltiplas vezes é seguro e não causa duplicações
+
+##### Estrutura da tabela:
+
+```sql
+CREATE TABLE regionais (
+    id INTEGER PRIMARY KEY,      -- ID vindo da API externa
+    nome VARCHAR(200) NOT NULL,  -- Nome da regional
+    ativo BOOLEAN NOT NULL        -- Flag de ativo/inativo
+);
+```
 
 ### Health Checks
 | Metodo | Endpoint | Descricao |
