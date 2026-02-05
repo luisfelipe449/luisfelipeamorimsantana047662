@@ -197,25 +197,25 @@ public class AlbumService {
 
         // Process tracks if provided
         if (dto.getTracks() != null) {
-            // Mapear tracks existentes por ID para preservar metadados de áudio
+            // Map existing tracks by ID to preserve audio metadata
             Map<Long, Track> existingTracks = album.getTracks().stream()
                     .filter(t -> t.getId() != null)
                     .collect(Collectors.toMap(Track::getId, t -> t));
 
-            // Limpar e forçar flush para evitar constraint violation (UNIQUE album_id, track_number)
+            // Clear and force flush to avoid constraint violation (UNIQUE album_id, track_number)
             album.getTracks().clear();
             albumRepository.flush();
 
             for (TrackInputDTO trackDto : dto.getTracks()) {
                 Track track;
                 if (trackDto.getId() != null && existingTracks.containsKey(trackDto.getId())) {
-                    // Atualiza track existente, preservando metadados de áudio
+                    // Update existing track, preserving audio metadata
                     track = existingTracks.get(trackDto.getId());
                     track.setTitle(trackDto.getTitle());
                     track.setTrackNumber(trackDto.getTrackNumber());
                     track.setDuration(trackDto.getDuration());
                 } else {
-                    // Cria nova track
+                    // Create new track
                     track = Track.builder()
                             .title(trackDto.getTitle())
                             .trackNumber(trackDto.getTrackNumber())

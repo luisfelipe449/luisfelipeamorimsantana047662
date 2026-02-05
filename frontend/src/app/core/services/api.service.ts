@@ -42,10 +42,8 @@ export class ApiService {
     const formData = new FormData();
     formData.append('file', file);
 
-    // Add HTTP options for proper multipart handling
     return this.http.post<any>(`${this.BASE_URL}${path}`, formData, {
-      reportProgress: true,
-      observe: 'body'
+      reportProgress: true
     });
   }
 
@@ -56,8 +54,7 @@ export class ApiService {
     });
 
     return this.http.post<any>(`${this.BASE_URL}${path}`, formData, {
-      reportProgress: true,
-      observe: 'body'
+      reportProgress: true
     });
   }
 

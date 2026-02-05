@@ -36,16 +36,13 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    // Start health check monitoring
     this.healthCheckService.startPeriodicCheck();
 
-    // Subscribe to health status changes
     this.subscriptions.add(
       this.healthCheckService.getHealthStatus().subscribe(status => {
         const previousStatus = this.healthStatus;
         this.healthStatus = status;
 
-        // Show notification when status changes (only after a real previous check)
         if (previousStatus && previousStatus.lastCheck && previousStatus.isHealthy !== status.isHealthy) {
           if (status.isHealthy) {
             this.snackBar.open('Conexão com o servidor restaurada', 'OK', {
@@ -64,7 +61,6 @@ export class AppComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Check route to show/hide navbar
     this.subscriptions.add(
       this.router.events.pipe(
         filter(event => event instanceof NavigationEnd)
@@ -73,7 +69,6 @@ export class AppComponent implements OnInit, OnDestroy {
       })
     );
 
-    // Check initial route
     this.showNavbar = !this.router.url.includes('/auth/');
 
     this.subscriptions.add(

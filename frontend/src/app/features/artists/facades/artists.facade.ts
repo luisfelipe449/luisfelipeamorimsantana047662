@@ -49,8 +49,6 @@ const initialState: ArtistsState = {
 
 @Injectable()
 export class ArtistsFacade {
-  private state = new BehaviorSubject<ArtistsState>(initialState);
-
   // Selectors
   readonly artists$ = new BehaviorSubject<Artist[]>([]);
   readonly selectedArtist$ = new BehaviorSubject<Artist | null>(null);

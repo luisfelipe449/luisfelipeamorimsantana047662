@@ -6,8 +6,8 @@ import com.pss.fullstack.exception.ResourceNotFoundException;
 import com.pss.fullstack.model.Track;
 import com.pss.fullstack.repository.TrackRepository;
 import io.minio.*;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,16 +19,12 @@ import java.util.UUID;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class AudioService {
 
-    @Autowired
-    private MinioClient minioClient;
-
-    @Autowired
-    private StorageService storageService;
-
-    @Autowired
-    private TrackRepository trackRepository;
+    private final MinioClient minioClient;
+    private final StorageService storageService;
+    private final TrackRepository trackRepository;
 
     @Value("${minio.bucket.audio:audio-tracks}")
     private String audioBucket;
@@ -51,7 +47,7 @@ public class AudioService {
     public String uploadAudioFile(Long trackId, MultipartFile file) {
         // Validate track exists
         Track track = trackRepository.findById(trackId)
-                .orElseThrow(() -> new RuntimeException("Track not found: " + trackId));
+                .orElseThrow(() -> new ResourceNotFoundException("Track", trackId));
 
         // Validate file
         validateAudioFile(file);
@@ -93,7 +89,7 @@ public class AudioService {
 
         } catch (Exception e) {
             log.error("Failed to upload audio file for track {}: {}", trackId, e.getMessage());
-            throw new RuntimeException("Failed to upload audio file", e);
+            throw new BusinessException("Failed to upload audio file: " + e.getMessage());
         }
     }
 
@@ -117,7 +113,7 @@ public class AudioService {
      */
     public void deleteAudioFile(Long trackId) {
         Track track = trackRepository.findById(trackId)
-                .orElseThrow(() -> new RuntimeException("Track not found: " + trackId));
+                .orElseThrow(() -> new ResourceNotFoundException("Track", trackId));
 
         if (track.getAudioKey() == null) {
             return;
@@ -142,7 +138,7 @@ public class AudioService {
 
         } catch (Exception e) {
             log.error("Failed to delete audio file for track {}: {}", trackId, e.getMessage());
-            throw new RuntimeException("Failed to delete audio file", e);
+            throw new BusinessException("Failed to delete audio file: " + e.getMessage());
         }
     }
 

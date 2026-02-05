@@ -45,7 +45,6 @@ const initialState: AlbumsState = {
 
 @Injectable()
 export class AlbumsFacade {
-  // Selectors using BehaviorSubject
   readonly albums$ = new BehaviorSubject<Album[]>([]);
   readonly selectedAlbum$ = new BehaviorSubject<Album | null>(null);
   readonly loading$ = new BehaviorSubject<boolean>(false);
@@ -156,7 +155,6 @@ export class AlbumsFacade {
 
   setSortDirection(sortDirection: 'asc' | 'desc'): void {
     const current = this.filters$.value;
-    console.log('AlbumsFacade - Setting sort direction:', sortDirection);
     this.filters$.next({ ...current, sortDirection });
     this.loadAlbums();
   }

@@ -10,6 +10,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,6 +28,9 @@ public class TrackController {
 
     private final TrackService trackService;
     private final AudioService audioService;
+
+    @Value("${audio.stream-url-expiry:3600}")
+    private String streamUrlExpiry;
 
     @GetMapping("/{id}")
     @Operation(summary = "Get track by ID")
@@ -87,7 +91,7 @@ public class TrackController {
 
         return ResponseEntity.ok(Map.of(
                 "streamUrl", streamUrl,
-                "expiresIn", "3600" // 1 hour in seconds
+                "expiresIn", streamUrlExpiry
         ));
     }
 

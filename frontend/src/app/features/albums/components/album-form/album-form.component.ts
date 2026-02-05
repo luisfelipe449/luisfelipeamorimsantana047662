@@ -218,7 +218,7 @@ export class AlbumFormComponent implements OnInit, OnDestroy {
     this.selectedFile = null;
     this.coverPreview = null;
 
-    // Se está editando um álbum existente com capa, marcar para remoção
+    // If editing an existing album with a cover, mark for removal
     if (this.isEditMode && hadCover) {
       this.coverRemoved = true;
     }

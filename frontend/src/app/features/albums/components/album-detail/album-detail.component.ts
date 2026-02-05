@@ -139,7 +139,7 @@ export class AlbumDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Filtrar apenas faixas com áudio disponível
+    // Filter only tracks with available audio
     const playableTracks = this.album.tracks.filter(t => this.hasAudio(t));
     if (playableTracks.length === 0) {
       return;
@@ -160,7 +160,7 @@ export class AlbumDetailComponent implements OnInit, OnDestroy {
       return;
     }
 
-    // Filtrar apenas faixas com áudio disponível para a playlist
+    // Filter only tracks with available audio for the playlist
     const playableTracks = this.album.tracks.filter(t => this.hasAudio(t));
     const playableIndex = playableTracks.findIndex(t => t.id === track.id);
 

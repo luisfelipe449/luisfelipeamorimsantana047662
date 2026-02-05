@@ -11,6 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.lang.NonNull;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -18,6 +19,7 @@ import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -28,7 +30,17 @@ public class RateLimitFilter extends OncePerRequestFilter {
     @Value("${rate-limit.requests-per-minute}")
     private int requestsPerMinute;
 
-    private final Map<String, Bucket> buckets = new ConcurrentHashMap<>();
+    private final Map<String, BucketWrapper> buckets = new ConcurrentHashMap<>();
+
+    private static class BucketWrapper {
+        final Bucket bucket;
+        final Instant lastAccessed;
+
+        BucketWrapper(Bucket bucket) {
+            this.bucket = bucket;
+            this.lastAccessed = Instant.now();
+        }
+    }
 
     @Override
     protected void doFilterInternal(
@@ -45,9 +57,14 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
 
         String userKey = getUserKey(request);
-        Bucket bucket = buckets.computeIfAbsent(userKey, this::createBucket);
+        BucketWrapper wrapper = buckets.compute(userKey, (key, existing) -> {
+            if (existing == null) {
+                return new BucketWrapper(createBucket(key));
+            }
+            return new BucketWrapper(existing.bucket);
+        });
 
-        if (bucket.tryConsume(1)) {
+        if (wrapper.bucket.tryConsume(1)) {
             filterChain.doFilter(request, response);
         } else {
             log.warn("Rate limit exceeded for user: {}", userKey);
@@ -92,6 +109,24 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return Bucket.builder()
                 .addLimit(limit)
                 .build();
+    }
+
+    /**
+     * Clean up expired buckets every 5 minutes to prevent memory leak
+     */
+    @Scheduled(fixedDelay = 300000) // 5 minutes
+    public void cleanupExpiredBuckets() {
+        Instant cutoff = Instant.now().minus(Duration.ofMinutes(10));
+        int sizeBefore = buckets.size();
+
+        buckets.entrySet().removeIf(entry ->
+            entry.getValue().lastAccessed.isBefore(cutoff)
+        );
+
+        int removedCount = sizeBefore - buckets.size();
+        if (removedCount > 0) {
+            log.debug("Cleaned up {} expired rate limit buckets", removedCount);
+        }
     }
 
 }

@@ -21,7 +21,6 @@ export class ArtistListComponent implements OnInit, OnDestroy {
   sortDirection: 'asc' | 'desc' = 'asc';
   typeFilter: ArtistType | null = null;
 
-  // Pagination
   totalElements = 0;
   pageSize = 10;
   currentPage = 0;

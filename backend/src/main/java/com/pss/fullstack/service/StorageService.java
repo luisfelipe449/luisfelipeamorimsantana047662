@@ -6,9 +6,8 @@ import com.pss.fullstack.exception.ResourceNotFoundException;
 import io.minio.*;
 import io.minio.errors.ErrorResponseException;
 import io.minio.http.Method;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,6 +23,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Slf4j
+@RequiredArgsConstructor
 public class StorageService {
 
     private static final long MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -31,8 +31,7 @@ public class StorageService {
             "image/jpeg", "image/jpg", "image/png", "image/gif", "image/webp"
     );
 
-    @Autowired
-    private MinioClient minioClient;
+    private final MinioClient minioClient;
 
     @Value("${minio.bucket-name}")
     private String bucketName;
@@ -115,11 +114,7 @@ public class StorageService {
                             .build()
             );
 
-            // Replace internal URL with external URL for browser access
-            if (minioExternalUrl != null && !minioInternalUrl.equals(minioExternalUrl)) {
-                url = url.replace(minioInternalUrl, minioExternalUrl);
-            }
-
+            url = replaceInternalWithExternalUrl(url);
             log.debug("Generated presigned URL for: {}", objectKey);
             return url;
 
@@ -152,11 +147,7 @@ public class StorageService {
                             .build()
             );
 
-            // Replace internal URL with external URL for browser access
-            if (minioExternalUrl != null && !minioInternalUrl.equals(minioExternalUrl)) {
-                url = url.replace(minioInternalUrl, minioExternalUrl);
-            }
-
+            url = replaceInternalWithExternalUrl(url);
             log.debug("Generated presigned URL for: {} in bucket: {}", objectKey, bucket);
             return url;
 
@@ -347,6 +338,16 @@ public class StorageService {
             log.error("Error checking/creating bucket: {}", e.getMessage());
             throw new BusinessException("Failed to ensure bucket exists: " + e.getMessage());
         }
+    }
+
+    /**
+     * Replace internal URL with external URL for browser access
+     */
+    private String replaceInternalWithExternalUrl(String url) {
+        if (minioExternalUrl != null && !minioInternalUrl.equals(minioExternalUrl)) {
+            return url.replace(minioInternalUrl, minioExternalUrl);
+        }
+        return url;
     }
 
 }

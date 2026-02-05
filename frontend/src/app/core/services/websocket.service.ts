@@ -35,7 +35,6 @@ export class WebSocketService {
 
     const token = this.authService.getAccessToken();
     if (!token) {
-      console.warn('Cannot connect to WebSocket: No auth token');
       return;
     }
 
@@ -88,8 +87,8 @@ export class WebSocketService {
       try {
         const notification: AlbumNotification = JSON.parse(message.body);
         this.albumNotificationsSubject.next(notification);
-      } catch {
-        // Ignore invalid messages
+      } catch (error) {
+        console.error('Failed to parse WebSocket message:', error);
       }
     });
   }
