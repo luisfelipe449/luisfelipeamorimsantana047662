@@ -588,6 +588,62 @@ private boolean isPublicEndpoint(String path) {
 | Health check passivo (interceptor) | Zero overhead | Só detecta após falha real |
 | Sem health check | Simplicidade | Não atende requisito Sênior |
 
+### 14. Seed de Faixas Musicais (Reprodução de Áudio)
+
+**Decisão**: Incluir faixas musicais geradas proceduralmente no seed de dados para demonstrar a funcionalidade de reprodução de áudio do sistema.
+
+**Motivação**: O sistema permite que usuários façam upload de suas próprias músicas para ouvir na plataforma. Para demonstrar essa funcionalidade de forma imediata, sem exigir que o avaliador faça uploads manuais, o seed inclui:
+
+- **55 faixas** distribuídas entre os 13 álbuns de exemplo
+- **Arquivos WAV** gerados com ondas senoidais (royalty-free)
+- **Durações variadas** entre 8 e 20 segundos cada
+- **Frequências musicais** diferentes para cada faixa (notas C4 a B5)
+
+**Implementação Técnica** (`TrackSeeder.java`):
+1. Gera áudio proceduralmente usando `javax.sound.sampled`
+2. Cria ondas senoidais com harmônicos para som mais rico
+3. Aplica fade in/out para evitar cliques
+4. Adiciona efeito de tremolo sutil para musicalidade
+5. Exporta em formato WAV padrão (44.1kHz, 16-bit, mono)
+6. Faz upload automático para bucket MinIO (`audio-tracks`)
+
+**Faixas de Exemplo por Álbum**:
+| Artista | Álbum | Faixas |
+|---------|-------|--------|
+| Serj Tankian | Harakiri | Cornucopia, Figure It Out, Weave On, Uneducated Democracy, Harakiri |
+| Serj Tankian | Black Blooms | Black Blooms, Rumi, Disarming Time |
+| Mike Shinoda | The Rising Tied | Introduction, Remember the Name, Right Now, Petrified, Feel Like Home, Believe Me |
+| Mike Shinoda | Post Traumatic | Place to Start, Over Again, Watching As I Fall, Nothing Makes Sense Anymore, Crossing a Line |
+| Michel Teló | Bem Sertanejo | Ai Se Eu Te Pego, Fugidinha, Bara Bara Bere Bere, Humilde Residência, Ei Psiu Beijo Me Liga |
+| Guns N' Roses | Use Your Illusion I | Right Next Door to Hell, Dust N' Bones, Live and Let Die, Don't Cry, November Rain, The Garden |
+| Guns N' Roses | Greatest Hits | Welcome to the Jungle, Sweet Child O' Mine, Patience, Paradise City, November Rain, Don't Cry |
+
+**Funcionalidade para o Usuário**:
+- ✅ Reproduzir qualquer faixa diretamente no browser
+- ✅ Fazer upload de arquivos de áudio próprios (MP3, WAV, etc.)
+- ✅ Player integrado com controles de play/pause
+- ✅ Informações de duração e formato exibidas
+
+**Trade-offs**:
+| Aspecto | Seed Automático | Upload Manual |
+|---------|-----------------|---------------|
+| Experiência inicial | ✅ Funciona imediatamente | ❌ Requer ação do usuário |
+| Autenticidade | ❌ Sons sintéticos | ✅ Músicas reais |
+| Tamanho do seed | ❌ ~50MB de áudio | ✅ Zero overhead |
+| Demonstração | ✅ Feature visível de imediato | ❌ Pode passar despercebida |
+
+**Decisão**: Optei por incluir o seed de áudio porque:
+1. Demonstra a funcionalidade completa sem intervenção manual
+2. Arquivos gerados são pequenos (poucos segundos cada)
+3. Não há problemas de copyright (ondas senoidais são royalty-free)
+4. O avaliador pode testar a reprodução imediatamente
+
+**Observação**: O seed só executa nos perfis `dev` e `docker`, e apenas se não houver faixas no banco. Para recriar, basta executar:
+```bash
+docker exec -it pss-postgres-dev psql -U pss_user -d pss_fullstack -c "DELETE FROM tracks;"
+# Reiniciar o backend
+```
+
 ## Trade-offs e Priorizacoes
 
 1. **Simplicidade vs Features**: Priorizei uma implementacao limpa e funcional das features obrigatorias sobre adicionar funcionalidades extras.
@@ -600,7 +656,7 @@ private boolean isPublicEndpoint(String path) {
 
 ## Dados de Exemplo
 
-O sistema ja vem com dados iniciais (via Flyway migration):
+O sistema ja vem com dados iniciais (via Flyway migration e seeders):
 
 **Artistas**:
 - Serj Tankian (Solo) - Armenia
@@ -613,6 +669,12 @@ O sistema ja vem com dados iniciais (via Flyway migration):
 - The Rising Tied, Post Traumatic (Mike Shinoda)
 - Bem Sertanejo (Michel Telo)
 - Use Your Illusion I/II, Greatest Hits (Guns N' Roses)
+
+**Faixas Musicais** (geradas automaticamente pelo `TrackSeeder`):
+- 55 faixas distribuídas entre os álbuns
+- Arquivos de áudio WAV gerados proceduralmente
+- Permite testar a reprodução de áudio imediatamente
+- Usuário pode fazer upload de suas próprias músicas
 
 ## Comandos Uteis
 
