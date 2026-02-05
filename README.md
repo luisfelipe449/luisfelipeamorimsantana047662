@@ -588,7 +588,62 @@ private boolean isPublicEndpoint(String path) {
 | Health check passivo (interceptor) | Zero overhead | Só detecta após falha real |
 | Sem health check | Simplicidade | Não atende requisito Sênior |
 
-### 14. Seed de Faixas Musicais (Reprodução de Áudio)
+### 14. Seed de Imagens (Capas e Fotos de Artistas)
+
+**Decisão**: Permitir o carregamento automático de imagens locais para artistas e álbuns durante a inicialização, com fallback para placeholders gerados proceduralmente.
+
+**Estrutura de Diretórios**:
+```
+backend/src/main/resources/seed-images/
+├── artists/
+│   ├── serj-tankian.jpg
+│   ├── mike-shinoda.jpg
+│   ├── michel-telo.jpg
+│   └── guns-n-roses.jpg
+└── albums/
+    ├── harakiri.jpg
+    ├── black-blooms.jpg
+    ├── the-rough-dog.jpg
+    ├── the-rising-tied.jpg
+    ├── post-traumatic.jpg
+    ├── post-traumatic-ep.jpg
+    ├── whered-you-go.jpg
+    ├── bem-sertanejo.jpg
+    ├── bem-sertanejo-ao-vivo.jpg
+    ├── bem-sertanejo-ep.jpg
+    ├── use-your-illusion-i.jpg
+    ├── use-your-illusion-ii.jpg
+    └── greatest-hits.jpg
+```
+
+**Como Funciona** (`ImageSeeder.java`):
+1. Verifica se artistas já têm fotos (evita duplicação)
+2. Para cada artista/álbum, tenta carregar imagem do classpath
+3. Se não encontrar, gera placeholder colorido com o nome
+4. Faz upload para o MinIO e atualiza a entidade
+
+**Comportamento**:
+| Cenário | Resultado |
+|---------|-----------|
+| Imagem `.jpg` presente | Usa a imagem local |
+| Imagem ausente | Gera placeholder PNG colorido |
+| Já tem foto no banco | Pula (não sobrescreve) |
+
+**Cores dos Placeholders** (por artista):
+- Serj Tankian: Vermelho escuro
+- Mike Shinoda: Azul meia-noite
+- Michel Teló: Verde escuro
+- Guns N' Roses: Laranja escuro
+
+**Para Adicionar Imagens Reais**:
+1. Coloque os arquivos `.jpg` nos diretórios correspondentes
+2. Use os nomes exatos listados acima (lowercase, hífens)
+3. Limpe o banco ou remova as `photoKey`/`coverKeys` existentes
+4. Reinicie o backend
+
+**Observação**: Os diretórios já existem com arquivos `.gitkeep`. As imagens reais não são commitadas no repositório para evitar problemas de copyright.
+
+### 15. Seed de Faixas Musicais (Reprodução de Áudio)
 
 **Decisão**: Incluir faixas musicais geradas proceduralmente no seed de dados para demonstrar a funcionalidade de reprodução de áudio do sistema.
 
