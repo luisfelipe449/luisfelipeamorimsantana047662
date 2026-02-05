@@ -20,6 +20,9 @@ public class ImageProxyController {
 
     private final StorageService storageService;
 
+    @org.springframework.beans.factory.annotation.Value("${minio.artist-photo-bucket:artist-photos}")
+    private String artistPhotoBucket;
+
     @GetMapping("/album-covers/{objectKey}")
     @Operation(summary = "Get album cover image")
     public ResponseEntity<byte[]> getAlbumCover(
@@ -74,9 +77,9 @@ public class ImageProxyController {
         }
 
         try {
-            // Get image from MinIO (artist photos might be in a different bucket in the future)
-            byte[] imageData = storageService.getObject(objectKey);
-            String contentType = storageService.getContentType(objectKey);
+            // Get image from MinIO artist-photos bucket
+            byte[] imageData = storageService.getObjectFromBucket(objectKey, artistPhotoBucket);
+            String contentType = detectContentTypeFromKey(objectKey);
 
             // Calculate ETag
             String etag = "\"" + objectKey.hashCode() + "\"";
@@ -111,5 +114,18 @@ public class ImageProxyController {
                !objectKey.contains("..") && // Prevent directory traversal
                !objectKey.startsWith("/") &&
                !objectKey.startsWith("\\");
+    }
+
+    private String detectContentTypeFromKey(String objectKey) {
+        if (objectKey == null) return "image/jpeg";
+        String lowerKey = objectKey.toLowerCase();
+        if (lowerKey.endsWith(".png")) {
+            return "image/png";
+        } else if (lowerKey.endsWith(".gif")) {
+            return "image/gif";
+        } else if (lowerKey.endsWith(".webp")) {
+            return "image/webp";
+        }
+        return "image/jpeg";
     }
 }
